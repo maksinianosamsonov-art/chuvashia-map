@@ -50,6 +50,24 @@
       border-radius: 8px; cursor: pointer; color: white;
     }
     .sticker-option:hover { background: #555; }
+
+    /* Попап метки */
+    .sticker-popup {
+      font-size: 12px; padding: 8px;
+      background: #2d2d2d; border-radius: 8px;
+      color: white;
+    }
+    .sticker-popup .name {
+      font-weight: bold; margin-bottom: 4px;
+    }
+    .sticker-popup .time {
+      color: #aaa; font-size: 10px; margin-bottom: 8px;
+    }
+    .sticker-popup .delete-btn {
+      background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+      border-radius: 4px; padding: 2px 6px; font-size: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -149,7 +167,68 @@
     }
     modal.onclick = e => { if (e.target === modal) closeModal(); };
 
-    // === Отправка метки на сервер ===
+    // === Отображение меток ===
+    let stickerMarkers = [];
+
+    async function loadStickers() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/stickers`);
+        const stickers = await res.json();
+        // Очистить старые метки
+        stickerMarkers.forEach(m => map.removeLayer(m));
+        stickerMarkers = [];
+
+        stickers.forEach(st => {
+          if (Date.now() - st.timestamp > 15 * 60 * 1000) return;
+
+          // Иконка
+          const icon = L.divIcon({
+            html: st.type === 'car' ? '🚓' : '⚠️',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            className: ''
+          });
+
+          const marker = L.marker([st.lat, st.lng], { icon }).addTo(map);
+          stickerMarkers.push(marker);
+
+          // Имя над меткой
+          const label = L.divIcon({
+            html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${st.name}</div>`,
+            iconSize: [120, 20],
+            iconAnchor: [60, 0],
+            className: ''
+          });
+          L.marker([st.lat, st.lng], { icon: label, interactive: false }).addTo(map);
+
+          // Попап
+          const timeAgo = Math.floor((Date.now() - st.timestamp) / 60000);
+          const popupContent = `
+            <div class="sticker-popup">
+              <div class="name">${st.name}</div>
+              <div class="time">${timeAgo} мин назад</div>
+              ${st.userId === (tg?.initDataUnsafe?.user?.id || '') ? 
+                `<button class="delete-btn" onclick="deleteSticker('${st.id}')">Удалить</button>` : ''}
+            </div>
+          `;
+          marker.bindPopup(popupContent);
+        });
+      } catch (err) {
+        console.error("Не удалось загрузить метки:", err);
+      }
+    }
+
+    // === Удаление метки ===
+    async function deleteSticker(id) {
+      try {
+        await fetch(`${BACKEND_URL}/stickers/${id}`, { method: 'DELETE' });
+        loadStickers();
+      } catch (err) {
+        alert("Ошибка удаления метки.");
+      }
+    }
+
+    // === Добавление метки ===
     async function addSticker(type) {
       closeModal();
       if (!selectedLocation || !tg?.initDataUnsafe?.user) return;
@@ -186,44 +265,6 @@
       } catch (err) {
         console.error(err);
         alert("Ошибка отправки метки.");
-      }
-    }
-
-    // === Загрузка меток с сервера ===
-    async function loadStickers() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/stickers`);
-        const stickers = await res.json();
-        // Очистить старые метки
-        if (window.markers) {
-          window.markers.forEach(m => map.removeLayer(m));
-        }
-        window.markers = [];
-
-        stickers.forEach(st => {
-          if (Date.now() - st.timestamp > 15 * 60 * 1000) return;
-
-          // Иконка
-          const icon = L.divIcon({
-            html: st.type === 'car' ? '🚓' : '⚠️',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            className: ''
-          });
-          const marker = L.marker([st.lat, st.lng], { icon }).addTo(map);
-          window.markers.push(marker);
-
-          // Имя над меткой
-          const label = L.divIcon({
-            html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${st.name}</div>`,
-            iconSize: [120, 20],
-            iconAnchor: [60, 0],
-            className: ''
-          });
-          L.marker([st.lat, st.lng], { icon: label, interactive: false }).addTo(map);
-        });
-      } catch (err) {
-        console.error("Не удалось загрузить метки:", err);
       }
     }
 
