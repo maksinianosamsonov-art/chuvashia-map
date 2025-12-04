@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Чувашия — Метки</title>
+  <title>Чувашия — Общие метки</title>
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -71,8 +71,10 @@
   </div>
 
   <script>
-    // === Граница Чувашии ===
-    const chuvashia = [
+    // === НАСТРОЙКИ ===
+    const BACKEND_URL = 'https://chuvashia-stickers.onrender.com'; // ← ЗАМЕНИТЕ НА ВАШ RENDER URL
+    const CHUVASHIA_BOUNDS = [[54.5, 45.8], [56.4, 48.6]];
+    const CHUVASHIA_POLYGON = [
       [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850],
       [56.150, 47.000], [56.145, 47.150], [56.160, 47.250], [56.130, 47.450], [56.140, 47.550],
       [56.100, 47.700], [56.050, 47.850], [56.000, 48.000], [55.950, 48.100], [55.850, 48.250],
@@ -93,21 +95,20 @@
       zoom: 9,
       minZoom: 8,
       maxZoom: 18,
-      maxBounds: L.latLngBounds([54.5, 45.8], [56.4, 48.6])
+      maxBounds: L.latLngBounds(CHUVASHIA_BOUNDS)
     });
-
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+    // === Слои карты ===
     let dark = true;
     const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
     const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-
     darkLayer.addTo(map);
 
-    // Маска: только Чувашия
+    // === Маска Чувашии ===
     L.polygon([
       [[90, -180], [90, 180], [-90, 180], [-90, -180]],
-      chuvashia
+      CHUVASHIA_POLYGON
     ], {
       fillColor: '#080808',
       fillOpacity: 0.95,
@@ -115,7 +116,7 @@
       interactive: false
     }).addTo(map);
 
-    // === Telegram + данные пользователя ===
+    // === Telegram WebApp ===
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
@@ -123,87 +124,117 @@
       tg.disableVerticalSwipes();
     }
 
-    function getDisplayName() {
-      if (!tg?.initDataUnsafe?.user) return null;
-      const u = tg.initDataUnsafe.user;
-      let name = u.first_name || "Друг";
-      if (u.last_name) name += " " + u.last_name;
-      if (u.username) name += ` (@${u.username})`;
-      return name;
-    }
+    // === Глобальные переменные ===
+    let pressTimer, selectedLocation;
+    const modal = document.getElementById('sticker-modal');
 
     // === Долгое нажатие ===
-    let pressTimer, selectedLocation;
     map.on('mousedown touchstart', e => {
       if (e.type === 'mousedown' && e.originalEvent.button !== 0) return;
       if (e.type === 'touchstart' && e.originalEvent.touches.length !== 1) return;
       selectedLocation = e.latlng;
       pressTimer = setTimeout(() => {
-        document.getElementById('sticker-modal').classList.add('active');
+        if (tg?.initDataUnsafe?.user) {
+          modal.classList.add('active');
+        } else {
+          tg?.requestWriteAccess(() => location.reload());
+          alert("Разрешите доступ к имени для установки метки.");
+        }
       }, 600);
     });
     map.on('mouseup mousemove touchend dragstart zoomstart', () => clearTimeout(pressTimer));
 
     function closeModal() {
-      document.getElementById('sticker-modal').classList.remove('active');
+      modal.classList.remove('active');
     }
-    document.getElementById('sticker-modal').onclick = e => {
-      if (e.target.id === 'sticker-modal') closeModal();
-    };
+    modal.onclick = e => { if (e.target === modal) closeModal(); };
 
-    // === Добавление метки ===
-    function addSticker(type) {
+    // === Отправка метки на сервер ===
+    async function addSticker(type) {
       closeModal();
-      if (!selectedLocation) return;
+      if (!selectedLocation || !tg?.initDataUnsafe?.user) return;
 
-      const name = getDisplayName();
-      if (!name) {
-        if (tg) tg.requestWriteAccess(() => location.reload());
-        alert("Разрешите доступ к имени, чтобы ставить метки.");
-        return;
+      const user = tg.initDataUnsafe.user;
+      const name = (user.first_name || "Друг") + (user.username ? ` (@${user.username})` : "");
+      const userId = user.id;
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/stickers/check-limit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        const data = await res.json();
+        if (data.blocked) {
+          alert(`Вы можете ставить метку не чаще 5 минут.\nПодождите ещё ${data.remainingMinutes} мин.`);
+          return;
+        }
+
+        await fetch(`${BACKEND_URL}/stickers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            lat: selectedLocation.lat,
+            lng: selectedLocation.lng,
+            name,
+            userId,
+            timestamp: Date.now()
+          })
+        });
+        loadStickers();
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка отправки метки.");
       }
+    }
 
-      const now = Date.now();
-      const last = localStorage.getItem('last_sticker');
-      if (last && now - Number(last) < 5 * 60 * 1000) {
-        const min = Math.ceil((5 * 60 * 1000 - (now - Number(last))) / 60000);
-        alert(`Подождите ещё ${min} мин.`);
-        return;
+    // === Загрузка меток с сервера ===
+    async function loadStickers() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/stickers`);
+        const stickers = await res.json();
+        // Очистить старые метки
+        if (window.markers) {
+          window.markers.forEach(m => map.removeLayer(m));
+        }
+        window.markers = [];
+
+        stickers.forEach(st => {
+          if (Date.now() - st.timestamp > 15 * 60 * 1000) return;
+
+          // Иконка
+          const icon = L.divIcon({
+            html: st.type === 'car' ? '🚓' : '⚠️',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            className: ''
+          });
+          const marker = L.marker([st.lat, st.lng], { icon }).addTo(map);
+          window.markers.push(marker);
+
+          // Имя над меткой
+          const label = L.divIcon({
+            html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${st.name}</div>`,
+            iconSize: [120, 20],
+            iconAnchor: [60, 0],
+            className: ''
+          });
+          L.marker([st.lat, st.lng], { icon: label, interactive: false }).addTo(map);
+        });
+      } catch (err) {
+        console.error("Не удалось загрузить метки:", err);
       }
-      localStorage.setItem('last_sticker', now.toString());
-
-      // Иконка метки
-      const icon = L.divIcon({
-        html: type === 'car' ? '🚓' : '⚠️',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        className: ''
-      });
-      const marker = L.marker(selectedLocation, { icon }).addTo(map);
-
-      // Имя над меткой
-      const label = L.divIcon({
-        html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${name}</div>`,
-        iconSize: [120, 20],
-        iconAnchor: [60, 0],
-        className: ''
-      });
-      L.marker(selectedLocation, { icon: label, interactive: false }).addTo(map);
-
-      // Автоудаление через 15 минут
-      setTimeout(() => map.removeLayer(marker), 15 * 60 * 1000);
     }
 
     // === Управление ===
     function toggleTheme() {
       dark = !dark;
       if (dark) {
-        map.removeLayer(lightLayer);
-        map.addLayer(darkLayer);
+        map.removeLayer(lightLayer); map.addLayer(darkLayer);
         document.getElementById('themeBtn').textContent = '🌙';
       } else {
-        map.removeLayer(darkLayer);
-        map.addLayer(lightLayer);
+        map.removeLayer(darkLayer); map.addLayer(lightLayer);
         document.getElementById('themeBtn').textContent = '☀️';
       }
     }
@@ -214,6 +245,10 @@
     map.on('locationfound', e => {
       L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
     });
+
+    // === Загрузка при старте ===
+    loadStickers();
+    setInterval(loadStickers, 30000); // обновлять каждые 30 сек
   </script>
 </body>
 </html>
