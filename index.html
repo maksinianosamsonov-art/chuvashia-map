@@ -1,256 +1,373 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта Чувашии</title>
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #1a1a1a; }
-        #map { height: 100%; width: 100%; z-index: 1; }
-        
-        .leaflet-bar a { background-color: #333; color: #eee; border-bottom: 1px solid #444; }
-        .leaflet-bar a:hover { background-color: #444; }
-        
-        /* Модальное окно */
-        #sticker-modal {
-            display: none;
-            position: fixed; inset: 0; z-index: 2000;
-            background: rgba(0,0,0,0.6);
-            align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
-        }
-        #sticker-modal.active { display: flex; opacity: 1; }
-        
-        .sticker-btn { transition: transform 0.2s; }
-        .sticker-btn:hover { transform: scale(1.1); }
-        .sticker-btn:active { transform: scale(0.95); }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Чувашия — Метки</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: #1a1a1a;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+    .leaflet-bar a {
+      background-color: #333;
+      color: #eee;
+      border-bottom: 1px solid #444;
+    }
+    .leaflet-bar a:hover {
+      background-color: #444;
+    }
+
+    /* Модальное окно */
+    #sticker-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #sticker-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .sticker-btn {
+      transition: transform 0.2s;
+      background: #444;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+    }
+    .sticker-btn:hover {
+      transform: scale(1.1);
+      background: #555;
+    }
+    .sticker-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Статус */
+    .status-hint {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.7);
+      color: #ffcc00;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: monospace;
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-hint .pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffcc00;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Панель управления */
+    .control-panel {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-btn {
+      background: #444;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 50%;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .control-btn:hover {
+      background: #555;
+    }
+  </style>
 </head>
 <body>
+  <div id="map"></div>
 
-    <div id="map"></div>
-
-    <!-- Модальное окно -->
-    <div id="sticker-modal" onclick="closeModal(event)">
-        <div style="background: #2d2d2d; border: 1px solid #444; border-radius: 12px; padding: 16px; text-align: center;">
-            <h3 style="color: white; margin-bottom: 12px;">Выберите метку</h3>
-            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px;">
-                <button onclick="addSticker('car')" style="background: #444; color: white; border: 1px solid #555; border-radius: 8px; padding: 8px; cursor: pointer;">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgNjA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNMTAsMzAgTDIwLDEyIEw4MCwxMiBMOTAsMzAgTDk1LDMwIEE1LDUgMCAwLDEgMTAwLDM1IEwxMDAsNDUgQTYsNiAwIDAsMSA5NSw1MCBMOCw1MCBBNSw1IDAgMCwxIDAsNDUgTDAsMzUgQTYsNiAwIDAsMSA1LDMwIFoiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMCwzNCBMMTAwLDM0IEwxMDAsNDIgTDAsNDIgWiIgZmlsbD0iIzAwNTVhYSIvPjx0ZXh0IHg9IjUwIiB5PSI0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iMSI+UG9saWNpYTwvdGV4dD48cGF0aCBkPSJNMjIsMTQgTDc4LDE0IEw4NywzMCBMMTMsMzAgWiIgZmlsbD0iI2RjZWVmZiIgb3BhY2l0eT0iMC44Ii8+PHJlY3QgeD0iNDIiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjMDAwMGZmIiByeD0iMSIvPjxyZWN0IHg9IjQyIiB5PSI2IiB3aWR0aD0iOCIgaGVpZ2h0PSI2IiBmaWxsPSIjZmYwMDAwIiByeD0iMSIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iMjUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iNzUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjwvZz48L3N2Zz4=" width="32" height="24" style="margin: 4px 0;">
-                    <div style="font-size: 12px; margin-top: 4px;">ДПС</div>
-                </button>
-                <button onclick="addSticker('sign')" style="background: #444; color: white; border: 1px solid #555; border-radius: 8px; padding: 8px; cursor: pointer;">
-                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgOTA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNNTAsNSBMOTUsODUgTDUsODUgWiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJibGFjayI+RFRQPC90ZXh0PjwvZz48L3N2Zz4=" width="32" height="32" style="margin: 4px 0;">
-                    <div style="font-size: 12px; margin-top: 4px;">ДТП</div>
-                </button>
-            </div>
-            <p style="color: #777; font-size: 10px;">Метка исчезнет через 15 минут</p>
-        </div>
-    </div>
-
-    <!-- Статус -->
-    <div style="position: absolute; bottom: 6px; left: 6px; z-index: 1000; background: rgba(0,0,0,0.7); color: #ffcc00; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; border: 1px solid rgba(255,204,0,0.3); box-shadow: 0 0 4px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px;">
-        <span style="width: 6px; height: 6px; border-radius: 50%; background: #ffcc00; animation: pulse 1s infinite;"></span>
-        Удерживайте точку для метки
-    </div>
-
-    <!-- Панель управления -->
-    <div style="position: absolute; top: 4px; right: 4px; z-index: 1000; display: flex; flex-direction: column; gap: 6px;">
-        <button id="themeToggle" onclick="toggleTheme()" style="background: #444; color: white; border: 1px solid #555; border-radius: 50%; padding: 8px; cursor: pointer; transition: all 0.2s;">
-            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px; display: none;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+  <!-- Модальное окно -->
+  <div id="sticker-modal" onclick="closeModal(event)">
+    <div style="background: #2d2d2d; border: 1px solid #444; border-radius: 12px; padding: 16px; text-align: center; max-width: 280px; width: 90%;">
+      <h3 style="color: white; margin-bottom: 12px;">Выберите метку</h3>
+      <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px;">
+        <button onclick="addSticker('car')" class="sticker-btn">
+          <div style="font-size: 10px;">ДПС</div>
         </button>
-        <button id="locateBtn" onclick="locateUser()" style="background: #1f77b4; color: white; border: 1px solid #0d5aa0; border-radius: 50%; padding: 8px; cursor: pointer; transition: all 0.2s;">
-            <svg xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <button onclick="addSticker('sign')" class="sticker-btn">
+          <div style="font-size: 10px;">ДТП</div>
         </button>
+      </div>
+      <p style="color: #777; font-size: 10px;">Метка исчезнет через 15 минут</p>
     </div>
+  </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Подсказка -->
+  <div class="status-hint">
+    <span class="pulse"></span>
+    Удерживайте точку для метки
+  </div>
 
-    <script>
-        // --- ДАННЫЕ ГРАНИЦ ---
-        const chuvashiaReal = [
-            [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850], 
-            [56.150, 47.000], [56.145, 47.150], [56.160, 47.250], [56.130, 47.450], [56.140, 47.550], 
-            [56.100, 47.700], [56.050, 47.850], [56.000, 48.000], [55.950, 48.100], [55.850, 48.250], 
-            [55.750, 48.200], [55.650, 48.350], [55.550, 48.450], [55.450, 48.400], [55.350, 48.300], 
-            [55.250, 48.250], [55.150, 48.150], [55.100, 48.100], [55.050, 48.050], [55.000, 48.000], 
-            [54.950, 47.950], [54.900, 47.850], [54.850, 47.750], [54.800, 47.650], [54.750, 47.600],
-            [54.700, 47.550], [54.650, 47.450], [54.600, 47.300], [54.580, 47.200], [54.600, 47.100], 
-            [54.650, 46.950], [54.700, 46.850], [54.750, 46.750], [54.800, 46.650], [54.820, 46.550], 
-            [54.840, 46.450], [54.850, 46.350], [54.880, 46.250], [54.950, 46.200], [55.000, 46.180], 
-            [55.050, 46.150], [55.150, 46.120], [55.250, 46.100], [55.350, 46.080], [55.450, 46.100], 
-            [55.550, 46.120], [55.650, 46.150], [55.750, 46.180], [55.850, 46.200], [55.950, 46.250], 
-            [56.000, 46.300], [56.050, 46.350], [56.080, 46.400], [56.120, 46.500] 
-        ];
+  <!-- Кнопки управления -->
+  <div class="control-panel">
+    <button id="themeToggle" class="control-btn" onclick="toggleTheme()" title="Сменить тему">
+      <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px; display: none;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+    <button id="locateBtn" class="control-btn" onclick="locateUser()" title="Моё местоположение">
+      <svg xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </button>
+  </div>
 
-        // --- КАРТА ---
-        const map = L.map('map', {
-            center: [55.45, 47.25], zoom: 9, minZoom: 8, maxZoom: 18,
-            zoomControl: false, attributionControl: false, 
-            maxBounds: L.latLngBounds([54.5, 45.8], [56.4, 48.6]), maxBoundsViscosity: 0.8
-        });
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        // 🌑 Тёмная карта
-        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
-        const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
-        darkLayer.addTo(map);
+  <script>
+    // === 1. Границы Чувашии ===
+    const chuvashiaReal = [
+      [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850],
+      [56.150, 47.000], [56.145, 47.150], [56.160, 47.250], [56.130, 47.450], [56.140, 47.550],
+      [56.100, 47.700], [56.050, 47.850], [56.000, 48.000], [55.950, 48.100], [55.850, 48.250],
+      [55.750, 48.200], [55.650, 48.350], [55.550, 48.450], [55.450, 48.400], [55.350, 48.300],
+      [55.250, 48.250], [55.150, 48.150], [55.100, 48.100], [55.050, 48.050], [55.000, 48.000],
+      [54.950, 47.950], [54.900, 47.850], [54.850, 47.750], [54.800, 47.650], [54.750, 47.600],
+      [54.700, 47.550], [54.650, 47.450], [54.600, 47.300], [54.580, 47.200], [54.600, 47.100],
+      [54.650, 46.950], [54.700, 46.850], [54.750, 46.750], [54.800, 46.650], [54.820, 46.550],
+      [54.840, 46.450], [54.850, 46.350], [54.880, 46.250], [54.950, 46.200], [55.000, 46.180],
+      [55.050, 46.150], [55.150, 46.120], [55.250, 46.100], [55.350, 46.080], [55.450, 46.100],
+      [55.550, 46.120], [55.650, 46.150], [55.750, 46.180], [55.850, 46.200], [55.950, 46.250],
+      [56.000, 46.300], [56.050, 46.350], [56.080, 46.400], [56.120, 46.500]
+    ];
 
-        let maskLayer, borderLayer, isDark = true;
+    // === 2. Инициализация карты ===
+    const map = L.map('map', {
+      center: [55.45, 47.25],
+      zoom: 9,
+      minZoom: 8,
+      maxZoom: 18,
+      zoomControl: false,
+      attributionControl: false,
+      maxBounds: L.latLngBounds([54.5, 45.8], [56.4, 48.6]),
+      maxBoundsViscosity: 0.8
+    });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        function drawLayers() {
-            if (maskLayer) map.removeLayer(maskLayer);
-            if (borderLayer) map.removeLayer(borderLayer);
-            
-            // Маска: белый фон за пределами Чувашии
-            maskLayer = L.polygon([
-                [[90, -180], [90, 180], [-90, 180], [-90, -180]],
-                chuvashiaReal
-            ], {
-                color: 'transparent', fillColor: isDark ? '#080808' : '#ffffff', fillOpacity: isDark ? 0.95 : 0.75, interactive: false
-            }).addTo(map);
+    const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
+    const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+    darkLayer.addTo(map);
 
-            // Граница Чувашии
-            borderLayer = L.polyline(chuvashiaReal, {
-                color: isDark ? '#444' : '#000', weight: 2, interactive: false
-            }).addTo(map);
-        }
-        drawLayers();
+    let maskLayer, borderLayer, isDark = true;
 
-        // --- НАДЕЖНАЯ ЛОГИКА ДОЛГОГО НАЖАТИЯ ---
-        let pressTimer;
-        let selectedLocation = null;
-        let startX, startY;
-        const modal = document.getElementById('sticker-modal');
+    function drawLayers() {
+      if (maskLayer) map.removeLayer(maskLayer);
+      if (borderLayer) map.removeLayer(borderLayer);
 
-        // Для мобильных (Touch)
-        map.on('touchstart', function(e) {
-            if (e.originalEvent.touches.length > 1) return; // Игнорируем мультитач
-            
-            startX = e.originalEvent.touches[0].clientX;
-            startY = e.originalEvent.touches[0].clientY;
-            
-            pressTimer = setTimeout(() => {
-                selectedLocation = e.latlng;
-                modal.classList.add('active');
-            }, 600);
-        });
+      maskLayer = L.polygon([
+        [[90, -180], [90, 180], [-90, 180], [-90, -180]],
+        chuvashiaReal
+      ], {
+        color: 'transparent',
+        fillColor: isDark ? '#080808' : '#ffffff',
+        fillOpacity: isDark ? 0.95 : 0.75,
+        interactive: false
+      }).addTo(map);
 
-        map.on('touchmove', function(e) {
-            const touch = e.originalEvent.touches[0];
-            const moveX = Math.abs(touch.clientX - startX);
-            const moveY = Math.abs(touch.clientY - startY);
-            
-            if (moveX > 10 || moveY > 10) {
-                clearTimeout(pressTimer);
-            }
-        });
+      borderLayer = L.polyline(chuvashiaReal, {
+        color: isDark ? '#444' : '#000',
+        weight: 2,
+        interactive: false
+      }).addTo(map);
+    }
+    drawLayers();
 
-        map.on('touchend dragstart zoomstart', function() {
-            clearTimeout(pressTimer);
-        });
+    // === 3. Получение имени пользователя из Telegram ===
+    function getTelegramDisplayName() {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user;
+        let name = user.first_name || "Друг";
+        if (user.last_name) name += " " + user.last_name;
+        if (user.username) name += " (@ " + user.username + ")";
+        return name;
+      }
+      return "Аноним";
+    }
 
-        // Для ПК (Мышь)
-        map.on('mousedown', function(e) {
-            if (e.originalEvent.button !== 0) return; // Только левая кнопка
-            
-            pressTimer = setTimeout(() => {
-                selectedLocation = e.latlng;
-                modal.classList.add('active');
-            }, 600);
-        });
+    // === 4. Логика долгого нажатия ===
+    let pressTimer;
+    let selectedLocation = null;
+    let startX, startY;
+    const modal = document.getElementById('sticker-modal');
 
-        map.on('mouseup mousemove dragstart zoomstart', function() {
-            clearTimeout(pressTimer);
-        });
+    // Touch
+    map.on('touchstart', function(e) {
+      if (e.originalEvent.touches.length > 1) return;
+      startX = e.originalEvent.touches[0].clientX;
+      startY = e.originalEvent.touches[0].clientY;
+      pressTimer = setTimeout(() => {
+        selectedLocation = e.latlng;
+        modal.classList.add('active');
+      }, 600);
+    });
 
-        // Стандартное ПКМ меню
-        map.on('contextmenu', function(e) {
-            selectedLocation = e.latlng;
-            modal.classList.add('active');
-        });
+    map.on('touchmove', function(e) {
+      const touch = e.originalEvent.touches[0];
+      if (Math.abs(touch.clientX - startX) > 10 || Math.abs(touch.clientY - startY) > 10) {
+        clearTimeout(pressTimer);
+      }
+    });
 
-        // --- УПРАВЛЕНИЕ ---
-        function closeModal(e) {
-            if (e.target.id === 'sticker-modal') modal.classList.remove('active');
-        }
+    map.on('touchend dragstart zoomstart', () => clearTimeout(pressTimer));
 
-        function addSticker(type) {
-            modal.classList.remove('active');
-            if (!selectedLocation) return;
-            
-            let iconUrl, size;
-            if (type === 'car') {
-                iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgNjA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNMTAsMzAgTDIwLDEyIEw4MCwxMiBMOTAsMzAgTDk1LDMwIEE1LDUgMCAwLDEgMTAwLDM1IEwxMDAsNDUgQTYsNiAwIDAsMSA5NSw1MCBMOCw1MCBBNSw1IDAgMCwxIDAsNDUgTDAsMzUgQTYsNiAwIDAsMSA1LDMwIFoiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMCwzNCBMMTAwLDM0IEwxMDAsNDIgTDAsNDIgWiIgZmlsbD0iIzAwNTVhYSIvPjx0ZXh0IHg9IjUwIiB5PSI0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iMSI+UG9saWNpYTwvdGV4dD48cGF0aCBkPSJNMjIsMTQgTDc4LDE0IEw4NywzMCBMMTMsMzAgWiIgZmlsbD0iI2RjZWVmZiIgb3BhY2l0eT0iMC44Ii8+PHJlY3QgeD0iNDIiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjMDAwMGZmIiByeD0iMSIvPjxyZWN0IHg9IjQyIiB5PSI2IiB3aWR0aD0iOCIgaGVpZ2h0PSI2IiBmaWxsPSIjZmYwMDAwIiByeD0iMSIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iMjUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iNzUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjwvZz48L3N2Zz4=';
-                size = [60, 36];
-            } else {
-                iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgOTA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNNTAsNSBMOTUsODUgTDUsODUgWiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJibGFjayI+RFRQPC90ZXh0PjwvZz48L3N2Zz4=';
-                size = [45, 40];
-            }
+    // Mouse
+    map.on('mousedown', function(e) {
+      if (e.originalEvent.button !== 0) return;
+      pressTimer = setTimeout(() => {
+        selectedLocation = e.latlng;
+        modal.classList.add('active');
+      }, 600);
+    });
 
-            const icon = L.icon({
-                iconUrl: iconUrl, 
-                iconSize: size, 
-                iconAnchor: [size[0]/2, size[1]/2],
-                popupAnchor: [0, -size[1]/2]
-            });
+    map.on('mouseup mousemove dragstart zoomstart', () => clearTimeout(pressTimer));
+    map.on('contextmenu', e => {
+      selectedLocation = e.latlng;
+      modal.classList.add('active');
+    });
 
-            const marker = L.marker(selectedLocation, { icon: icon }).addTo(map);
-            const createTime = Date.now();
-            
-            const popupContent = `<div style="text-align: center; padding: 4px;">
-                <div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">${type === 'car' ? 'Патруль ДПС' : 'ДТП'}</div>
-                <div style="font-size: 10px; color: #777; margin-bottom: 4px;">Осталось: <span class="timer" style="font-family: monospace;">15:00</span></div>
-                <button onclick="map.removeLayer(this.parentNode.parentNode.parentNode)" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; padding: 2px 4px; font-size: 10px; cursor: pointer;">Удалить</button>
-            </div>`;
-            
-            marker.bindPopup(popupContent);
+    function closeModal(e) {
+      if (e.target.id === 'sticker-modal') modal.classList.remove('active');
+    }
 
-            const timerInterval = setInterval(() => {
-                const left = (15 * 60 * 1000) - (Date.now() - createTime);
-                if (left <= 0) {
-                    map.removeLayer(marker);
-                    clearInterval(timerInterval);
-                } else if (marker.isPopupOpen()) {
-                    const m = Math.floor(left / 60000);
-                    const s = Math.floor((left % 60000) / 1000);
-                    const t = marker.getPopup().getContent().querySelector('.timer');
-                    if(t) t.textContent = `${m}:${s.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-        }
+    // === 5. Добавление метки с именем и ограничением по времени ===
+    function addSticker(type) {
+      modal.classList.remove('active');
+      if (!selectedLocation) return;
 
-        function toggleTheme() {
-            isDark = !isDark;
-            if (isDark) {
-                map.removeLayer(lightLayer); map.addLayer(darkLayer);
-                document.getElementById('sunIcon').style.display = 'none';
-                document.getElementById('moonIcon').style.display = 'block';
-                document.getElementById('themeToggle').style.background = '#444';
-                document.getElementById('themeToggle').style.borderColor = '#555';
-            } else {
-                map.removeLayer(darkLayer); map.addLayer(lightLayer);
-                document.getElementById('sunIcon').style.display = 'block';
-                document.getElementById('moonIcon').style.display = 'none';
-                document.getElementById('themeToggle').style.background = '#fff';
-                document.getElementById('themeToggle').style.borderColor = '#ccc';
-            }
-            drawLayers();
-        }
+      // Проверка ограничения
+      const now = Date.now();
+      const lastUsed = localStorage.getItem('lastStickerTime');
+      if (lastUsed && now - parseInt(lastUsed) < 5 * 60 * 1000) {
+        alert("Вы можете ставить метку не чаще чем раз в 5 минут.");
+        return;
+      }
+      localStorage.setItem('lastStickerTime', now.toString());
 
-        function locateUser() {
-            map.locate({setView: true, maxZoom: 14});
-        }
+      // Имя пользователя
+      const displayName = getTelegramDisplayName();
 
-        map.on('locationfound', e => {
-            L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
-        });
-    </script>
+      // Иконка
+      const size = type === 'car' ? [40, 24] : [30, 30];
+      const emoji = type === 'car' ? '🚓' : '⚠️';
+      const icon = L.divIcon({
+        html: `<div style="font-size: ${size[0] / 2}px; text-align: center;">${emoji}</div>`,
+        iconSize: size,
+        iconAnchor: [size[0] / 2, size[1] / 2]
+      });
+
+      const marker = L.marker(selectedLocation, { icon: icon }).addTo(map);
+
+      // Имя над меткой
+      const nameLabel = L.divIcon({
+        html: `<div style="background: black; color: white; padding: 2px 4px; border-radius: 3px; font-size: 10px; white-space: nowrap;">${displayName}</div>`,
+        iconSize: [100, 20],
+        iconAnchor: [50, 0],
+        className: ''
+      });
+      L.marker(selectedLocation, { icon: nameLabel, interactive: false }).addTo(map);
+
+      // Попап
+      const popupContent = `<div style="text-align: center; padding: 4px; font-size: 12px;">
+        <div><b>${type === 'car' ? 'Патруль ДПС' : 'ДТП'}</b></div>
+        <div style="color: #aaa; font-size: 10px;">от ${displayName}</div>
+        <button onclick="map.closePopup(); map.removeLayer(this.parentNode.parentNode.parentNode.parentNode)" 
+                style="margin-top: 6px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;">
+          Удалить
+        </button>
+      </div>`;
+      marker.bindPopup(popupContent);
+
+      // Автоудаление через 15 минут
+      setTimeout(() => {
+        map.removeLayer(marker);
+      }, 15 * 60 * 1000);
+    }
+
+    // === 6. Управление ===
+    function toggleTheme() {
+      isDark = !isDark;
+      if (isDark) {
+        map.removeLayer(lightLayer); map.addLayer(darkLayer);
+        document.getElementById('sunIcon').style.display = 'none';
+        document.getElementById('moonIcon').style.display = 'block';
+        document.getElementById('themeToggle').style.background = '#444';
+        document.getElementById('themeToggle').style.borderColor = '#555';
+      } else {
+        map.removeLayer(darkLayer); map.addLayer(lightLayer);
+        document.getElementById('sunIcon').style.display = 'block';
+        document.getElementById('moonIcon').style.display = 'none';
+        document.getElementById('themeToggle').style.background = '#fff';
+        document.getElementById('themeToggle').style.borderColor = '#ccc';
+        document.getElementById('themeToggle').style.color = '#333';
+      }
+      drawLayers();
+    }
+
+    function locateUser() {
+      map.locate({ setView: true, maxZoom: 14 });
+    }
+
+    map.on('locationfound', e => {
+      L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
+    });
+  </script>
 </body>
 </html>
+
+
