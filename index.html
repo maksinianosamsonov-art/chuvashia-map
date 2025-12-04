@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Чувашия — Точная граница</title>
 
-  <!-- Leaflet -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Telegram WebApp -->
+  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -18,27 +17,30 @@
       padding: 0;
       height: 100%;
       width: 100%;
-      background: white; /* фон за пределами Чувашии — белый */
+      background: white;
       overflow: hidden;
     }
     #map {
       height: 100%;
       width: 100%;
     }
-    .leaflet-container {
-      background: white !important;
-    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
+  <!-- Сначала Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Потом ваш код -->
   <script>
     // === Telegram ===
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    tg.disableVerticalSwipes();
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.disableVerticalSwipes();
+    }
 
     // === ТОЧНЫЙ КОНТУР ЧУВАШСКОЙ РЕСПУБЛИКИ ===
     const chuvashiaGeoJSON = {
@@ -52,67 +54,51 @@
       }
     };
 
-    // === Центр для инициализации ===
-    const center = [55.83, 47.5];
+    // Инициализация карты
+    try {
+      const map = L.map('map', {
+        minZoom: 8,
+        maxZoom: 16,
+        zoomControl: true,
+        dragging: true,
+        scrollWheelZoom: false,
+        doubleClickZoom: false
+      });
 
-    // === Создаём карту ===
-    const map = L.map('map', {
-      minZoom: 8,
-      maxZoom: 16,
-      zoomControl: true,
-      dragging: true,
-      scrollWheelZoom: false,
-      doubleClickZoom: false
-    }).setView(center, 9);
+      // Центр по границе
+      const bounds = L.geoJSON(chuvashiaGeoJSON).getBounds();
+      map.fitBounds(bounds, { padding: [20, 20] });
 
-    // === Фон: белый (ничего не видно за пределами) ===
-    map.createPane('maskPane');
-    map.getPane('maskPane').style.zIndex = 200;
-    map.getPane('maskPane').style.pointerEvents = 'none';
+      // OSM-тайлы
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
 
-    // === Слой карты (OSM) ===
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+      // Маска: белый фон с прозрачной Чувашией
+      const world = L.polygon([
+        [85, -180], [85, 180], [-85, 180], [-85, -180]
+      ], {
+        fillColor: 'white',
+        fillOpacity: 1,
+        color: 'none',
+        weight: 0,
+        interactive: false
+      }).addTo(map);
 
-    // === Создаём "дыру" по контуру Чувашии: всё ВНЕ неё — скрыто ===
-    const maskStyle = {
-      fillColor: 'white',
-      fillOpacity: 1,
-      color: 'white',
-      weight: 0,
-      pane: 'maskPane'
-    };
+      L.geoJSON(chuvashiaGeoJSON, {
+        fillOpacity: 0,
+        stroke: false,
+        interactive: false
+      }).addTo(map);
 
-    // Создаём огромный прямоугольник, покрывающий весь мир
-    const worldBounds = L.polygon([
-      [85, -180],
-      [85, 180],
-      [-85, 180],
-      [-85, -180]
-    ], maskStyle);
+      // Маркер Батырево
+      L.marker([55.373, 47.333]).addTo(map)
+        .bindPopup('Батырево').openPopup();
 
-    // Добавляем Чувашию как "дыру" в этом прямоугольнике
-    const chuvashiaLayer = L.geoJSON(chuvashiaGeoJSON, {
-      ...maskStyle,
-      fillOpacity: 0 // делаем Чувашию "прозрачной" — через неё видна карта
-    });
-
-    // Группируем: большой белый фон + прозрачная Чувашия = маска
-    const maskGroup = L.layerGroup([worldBounds, chuvashiaLayer]).addTo(map);
-
-    // === Маркер: Батырево ===
-    L.marker([55.373, 47.333]).addTo(map)
-      .bindPopup('<b>Батырево</b><br>Чувашская Республика');
-
-    // === Ограничиваем перемещение внутри bbox Чувашии ===
-    const bounds = L.geoJSON(chuvashiaGeoJSON).getBounds();
-    map.setMaxBounds(bounds);
-    map.panInsideBounds(bounds);
-
-    map.on('drag', () => {
-      map.panInsideBounds(bounds, { animate: false });
-    });
+    } catch (e) {
+      console.error("Ошибка инициализации карты:", e);
+      document.body.innerHTML = "<h2>Ошибка загрузки карты</h2><p>Откройте консоль (F12) для деталей.</p>";
+    }
   </script>
 </body>
 </html>
