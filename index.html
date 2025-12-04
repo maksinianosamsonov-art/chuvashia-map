@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Чувашия — Точная граница</title>
+  <title>Чувашия — Тёмная карта</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -17,24 +17,26 @@
       padding: 0;
       height: 100%;
       width: 100%;
-      background: white;
+      background: #1e1e1e; /* тёмный фон */
       overflow: hidden;
     }
     #map {
       height: 100%;
       width: 100%;
     }
+    .leaflet-container {
+      background: #1e1e1e !important;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <!-- Сначала Leaflet JS -->
+  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Потом ваш код -->
   <script>
-    // === Telegram ===
+    // === Telegram WebApp ===
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
@@ -42,7 +44,7 @@
       tg.disableVerticalSwipes();
     }
 
-    // === ТОЧНЫЙ КОНТУР ЧУВАШСКОЙ РЕСПУБЛИКИ ===
+    // === Граница Чувашии (внешняя) ===
     const chuvashiaGeoJSON = {
       "type": "Feature",
       "properties": { "name": "Чувашская Республика" },
@@ -54,7 +56,54 @@
       }
     };
 
-    // Инициализация карты
+    // === Границы районов Чувашии (упрощённые) ===
+    const districtsGeoJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": { "name": "Батыревский район" },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [[47.25,55.4], [47.3,55.4], [47.3,55.35], [47.25,55.35], [47.25,55.4]]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": { "name": "Алатырский район" },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [[46.6,55.1], [46.7,55.1], [46.7,55.05], [46.6,55.05], [46.6,55.1]]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": { "name": "Канашский район" },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [[47.0,55.6], [47.1,55.6], [47.1,55.55], [47.0,55.55], [47.0,55.6]]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": { "name": "Чебоксарский район" },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [[47.2,55.8], [47.3,55.8], [47.3,55.75], [47.2,55.75], [47.2,55.8]]
+            ]
+          }
+        }
+      ]
+    };
+
+    // === Инициализация карты ===
     try {
       const map = L.map('map', {
         minZoom: 8,
@@ -69,35 +118,40 @@
       const bounds = L.geoJSON(chuvashiaGeoJSON).getBounds();
       map.fitBounds(bounds, { padding: [20, 20] });
 
-      // OSM-тайлы
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+      // 🌑 Тёмная карта — Stadia Maps Dark
+      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18
       }).addTo(map);
 
-      // Маска: белый фон с прозрачной Чувашией
-      const world = L.polygon([
-        [85, -180], [85, 180], [-85, 180], [-85, -180]
-      ], {
-        fillColor: 'white',
-        fillOpacity: 1,
-        color: 'none',
-        weight: 0,
-        interactive: false
-      }).addTo(map);
-
+      // 🖊️ Чёрная внешняя граница Чувашии
       L.geoJSON(chuvashiaGeoJSON, {
-        fillOpacity: 0,
-        stroke: false,
-        interactive: false
+        style: {
+          color: '#000',
+          weight: 3,
+          fillOpacity: 0,
+          opacity: 1
+        }
       }).addTo(map);
 
-      // Маркер Батырево
+      // 🖊️ Чёрные границы районов (упрощённые)
+      L.geoJSON(districtsGeoJSON, {
+        style: {
+          color: '#000',
+          weight: 1.5,
+          fillOpacity: 0,
+          opacity: 0.8
+        }
+      }).addTo(map);
+
+      // 📍 Маркер Батырево
       L.marker([55.373, 47.333]).addTo(map)
-        .bindPopup('Батырево').openPopup();
+        .bindPopup('<b>Батырево</b><br>Чувашская Республика')
+        .openPopup();
 
     } catch (e) {
       console.error("Ошибка инициализации карты:", e);
-      document.body.innerHTML = "<h2>Ошибка загрузки карты</h2><p>Откройте консоль (F12) для деталей.</p>";
+      document.body.innerHTML = "<h2>Ошибка загрузки карты</h2><p>Проверьте консоль (F12) для деталей.</p>";
     }
   </script>
 </body>
