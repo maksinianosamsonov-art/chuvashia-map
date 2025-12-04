@@ -3,29 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Карта Чувашии (Fixed Long Press)</title>
+    <title>Карта Чувашии</title>
     
-    <!-- Подключаем Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" 
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #1a1a1a; }
-        #map { height: 100%; width: 100%; z-index: 1; -webkit-tap-highlight-color: transparent; user-select: none; }
+        #map { height: 100%; width: 100%; z-index: 1; }
         
         .leaflet-bar a { background-color: #333; color: #eee; border-bottom: 1px solid #444; }
         .leaflet-bar a:hover { background-color: #444; }
-        .light-mode-controls .leaflet-bar a { background-color: #fff; color: #333; border-bottom: 1px solid #ccc; }
         
         /* Модальное окно */
         #sticker-modal {
             display: none;
             position: fixed; inset: 0; z-index: 2000;
             background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
             align-items: center; justify-content: center;
             opacity: 0; transition: opacity 0.3s;
         }
@@ -34,7 +28,6 @@
         .sticker-btn { transition: transform 0.2s; }
         .sticker-btn:hover { transform: scale(1.1); }
         .sticker-btn:active { transform: scale(0.95); }
-        .leaflet-marker-icon { transition: opacity 0.5s; }
     </style>
 </head>
 <body>
@@ -43,79 +36,43 @@
 
     <!-- Модальное окно -->
     <div id="sticker-modal" onclick="closeModal(event)">
-        <div class="bg-gray-800 border border-gray-600 rounded-2xl p-6 shadow-2xl transform scale-100 max-w-sm w-full mx-4 text-center">
-            <h3 class="text-white text-lg font-bold mb-4">Выберите метку</h3>
-            <div class="flex justify-center gap-6 mb-6">
-                <button onclick="addSticker('car')" class="sticker-btn flex flex-col items-center gap-2 group">
-                    <div class="w-20 h-20 bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-gray-600 border border-gray-600 group-hover:border-blue-400 transition-colors">
-                        <img src="" id="preview-car" class="w-16 h-12 object-contain">
-                    </div>
-                    <span class="text-gray-300 text-sm">ДПС</span>
+        <div style="background: #2d2d2d; border: 1px solid #444; border-radius: 12px; padding: 16px; text-align: center;">
+            <h3 style="color: white; margin-bottom: 12px;">Выберите метку</h3>
+            <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 16px;">
+                <button onclick="addSticker('car')" style="background: #444; color: white; border: 1px solid #555; border-radius: 8px; padding: 8px; cursor: pointer;">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgNjA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNMTAsMzAgTDIwLDEyIEw4MCwxMiBMOTAsMzAgTDk1LDMwIEE1LDUgMCAwLDEgMTAwLDM1IEwxMDAsNDUgQTYsNiAwIDAsMSA5NSw1MCBMOCw1MCBBNSw1IDAgMCwxIDAsNDUgTDAsMzUgQTYsNiAwIDAsMSA1LDMwIFoiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMCwzNCBMMTAwLDM0IEwxMDAsNDIgTDAsNDIgWiIgZmlsbD0iIzAwNTVhYSIvPjx0ZXh0IHg9IjUwIiB5PSI0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iMSI+UG9saWNpYTwvdGV4dD48cGF0aCBkPSJNMjIsMTQgTDc4LDE0IEw4NywzMCBMMTMsMzAgWiIgZmlsbD0iI2RjZWVmZiIgb3BhY2l0eT0iMC44Ii8+PHJlY3QgeD0iNDIiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjMDAwMGZmIiByeD0iMSIvPjxyZWN0IHg9IjQyIiB5PSI2IiB3aWR0aD0iOCIgaGVpZ2h0PSI2IiBmaWxsPSIjZmYwMDAwIiByeD0iMSIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iMjUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iNzUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjwvZz48L3N2Zz4=" width="32" height="24" style="margin: 4px 0;">
+                    <div style="font-size: 12px; margin-top: 4px;">ДПС</div>
                 </button>
-                <button onclick="addSticker('sign')" class="sticker-btn flex flex-col items-center gap-2 group">
-                    <div class="w-20 h-20 bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-gray-600 border border-gray-600 group-hover:border-red-400 transition-colors">
-                        <img src="" id="preview-sign" class="w-14 h-14 object-contain">
-                    </div>
-                    <span class="text-gray-300 text-sm">ДТП</span>
+                <button onclick="addSticker('sign')" style="background: #444; color: white; border: 1px solid #555; border-radius: 8px; padding: 8px; cursor: pointer;">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgOTA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNNTAsNSBMOTUsODUgTDUsODUgWiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJibGFjayI+RFRQPC90ZXh0PjwvZz48L3N2Zz4=" width="32" height="32" style="margin: 4px 0;">
+                    <div style="font-size: 12px; margin-top: 4px;">ДТП</div>
                 </button>
             </div>
-            <p class="text-gray-500 text-xs">Метка исчезнет через 15 минут</p>
+            <p style="color: #777; font-size: 10px;">Метка исчезнет через 15 минут</p>
         </div>
     </div>
 
     <!-- Статус -->
-    <div class="absolute bottom-6 left-6 z-[1000] bg-black/70 text-yellow-400 px-3 py-1.5 rounded text-xs font-mono border border-yellow-900/50 shadow-lg flex items-center gap-2 pointer-events-none">
-        <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+    <div style="position: absolute; bottom: 6px; left: 6px; z-index: 1000; background: rgba(0,0,0,0.7); color: #ffcc00; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; border: 1px solid rgba(255,204,0,0.3); box-shadow: 0 0 4px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 4px;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #ffcc00; animation: pulse 1s infinite;"></span>
         Удерживайте точку для метки
     </div>
 
     <!-- Панель управления -->
-    <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-3">
-        <button id="themeToggle" class="bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-full shadow-lg border border-gray-600 focus:outline-none transition-all" title="Сменить тему">
-            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+    <div style="position: absolute; top: 4px; right: 4px; z-index: 1000; display: flex; flex-direction: column; gap: 6px;">
+        <button id="themeToggle" onclick="toggleTheme()" style="background: #444; color: white; border: 1px solid #555; border-radius: 50%; padding: 8px; cursor: pointer; transition: all 0.2s;">
+            <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px; display: none;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         </button>
-        <button id="locateBtn" class="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full shadow-lg border border-blue-400 focus:outline-none transition-all" title="Мое местоположение">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <button id="locateBtn" onclick="locateUser()" style="background: #1f77b4; color: white; border: 1px solid #0d5aa0; border-radius: 50%; padding: 8px; cursor: pointer; transition: all 0.2s;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         </button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" 
-    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // --- SVG ИКОНКИ ---
-        const carSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60">
-            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="2"/><feOffset dx="1" dy="2" result="offsetblur"/><feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <g filter="url(#shadow)">
-                <path d="M10,30 L20,12 L80,12 L90,30 L95,30 A5,5 0 0,1 100,35 L100,45 A5,5 0 0,1 95,50 L85,50 A10,10 0 0,1 65,50 L35,50 A10,10 0 0,1 15,50 L5,50 A5,5 0 0,1 0,45 L0,35 A5,5 0 0,1 5,30 Z" fill="#ffffff" stroke="#333" stroke-width="1.5"/>
-                <path d="M0,34 L100,34 L100,42 L0,42 Z" fill="#0055aa"/>
-                <text x="50" y="40" font-family="Arial" font-weight="900" font-size="6" text-anchor="middle" fill="white" letter-spacing="1">ПОЛИЦИЯ</text>
-                <path d="M22,14 L78,14 L87,30 L13,30 Z" fill="#dceeff" opacity="0.8"/>
-                <rect x="42" y="6" width="16" height="6" fill="#0000ff" rx="1"/>
-                <rect x="42" y="6" width="8" height="6" fill="#ff0000" rx="1"/>
-                <circle cx="25" cy="50" r="7" fill="#333" stroke="#555" stroke-width="1"/>
-                <circle cx="25" cy="50" r="3" fill="#ccc"/>
-                <circle cx="75" cy="50" r="7" fill="#333" stroke="#555" stroke-width="1"/>
-                <circle cx="75" cy="50" r="3" fill="#ccc"/>
-            </g>
-        </svg>`;
-        const carUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(carSvg)));
-
-        const signSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 90">
-            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="2"/><feOffset dx="1" dy="2" result="offsetblur"/><feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <g filter="url(#shadow)">
-                <path d="M50,5 L95,85 L5,85 Z" fill="white" stroke="#cc0000" stroke-width="8" stroke-linejoin="round"/>
-                <text x="50" y="65" font-family="Arial" font-weight="bold" font-size="28" text-anchor="middle" fill="black">ДТП</text>
-            </g>
-        </svg>`;
-        const signUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(signSvg)));
-
-        document.getElementById('preview-car').src = carUrl;
-        document.getElementById('preview-sign').src = signUrl;
-
         // --- ДАННЫЕ ГРАНИЦ ---
         const chuvashiaReal = [
             [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850], 
@@ -132,56 +89,49 @@
             [56.000, 46.300], [56.050, 46.350], [56.080, 46.400], [56.120, 46.500] 
         ];
 
-        function expandPolygon(coords, factor) {
-            let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
-            coords.forEach(p => {
-                if (p[0] < minLat) minLat = p[0]; if (p[0] > maxLat) maxLat = p[0];
-                if (p[1] < minLng) minLng = p[1]; if (p[1] > maxLng) maxLng = p[1];
-            });
-            const cLat = (minLat + maxLat) / 2;
-            const cLng = (minLng + maxLng) / 2;
-            return coords.map(p => [cLat + (p[0] - cLat) * factor, cLng + (p[1] - cLng) * factor]);
-        }
-        const chuvashiaBuffered = expandPolygon(chuvashiaReal, 1.03);
-        const worldOuter = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
-        const chuvashiaBounds = L.latLngBounds([54.5, 45.8], [56.4, 48.6]);
-
         // --- КАРТА ---
         const map = L.map('map', {
             center: [55.45, 47.25], zoom: 9, minZoom: 8, maxZoom: 18,
             zoomControl: false, attributionControl: false, 
-            maxBounds: chuvashiaBounds, maxBoundsViscosity: 0.8
+            maxBounds: L.latLngBounds([54.5, 45.8], [56.4, 48.6]), maxBoundsViscosity: 0.8
         });
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+        // 🌑 Тёмная карта
         const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 });
         const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
         darkLayer.addTo(map);
 
         let maskLayer, borderLayer, isDark = true;
+
         function drawLayers() {
             if (maskLayer) map.removeLayer(maskLayer);
             if (borderLayer) map.removeLayer(borderLayer);
-            maskLayer = L.polygon([worldOuter, chuvashiaBuffered], {
+            
+            // Маска: белый фон за пределами Чувашии
+            maskLayer = L.polygon([
+                [[90, -180], [90, 180], [-90, 180], [-90, -180]],
+                chuvashiaReal
+            ], {
                 color: 'transparent', fillColor: isDark ? '#080808' : '#ffffff', fillOpacity: isDark ? 0.95 : 0.75, interactive: false
             }).addTo(map);
-            borderLayer = L.polyline(chuvashiaBuffered, {
+
+            // Граница Чувашии
+            borderLayer = L.polyline(chuvashiaReal, {
                 color: isDark ? '#444' : '#000', weight: 2, interactive: false
             }).addTo(map);
         }
         drawLayers();
 
-        // --- НАДЕЖНАЯ ЛОГИКА ДОЛГОГО НАЖАТИЯ (Fixed) ---
+        // --- НАДЕЖНАЯ ЛОГИКА ДОЛГОГО НАЖАТИЯ ---
         let pressTimer;
         let selectedLocation = null;
         let startX, startY;
         const modal = document.getElementById('sticker-modal');
 
-        // 1. ДЛЯ МОБИЛЬНЫХ (Touch)
-        // Мы используем события Leaflet, чтобы получить правильные координаты сразу, 
-        // но отслеживаем "дрожание" пальца вручную, чтобы не отменять таймер при микро-сдвигах.
+        // Для мобильных (Touch)
         map.on('touchstart', function(e) {
-            if (e.originalEvent.touches.length > 1) return; // Игнорируем мультитач (зум)
+            if (e.originalEvent.touches.length > 1) return; // Игнорируем мультитач
             
             startX = e.originalEvent.touches[0].clientX;
             startY = e.originalEvent.touches[0].clientY;
@@ -189,10 +139,9 @@
             pressTimer = setTimeout(() => {
                 selectedLocation = e.latlng;
                 modal.classList.add('active');
-            }, 600); // 600мс задержка
+            }, 600);
         });
 
-        // Отменяем таймер только если палец сдвинулся значительно (>10px) или был поднят
         map.on('touchmove', function(e) {
             const touch = e.originalEvent.touches[0];
             const moveX = Math.abs(touch.clientX - startX);
@@ -207,10 +156,9 @@
             clearTimeout(pressTimer);
         });
 
-        // 2. ДЛЯ ПК (Мышь) - по левой кнопке (зажатие) и правой (контекстное меню)
+        // Для ПК (Мышь)
         map.on('mousedown', function(e) {
-            // Только левая кнопка (button 0)
-            if (e.originalEvent.button !== 0) return;
+            if (e.originalEvent.button !== 0) return; // Только левая кнопка
             
             pressTimer = setTimeout(() => {
                 selectedLocation = e.latlng;
@@ -222,7 +170,7 @@
             clearTimeout(pressTimer);
         });
 
-        // Стандартное ПКМ меню тоже работает как запасной вариант
+        // Стандартное ПКМ меню
         map.on('contextmenu', function(e) {
             selectedLocation = e.latlng;
             modal.classList.add('active');
@@ -236,23 +184,32 @@
         function addSticker(type) {
             modal.classList.remove('active');
             if (!selectedLocation) return;
-            const iconUrl = type === 'car' ? carUrl : signUrl;
-            const size = type === 'car' ? [60, 36] : [45, 40];
+            
+            let iconUrl, size;
+            if (type === 'car') {
+                iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgNjA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNMTAsMzAgTDIwLDEyIEw4MCwxMiBMOTAsMzAgTDk1LDMwIEE1LDUgMCAwLDEgMTAwLDM1IEwxMDAsNDUgQTYsNiAwIDAsMSA5NSw1MCBMOCw1MCBBNSw1IDAgMCwxIDAsNDUgTDAsMzUgQTYsNiAwIDAsMSA1LDMwIFoiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48cGF0aCBkPSJNMCwzNCBMMTAwLDM0IEwxMDAsNDIgTDAsNDIgWiIgZmlsbD0iIzAwNTVhYSIvPjx0ZXh0IHg9IjUwIiB5PSI0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iMSI+UG9saWNpYTwvdGV4dD48cGF0aCBkPSJNMjIsMTQgTDc4LDE0IEw4NywzMCBMMTMsMzAgWiIgZmlsbD0iI2RjZWVmZiIgb3BhY2l0eT0iMC44Ii8+PHJlY3QgeD0iNDIiIHk9IjYiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjMDAwMGZmIiByeD0iMSIvPjxyZWN0IHg9IjQyIiB5PSI2IiB3aWR0aD0iOCIgaGVpZ2h0PSI2IiBmaWxsPSIjZmYwMDAwIiByeD0iMSIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iMjUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNTAiIHI9IjciIGZpbGw9IiMzMzMiIHN0cm9rZT0iIzU1NSIgc3Ryb2tlLXdpZHRoPSIxIi8+PGNpcmNsZSBjeD0iNzUiIGN5PSI1MCIgcj0iMyIgZmlsbD0iI2NjYyIvPjwvZz48L3N2Zz4=';
+                size = [60, 36];
+            } else {
+                iconUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdbPjAgMCAxMDAgOTA+PGZpbHRlciBpZD0ic2hhZG93IiB4PSItMjAlIiB5PSItMjAlIiB3aWR0aD0iMTQwJSIgaGVpZ2h0PSIxNDAlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGROZXZpYXRpb249IjIiLz48ZmVPZmZzZXQgZHg9IjEiIGR5PSIyIiByZXN1bHQ9Im9mZnNldGJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciB4bWxuczpmb250PSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC41Ii8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjxmZU1lcmdlPjxmZU1lcmdlTm9kZS8+PGZlTWVyZ2VOb2RlIGluPSJTb3VyY2VHcmFwaGljIi8+PC9mZU1lcmdlPjwvZmlsdGVyPjxnIGZpbHRlcj0idXJsKCNzaGFkb3cpIj48cGF0aCBkPSJNNTAsNSBMOTUsODUgTDUsODUgWiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iI2NjMDAwMCIgc3Ryb2tlLXdpZHRoPSI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PHRleHQgeD0iNTAiIHk9IjY1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSJib2xkIiBmb250LXNpemU9IjI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJibGFjayI+RFRQPC90ZXh0PjwvZz48L3N2Zz4=';
+                size = [45, 40];
+            }
+
             const icon = L.icon({
-                iconUrl: iconUrl, iconSize: size, iconAnchor: [size[0]/2, size[1]/2],
-                popupAnchor: [0, -size[1]/2], className: 'drop-shadow-lg'
+                iconUrl: iconUrl, 
+                iconSize: size, 
+                iconAnchor: [size[0]/2, size[1]/2],
+                popupAnchor: [0, -size[1]/2]
             });
+
             const marker = L.marker(selectedLocation, { icon: icon }).addTo(map);
             const createTime = Date.now();
             
-            const popupContent = document.createElement('div');
-            popupContent.className = "text-center p-1";
-            popupContent.innerHTML = `
-                <div class="font-bold text-sm mb-1">${type === 'car' ? 'Патруль ДПС' : 'ДТП'}</div>
-                <div class="text-xs text-gray-500 mb-2">Осталось: <span class="timer font-mono">15:00</span></div>
-                <button class="bg-red-100 hover:bg-red-200 text-red-600 text-xs px-2 py-1 rounded w-full border border-red-200">Удалить</button>
-            `;
-            popupContent.querySelector('button').onclick = () => map.removeLayer(marker);
+            const popupContent = `<div style="text-align: center; padding: 4px;">
+                <div style="font-weight: bold; font-size: 12px; margin-bottom: 4px;">${type === 'car' ? 'Патруль ДПС' : 'ДТП'}</div>
+                <div style="font-size: 10px; color: #777; margin-bottom: 4px;">Осталось: <span class="timer" style="font-family: monospace;">15:00</span></div>
+                <button onclick="map.removeLayer(this.parentNode.parentNode.parentNode)" style="background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; padding: 2px 4px; font-size: 10px; cursor: pointer;">Удалить</button>
+            </div>`;
+            
             marker.bindPopup(popupContent);
 
             const timerInterval = setInterval(() => {
@@ -263,30 +220,37 @@
                 } else if (marker.isPopupOpen()) {
                     const m = Math.floor(left / 60000);
                     const s = Math.floor((left % 60000) / 1000);
-                    const t = popupContent.querySelector('.timer');
+                    const t = marker.getPopup().getContent().querySelector('.timer');
                     if(t) t.textContent = `${m}:${s.toString().padStart(2, '0')}`;
                 }
             }, 1000);
         }
 
-        document.getElementById('themeToggle').onclick = () => {
+        function toggleTheme() {
             isDark = !isDark;
             if (isDark) {
                 map.removeLayer(lightLayer); map.addLayer(darkLayer);
-                document.getElementById('sunIcon').classList.add('hidden');
-                document.getElementById('moonIcon').classList.remove('hidden');
-                document.getElementById('themeToggle').className = "bg-gray-800 text-white p-3 rounded-full shadow-lg border border-gray-600";
+                document.getElementById('sunIcon').style.display = 'none';
+                document.getElementById('moonIcon').style.display = 'block';
+                document.getElementById('themeToggle').style.background = '#444';
+                document.getElementById('themeToggle').style.borderColor = '#555';
             } else {
                 map.removeLayer(darkLayer); map.addLayer(lightLayer);
-                document.getElementById('sunIcon').classList.remove('hidden');
-                document.getElementById('moonIcon').classList.add('hidden');
-                document.getElementById('themeToggle').className = "bg-white text-gray-800 p-3 rounded-full shadow-lg border border-gray-300";
+                document.getElementById('sunIcon').style.display = 'block';
+                document.getElementById('moonIcon').style.display = 'none';
+                document.getElementById('themeToggle').style.background = '#fff';
+                document.getElementById('themeToggle').style.borderColor = '#ccc';
             }
             drawLayers();
-        };
+        }
 
-        document.getElementById('locateBtn').onclick = () => map.locate({setView: true, maxZoom: 14});
-        map.on('locationfound', e => L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup());
+        function locateUser() {
+            map.locate({setView: true, maxZoom: 14});
+        }
+
+        map.on('locationfound', e => {
+            L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
+        });
     </script>
 </body>
 </html>
