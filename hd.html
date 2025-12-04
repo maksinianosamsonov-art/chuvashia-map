@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Карта Чувашии</title>
+
+  <!-- Подключаем стили Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <!-- Подключаем Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    /* Убираем отступы и делаем карту на весь экран */
+    body, html, #map {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Контейнер для карты -->
+  <div id="map"></div>
+
+  <!-- Подключаем сам Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // === 1. Инициализация Telegram WebApp ===
+    const tg = window.Telegram.WebApp;
+    tg.ready();          // Говорим Telegram: "я готов"
+    tg.expand();         // Разворачиваем на весь экран
+    tg.disableVerticalSwipes(); // Отключаем свайп вниз (чтобы не закрыть Mini App)
+
+    // === 2. Границы Чувашской Республики ===
+    // Формат: [широта, долгота]
+    const southWest = [54.3, 46.0];   // юго-запад
+    const northEast = [56.9, 48.5];   // северо-восток
+    const chuvashiaBounds = [southWest, northEast];
+
+    // Центр Чувашии (примерно)
+    const defaultCenter = [55.83, 47.5];
+
+    // === 3. Создаём карту с ограничениями ===
+    const map = L.map('map', {
+      maxBounds: chuvashiaBounds, // нельзя уйти за пределы
+      minZoom: 8,                 // минимальный масштаб (вся Чувашия в кадре)
+      maxZoom: 16,                // максимальный — до улиц
+      zoomControl: true,          // показывать кнопки +/- масштаба
+      dragging: true,             // можно тянуть пальцем
+      scrollWheelZoom: false      // отключаем колесо мыши (моб. устройства)
+    }).setView(defaultCenter, 9); // начальный вид
+
+    // === 4. Добавляем слой карты (OpenStreetMap) ===
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> участники',
+      maxZoom: 18
+    }).addTo(map);
+
+    // === 5. (Опционально) Добавляем маркер — Батырево ===
+    const batyrevo = [55.373, 47.333]; // ваши координаты
+    L.marker(batyrevo).addTo(map)
+      .bindPopup('<b>Батырево</b><br>Чувашская Республика')
+      .openPopup();
+
+    // === 6. Защита от выхода за границы при перетаскивании ===
+    map.on('drag', function() {
+      map.panInsideBounds(chuvashiaBounds, { animate: false });
+    });
+  </script>
+</body>
+</html>
