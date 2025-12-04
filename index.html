@@ -50,19 +50,13 @@
       border-radius: 8px; cursor: pointer; color: white;
     }
     .sticker-option:hover { background: #555; }
-
-    /* Попап метки */
     .sticker-popup {
       font-size: 12px; padding: 8px;
       background: #2d2d2d; border-radius: 8px;
       color: white;
     }
-    .sticker-popup .name {
-      font-weight: bold; margin-bottom: 4px;
-    }
-    .sticker-popup .time {
-      color: #aaa; font-size: 10px; margin-bottom: 8px;
-    }
+    .sticker-popup .name { font-weight: bold; margin-bottom: 4px; }
+    .sticker-popup .time { color: #aaa; font-size: 10px; margin-bottom: 8px; }
     .sticker-popup .delete-btn {
       background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
       border-radius: 4px; padding: 2px 6px; font-size: 10px;
@@ -89,8 +83,9 @@
   </div>
 
   <script>
-    // === НАСТРОЙКИ ===
-    const BACKEND_URL = 'https://chuvashia-stickers.onrender.com'; // ← ЗАМЕНИТЕ НА ВАШ RENDER URL
+    // === ЗАМЕНИТЕ ЭТОТ URL НА ВАШ РЕНДЕР URL ===
+    const BACKEND_URL = 'https://ваш-рендер-url.onrender.com';
+
     const CHUVASHIA_BOUNDS = [[54.5, 45.8], [56.4, 48.6]];
     const CHUVASHIA_POLYGON = [
       [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850],
@@ -107,7 +102,6 @@
       [56.000, 46.300], [56.050, 46.350], [56.080, 46.400], [56.120, 46.500]
     ];
 
-    // === Инициализация карты ===
     const map = L.map('map', {
       center: [55.45, 47.25],
       zoom: 9,
@@ -117,13 +111,11 @@
     });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // === Слои карты ===
     let dark = true;
     const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
     const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
     darkLayer.addTo(map);
 
-    // === Маска Чувашии ===
     L.polygon([
       [[90, -180], [90, 180], [-90, 180], [-90, -180]],
       CHUVASHIA_POLYGON
@@ -134,7 +126,6 @@
       interactive: false
     }).addTo(map);
 
-    // === Telegram WebApp ===
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
@@ -142,11 +133,9 @@
       tg.disableVerticalSwipes();
     }
 
-    // === Глобальные переменные ===
     let pressTimer, selectedLocation;
     const modal = document.getElementById('sticker-modal');
 
-    // === Долгое нажатие ===
     map.on('mousedown touchstart', e => {
       if (e.type === 'mousedown' && e.originalEvent.button !== 0) return;
       if (e.type === 'touchstart' && e.originalEvent.touches.length !== 1) return;
@@ -156,7 +145,7 @@
           modal.classList.add('active');
         } else {
           tg?.requestWriteAccess(() => location.reload());
-          alert("Разрешите доступ к имени для установки метки.");
+          alert("Разрешите доступ к имени.");
         }
       }, 600);
     });
@@ -167,32 +156,27 @@
     }
     modal.onclick = e => { if (e.target === modal) closeModal(); };
 
-    // === Отображение меток ===
     let stickerMarkers = [];
 
     async function loadStickers() {
       try {
         const res = await fetch(`${BACKEND_URL}/stickers`);
         const stickers = await res.json();
-        // Очистить старые метки
         stickerMarkers.forEach(m => map.removeLayer(m));
         stickerMarkers = [];
 
         stickers.forEach(st => {
           if (Date.now() - st.timestamp > 15 * 60 * 1000) return;
 
-          // Иконка
           const icon = L.divIcon({
             html: st.type === 'car' ? '🚓' : '⚠️',
             iconSize: [32, 32],
             iconAnchor: [16, 16],
             className: ''
           });
-
           const marker = L.marker([st.lat, st.lng], { icon }).addTo(map);
           stickerMarkers.push(marker);
 
-          // Имя над меткой
           const label = L.divIcon({
             html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${st.name}</div>`,
             iconSize: [120, 20],
@@ -201,7 +185,6 @@
           });
           L.marker([st.lat, st.lng], { icon: label, interactive: false }).addTo(map);
 
-          // Попап
           const timeAgo = Math.floor((Date.now() - st.timestamp) / 60000);
           const popupContent = `
             <div class="sticker-popup">
@@ -214,11 +197,10 @@
           marker.bindPopup(popupContent);
         });
       } catch (err) {
-        console.error("Не удалось загрузить метки:", err);
+        console.error("Ошибка загрузки меток:", err);
       }
     }
 
-    // === Удаление метки ===
     async function deleteSticker(id) {
       try {
         await fetch(`${BACKEND_URL}/stickers/${id}`, { method: 'DELETE' });
@@ -228,7 +210,6 @@
       }
     }
 
-    // === Добавление метки ===
     async function addSticker(type) {
       closeModal();
       if (!selectedLocation || !tg?.initDataUnsafe?.user) return;
@@ -245,7 +226,7 @@
         });
         const data = await res.json();
         if (data.blocked) {
-          alert(`Вы можете ставить метку не чаще 5 минут.\nПодождите ещё ${data.remainingMinutes} мин.`);
+          alert(`Подождите ещё ${data.remainingMinutes} мин.`);
           return;
         }
 
@@ -263,12 +244,11 @@
         });
         loadStickers();
       } catch (err) {
-        console.error(err);
         alert("Ошибка отправки метки.");
+        console.error(err);
       }
     }
 
-    // === Управление ===
     function toggleTheme() {
       dark = !dark;
       if (dark) {
@@ -287,9 +267,9 @@
       L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
     });
 
-    // === Загрузка при старте ===
     loadStickers();
-    setInterval(loadStickers, 30000); // обновлять каждые 30 сек
+    setInterval(loadStickers, 30000);
   </script>
 </body>
 </html>
+
