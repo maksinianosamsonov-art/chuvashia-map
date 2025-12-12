@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>City Dodge: Modern</title>
+    <title>City Dodge: Chuvashia Edition</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
@@ -43,27 +43,47 @@
         .game-hud {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: opacity 0.5s ease;
+            width: 100%;
         }
         
+        .score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+
         .score-pill {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            padding: 8px 20px;
             border-radius: 30px;
             color: #fff;
             font-weight: 800;
-            font-size: 20px;
+            font-size: 22px;
             display: flex;
             align-items: center;
             gap: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        .score-pill span { color: #f1c40f; } /* Золотой цвет для цифр */
+        .score-pill span { color: #f1c40f; }
+
+        .speedometer {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
 
         /* --- ЭКРАНЫ (Меню, Game Over) --- */
         .screen {
@@ -75,11 +95,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end; /* Контент снизу, чтобы видеть персонажа */
-            padding-bottom: 60px;
+            justify-content: flex-end; /* Контент снизу */
+            padding-bottom: 80px;
             pointer-events: auto;
             transition: opacity 0.4s ease, transform 0.4s ease;
             box-sizing: border-box;
+            z-index: 20;
         }
 
         .screen.hidden {
@@ -90,44 +111,61 @@
 
         /* Карточка меню (Glassmorphism) */
         .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 30px;
-            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 35px 30px;
+            border-radius: 35px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
             max-width: 90%;
             width: 380px;
-            border: 1px solid rgba(255,255,255,0.4);
-            animation: floatUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.6);
+            animation: floatUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Блик на карточке */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
+            opacity: 0.1;
+            transform: rotate(30deg);
+            pointer-events: none;
         }
 
         @keyframes floatUp {
-            from { transform: translateY(50px); opacity: 0; }
+            from { transform: translateY(60px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
         h1 {
             margin: 0;
-            font-size: 32px;
-            background: linear-gradient(45deg, #2c3e50, #3498db);
+            font-size: 36px;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            font-weight: 900;
         }
 
         p {
             color: #5f6c7b;
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 25px;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
             font-weight: 500;
         }
 
-        /* Современная кнопка */
+        /* Кнопка */
         .btn-primary {
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
             color: white;
@@ -135,65 +173,75 @@
             padding: 18px 0;
             width: 100%;
             font-size: 18px;
-            border-radius: 20px;
+            border-radius: 22px;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
             text-transform: uppercase;
             letter-spacing: 1px;
             position: relative;
-            overflow: hidden;
+            z-index: 1;
         }
 
         .btn-primary:active {
             transform: scale(0.96);
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+            filter: brightness(0.95);
         }
 
-        /* Game Over оверлей */
+        /* Game Over */
         #game-over-screen {
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
             justify-content: center;
             padding-bottom: 0;
         }
 
         .score-big {
-            font-size: 64px;
-            font-weight: 800;
-            color: white;
-            margin: 10px 0;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #fff, #bdc3c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 5px 0 20px 0;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
         }
 
         .label {
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-weight: 600;
         }
 
-        /* Таблица рекордов */
         .leaderboard-mini {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08);
             border-radius: 20px;
             width: 100%;
             padding: 15px;
             margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
         .lb-row {
             display: flex;
             justify-content: space-between;
-            color: white;
+            color: rgba(255,255,255,0.9);
             padding: 8px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 14px;
+            font-size: 15px;
         }
         .lb-row:last-child { border-bottom: none; }
-        .lb-row span:nth-child(2) { font-weight: bold; color: #f1c40f; }
+        .lb-row span:nth-child(2) { font-weight: 700; color: #f1c40f; }
 
+        /* Анимация нажатия */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -202,8 +250,13 @@
 
     <div id="ui-layer">
         <div class="game-hud" id="hud">
-            <div class="score-pill">
-                SCORE <span id="score-val">0</span>
+            <div class="score-container">
+                <div class="score-pill">
+                    <span id="score-val">0</span> PTS
+                </div>
+            </div>
+            <div class="speedometer">
+                <span id="speed-val">60</span> KM/H
             </div>
         </div>
     </div>
@@ -211,23 +264,21 @@
     <!-- МЕНЮ -->
     <div id="menu-screen" class="screen">
         <div class="glass-card">
-            <h1>City Dodge</h1>
-            <p>Я Оксана. Помоги мне добраться до встречи вовремя и не угодить под колеса!</p>
-            <button class="btn-primary" onclick="startGame()">Начать Игру</button>
+            <h1>По Чувашии</h1>
+            <p>Я Оксана. Еду домой через всю республику. Помоги мне увернуться от лихачей!</p>
+            <button class="btn-primary" onclick="startGame()">Поехали!</button>
         </div>
     </div>
 
     <!-- ПРОИГРЫШ -->
     <div id="game-over-screen" class="screen hidden">
-        <div class="glass-card" style="background: rgba(30, 30, 30, 0.85); color: white; border-color: rgba(255,255,255,0.1);">
-            <div class="label">Ваш счет</div>
+        <div class="glass-card" style="background: rgba(30, 30, 30, 0.85); color: white; border-color: rgba(255,255,255,0.15);">
+            <div class="label">Итоговый счет</div>
             <div class="score-big" id="final-score">0</div>
             
-            <div class="leaderboard-mini" id="lb-list">
-                <!-- JS заполнит -->
-            </div>
+            <div class="leaderboard-mini" id="lb-list"></div>
 
-            <button class="btn-primary" style="background: linear-gradient(135deg, #00b894, #00cec9);" onclick="startGame()">Еще Раз</button>
+            <button class="btn-primary" style="background: linear-gradient(135deg, #00b894, #00cec9); box-shadow: 0 10px 25px rgba(0, 184, 148, 0.4);" onclick="startGame()">Еще раз</button>
         </div>
     </div>
 
@@ -240,42 +291,36 @@
 
         let w, h;
         let animationId;
-        let globalFrame = 0; // Для анимации
+        let globalFrame = 0;
+
+        // Населенные пункты Чувашии
+        const chuvashiaTowns = [
+            'Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 
+            'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 
+            'Ядрин', 'Мариинский Посад', 'Козловка', 'Ибреси'
+        ];
 
         // Состояние игры
         const state = {
             running: false,
             score: 0,
-            coins: 0,
             speedMultiplier: 1,
-            laneOffset: 0
+            laneOffset: 0,
+            currentSpeed: 60
         };
 
-        // Игрок
-        const player = {
-            x: 0, 
-            y: 0,
-            w: 45,
-            h: 95,
-            targetX: 0,
-            vx: 0
-        };
+        const player = { x: 0, y: 0, w: 45, h: 95, targetX: 0, vx: 0 };
 
-        // Объекты
         let cars = [];
         let coins = [];
-        let particles = []; // Эффекты
+        let particles = [];
+        let scenery = []; // Деревья и знаки
 
         const colors = {
-            hair: '#1a1a1a',
-            skin: '#ffdbac',
-            top: '#111',
-            jeans: '#34495e',
-            asphalt: '#34495e',
-            grass: '#27ae60'
+            hair: '#1a1a1a', skin: '#ffdbac', top: '#111', jeans: '#34495e',
+            asphalt: '#34495e', grass: '#27ae60', signBlue: '#2980b9'
         };
 
-        // --- ИНИЦИАЛИЗАЦИЯ ---
         function resize() {
             w = window.innerWidth;
             h = window.innerHeight;
@@ -283,23 +328,20 @@
             canvas.height = h;
 
             if (!state.running) {
-                // В меню ставим персонажа красиво по центру
                 player.x = w / 2 - player.w / 2;
-                player.y = h - player.h - 140; // Чуть выше карточки меню
-                renderMenuBackground(); // Рисуем один кадр
+                player.y = h - player.h - 160;
+                renderMenuBackground();
             } else {
-                player.y = h - player.h - 30;
+                player.y = h - player.h - 40;
             }
         }
         window.addEventListener('resize', resize);
 
-        // --- ГРАФИКА: ОКСАНА (Улучшенная с анимацией) ---
+        // --- ГРАФИКА: ОКСАНА ---
         function drawOksana(ctx, x, y, width, height, isMenu) {
-            // Анимация дыхания/ходьбы
             const breath = Math.sin(globalFrame * 0.1) * (isMenu ? 2 : 1); 
             const hairSway = Math.sin(globalFrame * 0.15) * 3;
-            
-            y += breath; // Тело чуть двигается вверх-вниз
+            y += breath;
 
             // Тень
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -307,90 +349,70 @@
             ctx.ellipse(x + width/2, y + height - 2, width/2, 6, 0, 0, Math.PI*2);
             ctx.fill();
 
-            // 1. Ботинки
-            ctx.fillStyle = '#000';
+            // Одежда
+            // Ботинки
+            ctx.fillStyle = '#111';
             ctx.beginPath();
-            // Левый
             ctx.roundRect(x + width*0.15, y + height*0.88, width*0.3, height*0.12, 5);
-            // Правый
             ctx.roundRect(x + width*0.55, y + height*0.88, width*0.3, height*0.12, 5);
             ctx.fill();
 
-            // 2. Джинсы
+            // Джинсы
             ctx.fillStyle = colors.jeans;
             ctx.beginPath();
-            ctx.moveTo(x + width*0.15, y + height*0.5); // Талия лево
-            ctx.lineTo(x + width*0.5, y + height*0.5); // Середина
-            ctx.lineTo(x + width*0.45, y + height*0.9); // Низ левой
-            ctx.lineTo(x + width*0.15, y + height*0.9); 
-            // Правая штанина
+            ctx.moveTo(x + width*0.15, y + height*0.5);
+            ctx.lineTo(x + width*0.5, y + height*0.5);
+            ctx.lineTo(x + width*0.45, y + height*0.9);
+            ctx.lineTo(x + width*0.15, y + height*0.9);
             ctx.moveTo(x + width*0.5, y + height*0.5);
             ctx.lineTo(x + width*0.85, y + height*0.5);
             ctx.lineTo(x + width*0.85, y + height*0.9);
             ctx.lineTo(x + width*0.55, y + height*0.9);
-            // Верх джинс
             ctx.rect(x + width*0.15, y + height*0.45, width*0.7, height*0.06);
             ctx.fill();
             
-            // 3. Торс
+            // Водолазка
             ctx.fillStyle = colors.top;
             ctx.beginPath();
             ctx.roundRect(x + width*0.15, y + height*0.18, width*0.7, height*0.3, 8);
             ctx.fill();
 
-            // Руки (немного двигаются при беге)
+            // Руки
             const armSwing = isMenu ? 0 : Math.sin(globalFrame * 0.2) * 5;
-            ctx.fillStyle = '#0a0a0a'; // Рукава
-            // Левая
-            ctx.beginPath();
-            ctx.roundRect(x + width*0.05, y + height*0.19 + armSwing, width*0.12, height*0.25, 4);
-            ctx.fill();
-            // Правая
-            ctx.beginPath();
-            ctx.roundRect(x + width*0.83, y + height*0.19 - armSwing, width*0.12, height*0.25, 4);
-            ctx.fill();
-            // Кисти
+            ctx.fillStyle = '#0a0a0a';
+            ctx.beginPath(); ctx.roundRect(x + width*0.05, y + height*0.19 + armSwing, width*0.12, height*0.25, 4); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(x + width*0.83, y + height*0.19 - armSwing, width*0.12, height*0.25, 4); ctx.fill();
             ctx.fillStyle = colors.skin;
             ctx.beginPath(); ctx.arc(x + width*0.11, y + height*0.44 + armSwing, width*0.05, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(x + width*0.89, y + height*0.44 - armSwing, width*0.05, 0, Math.PI*2); ctx.fill();
 
-            // 4. Голова
+            // Голова
             ctx.fillStyle = colors.skin;
-            ctx.beginPath();
-            ctx.ellipse(x + width/2, y + height*0.12, width*0.22, height*0.13, 0, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.ellipse(x + width/2, y + height*0.12, width*0.22, height*0.13, 0, 0, Math.PI*2); ctx.fill();
 
-            // Лицо (Рисуем детали только в меню или если персонаж близко)
             if (isMenu) {
-                // Глаза
                 ctx.fillStyle = '#fff';
                 ctx.beginPath(); ctx.ellipse(x + width*0.4, y + height*0.11, width*0.05, height*0.025, 0, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.ellipse(x + width*0.6, y + height*0.11, width*0.05, height*0.025, 0, 0, Math.PI*2); ctx.fill();
-                // Зрачки
                 ctx.fillStyle = '#2c3e50';
                 ctx.beginPath(); ctx.arc(x + width*0.4, y + height*0.11, width*0.025, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + width*0.6, y + height*0.11, width*0.025, 0, Math.PI*2); ctx.fill();
-                // Губы
-                ctx.fillStyle = '#e17055';
+                ctx.fillStyle = '#c0392b';
                 ctx.beginPath(); ctx.arc(x + width*0.5, y + height*0.16, width*0.03, 0, Math.PI, false); ctx.fill();
             }
 
-            // 5. Волосы (Сложная форма с анимацией)
+            // Волосы
             ctx.fillStyle = colors.hair;
             ctx.beginPath();
-            // Верх
             ctx.moveTo(x + width*0.2, y + height*0.1);
             ctx.quadraticCurveTo(x + width*0.5, y - height*0.05, x + width*0.8, y + height*0.1);
-            // Правая сторона (движется)
             ctx.quadraticCurveTo(x + width*1.1 + hairSway/3, y + height*0.4, x + width*0.8 + hairSway, y + height*0.6);
             ctx.quadraticCurveTo(x + width*0.6, y + height*0.5, x + width*0.7, y + height*0.2);
-            // Левая сторона (движется в противофазе слегка)
             ctx.lineTo(x + width*0.3, y + height*0.2);
             ctx.quadraticCurveTo(x + width*0.4, y + height*0.5, x + width*0.2 - hairSway, y + height*0.6);
             ctx.quadraticCurveTo(x - width*0.1 - hairSway/3, y + height*0.4, x + width*0.2, y + height*0.1);
             ctx.fill();
 
-            // Челка
             ctx.beginPath();
             ctx.moveTo(x + width*0.5, y + height*0.02);
             ctx.quadraticCurveTo(x + width*0.2, y + height*0.08, x + width*0.15, y + height*0.25);
@@ -400,21 +422,22 @@
         }
 
         // --- ГРАФИКА: ОКРУЖЕНИЕ ---
-        function drawRoad() {
-            // Асфальт с текстурой шума (симуляция)
-            ctx.fillStyle = '#34495e';
+        function drawEnvironment() {
+            // Трава
+            ctx.fillStyle = '#27ae60';
             ctx.fillRect(0, 0, w, h);
             
-            // Обочины
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(0, 0, 15, h);
-            ctx.fillRect(w-15, 0, 15, h);
-            ctx.fillStyle = '#f1c40f'; // Желтая линия
+            // Дорога
+            ctx.fillStyle = '#34495e';
+            ctx.fillRect(15, 0, w - 30, h);
+            
+            // Разметка
+            ctx.fillStyle = '#f1c40f'; // Желтые обочины
             ctx.fillRect(15, 0, 5, h);
             ctx.fillRect(w-20, 0, 5, h);
 
-            // Разметка
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            // Центральная линия
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
             ctx.lineWidth = 6;
             ctx.setLineDash([40, 60]);
             ctx.lineDashOffset = -state.laneOffset;
@@ -423,6 +446,60 @@
             ctx.lineTo(w/2, h + 100);
             ctx.stroke();
             ctx.setLineDash([]);
+
+            // Эффект скорости (градиент)
+            const speedGrad = ctx.createLinearGradient(0, 0, 0, h);
+            speedGrad.addColorStop(0, 'rgba(0,0,0,0.3)');
+            speedGrad.addColorStop(0.3, 'rgba(0,0,0,0)');
+            ctx.fillStyle = speedGrad;
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        function drawSceneryItem(item) {
+            const y = item.y;
+            
+            if (item.type === 'tree') {
+                // Ствол
+                ctx.fillStyle = '#5d4037';
+                ctx.fillRect(item.x - 5, y, 10, 20);
+                // Листва (треугольник)
+                ctx.fillStyle = '#1e8449';
+                ctx.beginPath();
+                ctx.moveTo(item.x, y - 40);
+                ctx.lineTo(item.x + 25, y);
+                ctx.lineTo(item.x - 25, y);
+                ctx.fill();
+                // Тень листвы
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                ctx.beginPath();
+                ctx.moveTo(item.x, y - 40);
+                ctx.lineTo(item.x + 10, y);
+                ctx.lineTo(item.x, y);
+                ctx.fill();
+            } else if (item.type === 'sign') {
+                // Столб
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(item.x - 2, y, 4, 60);
+                
+                // Табличка
+                const signW = 100;
+                const signH = 30;
+                const signX = item.side === 'left' ? item.x - signW : item.x;
+                const signY = y - 50;
+
+                ctx.fillStyle = colors.signBlue;
+                ctx.fillRect(signX, signY, signW, signH);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(signX, signY, signW, signH);
+
+                // Текст
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Montserrat';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(item.text, signX + signW/2, signY + signH/2);
+            }
         }
 
         function drawCar(c) {
@@ -431,7 +508,7 @@
             ctx.roundRect(c.x + 8, c.y + 8, c.width, c.height, 10);
             ctx.fill();
 
-            // Кузов (Градиент для объема)
+            // Кузов
             const grad = ctx.createLinearGradient(c.x, c.y, c.x + c.width, c.y);
             grad.addColorStop(0, adjustColor(c.color, -30));
             grad.addColorStop(0.5, c.color);
@@ -442,19 +519,18 @@
             ctx.roundRect(c.x, c.y, c.width, c.height, 10);
             ctx.fill();
 
-            // Стекла
+            // Детали
             ctx.fillStyle = '#2d3436';
-            ctx.fillRect(c.x + 6, c.y + 15, c.width - 12, 18); // Переднее
-            ctx.fillRect(c.x + 6, c.y + c.height - 25, c.width - 12, 12); // Заднее
+            ctx.fillRect(c.x + 6, c.y + 15, c.width - 12, 18);
+            ctx.fillRect(c.x + 6, c.y + c.height - 25, c.width - 12, 12);
             
-            // Крыша
             ctx.fillStyle = adjustColor(c.color, 20);
             ctx.fillRect(c.x + 8, c.y + 33, c.width - 16, c.height - 58);
 
             // Логотип
             drawCarLogo(ctx, c);
 
-            // Фары (свет)
+            // Фары
             if (c.y > 0 && c.y < h) {
                 ctx.fillStyle = 'rgba(255, 255, 200, 0.6)';
                 ctx.beginPath();
@@ -465,25 +541,19 @@
         }
 
         function drawCoin(c) {
-            const size = 15 + Math.sin(globalFrame * 0.2) * 2; // Пульсация
+            const size = 15 + Math.sin(globalFrame * 0.2) * 2;
             
-            // Сияние
             ctx.fillStyle = 'rgba(241, 196, 15, 0.3)';
-            ctx.beginPath();
-            ctx.arc(c.x + 15, c.y + 15, size + 10, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(c.x + 15, c.y + 15, size + 10, 0, Math.PI*2); ctx.fill();
 
-            // Монета
             ctx.fillStyle = '#f1c40f';
-            ctx.beginPath();
-            ctx.arc(c.x + 15, c.y + 15, size, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(c.x + 15, c.y + 15, size, 0, Math.PI*2); ctx.fill();
             
             ctx.fillStyle = '#f39c12';
             ctx.font = 'bold 16px Montserrat';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('$', c.x + 15, c.y + 15);
+            ctx.fillText('₽', c.x + 15, c.y + 16);
         }
 
         function drawFloatingTexts() {
@@ -499,35 +569,37 @@
             });
         }
 
-        // Вспомогательная для цвета
-        function adjustColor(color, amount) {
-            return color; // Упрощено для примера, можно добавить HEX парсер
-        }
+        function adjustColor(color, amount) { return color; } // Placeholder
 
         // --- ЛОГИКА ---
         function update() {
             globalFrame++;
             state.score++;
-            state.laneOffset = (state.laneOffset + 8 * state.speedMultiplier) % 100;
             
+            // Увеличение скорости
+            if (state.score % 500 === 0) {
+                state.speedMultiplier += 0.1;
+            }
+            state.currentSpeed = Math.floor(60 + (state.speedMultiplier - 1) * 30);
+            document.getElementById('speed-val').innerText = state.currentSpeed;
+            
+            state.laneOffset = (state.laneOffset + 8 * state.speedMultiplier) % 100;
             if (state.score % 10 === 0) {
                 document.getElementById('score-val').innerText = Math.floor(state.score / 10);
             }
 
-            // Управление (плавное)
+            // Управление
             player.x += (player.targetX - player.x) * 0.15;
             
-            // Спавн машин
+            // Спавн
             if (Math.random() < 0.02 * state.speedMultiplier) spawnObject('car');
-            // Спавн монет
             if (Math.random() < 0.005) spawnObject('coin');
+            if (Math.random() < 0.06 * state.speedMultiplier) spawnObject('scenery');
 
             // Обновление машин
             for (let i = cars.length - 1; i >= 0; i--) {
                 let c = cars[i];
                 c.y += c.speed;
-                
-                // BMW логика
                 if (c.brand === 'bmw') {
                     if (Math.random() < 0.02) c.vx = (Math.random() - 0.5) * 8;
                     c.vx *= 0.92;
@@ -535,22 +607,26 @@
                     if (c.x < 15) c.x = 15;
                     if (c.x > w - 15 - c.width) c.x = w - 15 - c.width;
                 }
-
                 if (c.y > h) cars.splice(i, 1);
                 
-                // Коллизия (чуть меньше реального размера для прощения ошибок)
                 if (rectIntersect(player.x + 10, player.y + 10, player.w - 20, player.h - 20, c.x, c.y, c.width, c.height)) {
                     gameOver();
                 }
             }
 
+            // Обновление декораций
+            for (let i = scenery.length - 1; i >= 0; i--) {
+                let s = scenery[i];
+                s.y += 8 * state.speedMultiplier; // Движутся со скоростью дороги
+                if (s.y > h) scenery.splice(i, 1);
+            }
+
             // Обновление монет
             for (let i = coins.length - 1; i >= 0; i--) {
                 let c = coins[i];
-                c.y += 4 * state.speedMultiplier; // Монеты тоже движутся с дорогой
-                
+                c.y += 8 * state.speedMultiplier;
                 if (rectIntersect(player.x, player.y, player.w, player.h, c.x, c.y, 30, 30)) {
-                    state.score += 500; // Бонус
+                    state.score += 500;
                     particles.push({x: player.x, y: player.y, text: "+50", life: 1.0});
                     coins.splice(i, 1);
                     if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
@@ -565,10 +641,31 @@
         }
 
         function spawnObject(type) {
+            if (type === 'scenery') {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                // Деревья частые, знаки редкие
+                const isSign = Math.random() < 0.15; 
+                
+                // Координаты вне дороги
+                let x = side === 'left' ? Math.random() * -20 + 5 : w - 20 + Math.random() * 20;
+                
+                if (isSign) {
+                    const text = chuvashiaTowns[Math.floor(Math.random() * chuvashiaTowns.length)];
+                    scenery.push({
+                        type: 'sign', x: side === 'left' ? 20 : w - 20, y: -60, text: text, side: side
+                    });
+                } else {
+                    scenery.push({
+                        type: 'tree', x: x, y: -50
+                    });
+                }
+                return;
+            }
+
+            // Машины и монеты
             const width = 50;
-            let x = Math.random() * (w - 30 - width) + 15;
+            let x = Math.random() * (w - 60 - width) + 30; // Учитываем обочину
             
-            // Проверка на наложение
             let safe = true;
             cars.forEach(c => { if (Math.abs(c.y) < 150 && Math.abs(c.x - x) < 60) safe = false; });
             if (!safe) return;
@@ -591,41 +688,35 @@
             }
         }
 
-        // --- ЛОГОТИПЫ ---
         function drawCarLogo(ctx, c) {
             const cx = c.x + c.width/2;
             const cy = c.y + c.height - 15;
             ctx.lineWidth = 1.5;
-            
             if (c.brand === 'mercedes') {
-                ctx.strokeStyle = '#fff';
-                ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.stroke();
+                ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx, cy-5); ctx.lineTo(cx, cy); ctx.lineTo(cx-4, cy+3); ctx.moveTo(cx, cy); ctx.lineTo(cx+4, cy+3); ctx.stroke();
-            } 
-            else if (c.brand === 'bmw') {
+            } else if (c.brand === 'bmw') {
                 ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI/2); ctx.arc(cx, cy, 4, Math.PI, Math.PI*1.5); ctx.fill();
                 ctx.fillStyle = '#0984e3'; ctx.beginPath(); ctx.arc(cx, cy, 4, Math.PI/2, Math.PI); ctx.arc(cx, cy, 4, Math.PI*1.5, Math.PI*2); ctx.fill();
-            }
-            else {
-                ctx.fillStyle = '#dfe6e9';
-                ctx.font = 'bold 8px Arial';
-                ctx.fillText('L', cx, cy+3);
+            } else {
+                ctx.fillStyle = '#dfe6e9'; ctx.font = 'bold 8px Arial'; ctx.fillText('L', cx, cy+3);
             }
         }
 
-        // --- ГЛАВНЫЙ ЦИКЛ ---
         function loop() {
             if (state.running) {
                 update();
-                drawRoad();
+                drawEnvironment();
+                // Декорации рисуем ДО дорогих объектов, но после травы
+                scenery.forEach(drawSceneryItem);
+                
                 coins.forEach(drawCoin);
+                cars.forEach(drawCar); // Машины под Оксаной? Или над? Пусть Оксана будет главной
                 drawOksana(ctx, player.x, player.y, player.w, player.h, false);
-                cars.forEach(drawCar);
                 drawFloatingTexts();
                 animationId = requestAnimationFrame(loop);
             } else {
-                // В меню только отрисовка фона и персонажа для красоты
                 renderMenuBackground();
                 animationId = requestAnimationFrame(loop);
             }
@@ -633,17 +724,13 @@
 
         function renderMenuBackground() {
             globalFrame++;
-            // Рисуем теплый фон
             ctx.fillStyle = '#fdf6ec';
             ctx.fillRect(0, 0, w, h);
-            
-            // Большая Оксана
             const bigW = Math.min(w * 0.7, 280);
             const bigH = bigW * 2.1;
-            drawOksana(ctx, (w - bigW)/2, h - bigH - 120, bigW, bigH, true);
+            drawOksana(ctx, (w - bigW)/2, h - bigH - 140, bigW, bigH, true);
         }
 
-        // --- УПРАВЛЕНИЕ ---
         function startGame() {
             state.running = true;
             state.score = 0;
@@ -651,6 +738,7 @@
             cars = [];
             coins = [];
             particles = [];
+            scenery = [];
             
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
@@ -658,7 +746,7 @@
 
             player.targetX = w/2 - player.w/2;
             player.x = player.targetX;
-            player.y = h - player.h - 30;
+            player.y = h - player.h - 40;
 
             cancelAnimationFrame(animationId);
             loop();
@@ -667,32 +755,27 @@
         function gameOver() {
             state.running = false;
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            
             const final = Math.floor(state.score / 10);
             document.getElementById('final-score').innerText = final;
             document.getElementById('hud').style.opacity = '0';
             document.getElementById('game-over-screen').classList.remove('hidden');
-            
             saveScore(final);
             updateLeaderboard();
         }
 
-        // INPUTS
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
             const touch = e.touches[0];
             player.targetX = touch.clientX - player.w/2;
-            // Ограничения
-            if(player.targetX < 15) player.targetX = 15;
-            if(player.targetX > w - 15 - player.w) player.targetX = w - 15 - player.w;
+            if(player.targetX < 20) player.targetX = 20;
+            if(player.targetX > w - 20 - player.w) player.targetX = w - 20 - player.w;
         });
 
         window.addEventListener('keydown', e => {
-            if(e.key === 'ArrowLeft') player.targetX -= 20;
-            if(e.key === 'ArrowRight') player.targetX += 20;
+            if(e.key === 'ArrowLeft') player.targetX -= 25;
+            if(e.key === 'ArrowRight') player.targetX += 25;
         });
 
-        // Рекорды (Local Storage)
         function saveScore(s) {
             let scores = JSON.parse(localStorage.getItem('cd_scores') || '[]');
             scores.push({n: tg.initDataUnsafe?.user?.first_name || 'Вы', s: s});
@@ -708,10 +791,9 @@
             ).join('') || '<div style="text-align:center;color:#aaa">Нет рекордов</div>';
         }
 
-        // Старт
         resize();
-        renderMenuBackground(); // Первый кадр
-        loop(); // Запускаем цикл для анимации в меню
+        renderMenuBackground();
+        loop();
 
     </script>
 </body>
