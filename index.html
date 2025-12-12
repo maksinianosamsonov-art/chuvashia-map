@@ -93,7 +93,7 @@
             backdrop-filter: blur(8px);
             transition: opacity 0.3s;
             z-index: 20;
-            overflow-y: auto; /* Allow scroll on small screens if content overflows */
+            overflow-y: auto; 
         }
 
         .screen.hidden { opacity: 0; pointer-events: none; }
@@ -116,7 +116,6 @@
             text-align: center;
             animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             margin-bottom: 10px;
-            max-height: 70vh;
             display: flex;
             flex-direction: column;
         }
@@ -165,7 +164,7 @@
             text-align: left;
             flex-grow: 1;
             overflow-y: auto;
-            max-height: 200px;
+            max-height: 150px;
         }
 
         .lb-title {
@@ -188,14 +187,8 @@
             color: #34495e;
         }
         .lb-item:last-child { border-bottom: none; }
-        .lb-rank { 
-            width: 24px; 
-            display: inline-block; 
-            color: #bdc3c7; 
-        }
+        .lb-rank { width: 24px; display: inline-block; color: #bdc3c7; }
         .lb-item.top-1 .lb-rank { color: #f1c40f; }
-        .lb-item.top-2 .lb-rank { color: #95a5a6; }
-        .lb-item.top-3 .lb-rank { color: #cd7f32; }
         
         .lb-score { color: #2c3e50; font-weight: 900; }
 
@@ -248,12 +241,9 @@
             <h1>По Чувашии</h1>
             <p>Я Оксана. Еду домой. Помоги мне не попасть в аварию и не нарваться на штрафы!</p>
             
-            <!-- Таблица рекордов в меню -->
             <div class="leaderboard-section">
                 <div class="lb-title">🏆 Топ водителей</div>
-                <div id="menu-lb-list">
-                    <div style="text-align:center; color:#ccc; padding:10px;">Загрузка...</div>
-                </div>
+                <div id="menu-lb-list">Загрузка...</div>
             </div>
 
             <button class="btn" id="btn-start">Поехали!</button>
@@ -278,105 +268,13 @@
             <h1 style="color: #c0392b;">ДТП!</h1>
             <p>Приехали... Машину помяли.</p>
             <div style="font-size: 42px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
-            
             <button class="btn" id="btn-restart">Заново</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- FIREBASE SETUP ---
-        let db;
-        let auth;
-        let appId = 'city-dodge-app'; 
-        let userId = 'anon';
-
-        try {
-            if (typeof __firebase_config !== 'undefined') {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                if (typeof __app_id !== 'undefined') appId = __app_id;
-
-                signInAnonymously(auth).then((userCredential) => {
-                    userId = userCredential.user.uid;
-                    // Start listening to leaderboard immediately
-                    initLeaderboard();
-                }).catch((error) => {
-                    console.error("Auth failed", error);
-                });
-            }
-        } catch (e) {
-            console.error("Firebase init error", e);
-            document.getElementById('menu-lb-list').innerHTML = '<div style="text-align:center; color:#ccc;">Рекорды недоступны</div>';
-        }
-
-        // --- LEADERBOARD LOGIC ---
-        function initLeaderboard() {
-            if (!db) return;
-            const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'citydodge_scores');
-            
-            // Rule 2: No orderBy in query. Fetch all and sort client-side.
-            onSnapshot(scoresRef, (snapshot) => {
-                const scores = [];
-                snapshot.forEach((doc) => {
-                    scores.push(doc.data());
-                });
-
-                // Sort descending
-                scores.sort((a, b) => b.score - a.score);
-                
-                // Take top 5
-                const top5 = scores.slice(0, 5);
-                renderLeaderboard(top5);
-            });
-        }
-
-        function renderLeaderboard(data) {
-            const html = data.map((entry, index) => {
-                const rankClass = index < 3 ? `top-${index+1}` : '';
-                const icon = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index+1}`));
-                // Escape name to prevent XSS
-                const safeName = (entry.name || 'Аноним').replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                return `
-                    <div class="lb-item ${rankClass}">
-                        <div><span class="lb-rank">${icon}</span> ${safeName}</div>
-                        <div class="lb-score">${entry.score}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            const container = document.getElementById('menu-lb-list');
-            if (container) container.innerHTML = html || '<div style="text-align:center; color:#ccc; padding:10px;">Пока пусто. Стань первым!</div>';
-        }
-
-        async function saveScoreToDb(score) {
-            if (!db || !auth.currentUser) return;
-            
-            // Get user name from TG or use default
-            let userName = 'Гость';
-            if (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) {
-                userName = window.Telegram.WebApp.initDataUnsafe.user.first_name;
-            }
-
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'citydodge_scores'), {
-                    name: userName,
-                    score: score,
-                    uid: userId,
-                    date: serverTimestamp()
-                });
-            } catch (e) {
-                console.error("Error saving score", e);
-            }
-        }
-
-        // --- GAME ENGINE ---
-        
+    <script>
+    (function() {
+        // --- TG SAFE INIT ---
         try { if(window.Telegram?.WebApp) window.Telegram.WebApp.expand(); } catch(e){}
 
         const canvas = document.getElementById('gameCanvas');
@@ -425,7 +323,7 @@
             canvas.height = h;
             if(state.screen === 'menu') {
                 player.x = w/2 - player.w/2;
-                player.y = h - player.h - 300; // Adjusted for leaderboard height
+                player.y = h - player.h - 300; 
             } else {
                 player.y = h - player.h - 50;
             }
@@ -548,6 +446,7 @@
             frame++;
             state.score++;
             
+            // Плавный разгон
             let rawSpeed = 40 + Math.floor(state.score / 25);
             state.speed = rawSpeed;
             document.getElementById('speed-val').innerText = rawSpeed;
@@ -695,11 +594,30 @@
             document.getElementById('final-score').innerText = Math.floor(state.score/10);
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('hud').style.opacity = 0;
-            // Save score
-            saveScoreToDb(Math.floor(state.score/10));
+            saveScore(Math.floor(state.score/10));
         }
 
-        // --- INPUT ---
+        // --- STORAGE ---
+        function saveScore(s) {
+            let scores = JSON.parse(localStorage.getItem('cd_scores') || '[]');
+            const name = window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'Водитель';
+            scores.push({n: name, s: s});
+            scores.sort((a,b) => b.s - a.s);
+            localStorage.setItem('cd_scores', JSON.stringify(scores.slice(0,5)));
+            updateLeaderboardUI(scores.slice(0,5));
+        }
+
+        function updateLeaderboardUI(scores) {
+            if(!scores) scores = JSON.parse(localStorage.getItem('cd_scores') || '[]');
+            const html = scores.map((e,i) => `
+                <div class="lb-item top-${i+1}">
+                    <div><span class="lb-rank">#${i+1}</span> ${e.n}</div>
+                    <div class="lb-score">${e.s}</div>
+                </div>`).join('');
+            document.getElementById('menu-lb-list').innerHTML = html || '<div style="text-align:center;color:#aaa">Нет рекордов</div>';
+        }
+
+        // --- CONTROLS ---
         document.getElementById('btn-start').onclick = startGame;
         document.getElementById('btn-restart').onclick = startGame;
 
@@ -712,6 +630,8 @@
             if(player.targetX > rX+rW-player.w) player.targetX = rX+rW-player.w;
         });
 
+        // Init
+        updateLeaderboardUI();
         resize();
         loop();
 
