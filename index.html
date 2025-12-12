@@ -52,7 +52,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -60,6 +60,8 @@
             z-index: 10;
             backdrop-filter: blur(5px);
             pointer-events: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .hidden {
@@ -68,19 +70,34 @@
 
         h1 {
             color: #fff;
-            font-size: 36px;
+            font-size: 32px;
             margin-bottom: 10px;
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
+        /* Стили для картинки персонажа в меню */
+        .intro-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #3498db;
+            margin-bottom: 15px;
+            background-color: #fff; /* Фон если картинка не загрузится */
+        }
+
         p {
             color: #ccc;
             font-size: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-align: center;
-            max-width: 80%;
+            max-width: 100%;
+            line-height: 1.5;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
         }
 
         .btn {
@@ -94,6 +111,7 @@
             transition: transform 0.1s, background 0.2s;
             font-weight: bold;
             box-shadow: 0 4px 0 #2980b9;
+            margin-top: 10px;
         }
 
         .btn:active {
@@ -106,7 +124,7 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 20px;
             border-radius: 10px;
-            width: 80%;
+            width: 100%;
             max-width: 300px;
             margin-bottom: 20px;
         }
@@ -128,7 +146,7 @@
         .current-score-display {
             font-size: 48px;
             color: #fff;
-            margin: 10px 0 30px 0;
+            margin: 10px 0 20px 0;
             font-weight: bold;
         }
 
@@ -155,10 +173,16 @@
 
     <!-- Главное Меню -->
     <div id="menu-screen">
-        <h1>City Dodge</h1>
-        <p>Уворачивайся от машин!<br>Двигай пальцем или стрелками.</p>
-        <button class="btn" onclick="startGame()">ИГРАТЬ</button>
-        <div class="controls-hint">Управление: Свайп / Стрелки</div>
+        <!-- Картинка персонажа. Сохраните файл как oxana.jpg в папке с игрой -->
+        <img src="oxana.jpg" alt="Оксана" class="intro-image" onerror="this.style.display='none'">
+        
+        <h1>Привет!</h1>
+        <p>Я Оксана и меня постоянно пытаются задавить, помоги мне увернуться от машин..
+        <br><br>
+        <span style="font-size: 0.9em; opacity: 0.8;">Управление: Свайп влево/вправо</span>
+        </p>
+        
+        <button class="btn" onclick="startGame()">СПАСТИ ОКСАНУ</button>
     </div>
 
     <!-- Экран Проигрыша -->
@@ -264,12 +288,15 @@
             // Случайная позиция по X
             const xPos = Math.random() * (w - carWidth);
             
+            // Уменьшили базовую скорость (было 3 + ..., стало 2 + ...)
+            const baseSpeed = 2 + Math.random() * 2.5; 
+
             cars.push({
                 x: xPos,
                 y: -100, // Над экраном
                 width: carWidth,
                 height: carHeight,
-                speed: (3 + Math.random() * 3) * speedMultiplier,
+                speed: baseSpeed * speedMultiplier,
                 color: carColors[Math.floor(Math.random() * carColors.length)]
             });
         }
@@ -281,7 +308,10 @@
             score++;
             document.getElementById('score-val').innerText = Math.floor(score / 10);
             
-            if (score % 500 === 0) speedMultiplier += 0.1;
+            // Увеличиваем скорость каждые 300 тиков (более плавно)
+            if (score % 300 === 0) {
+                speedMultiplier += 0.05;
+            }
 
             // Движение клавиатурой
             if (keys['ArrowLeft'] || keys['KeyA']) player.x -= 7;
@@ -351,8 +381,15 @@
             ctx.arc(x + width/2, y + height * 0.1, width * 0.35, 0, Math.PI * 2);
             ctx.fill();
 
-            // 4. Волосы (Длинные темные)
+            // 4. Волосы
             ctx.fillStyle = player.colorHair;
+            
+            // Хвостик (торчит немного вбок/вверх)
+            ctx.beginPath();
+            ctx.arc(x + width * 0.85, y + height * 0.05, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Основная прическа
             ctx.beginPath();
             // Макушка
             ctx.arc(x + width/2, y + height * 0.08, width * 0.4, Math.PI, Math.PI * 2);
@@ -432,7 +469,7 @@
             // Сброс параметров
             gameRunning = true;
             score = 0;
-            speedMultiplier = 1;
+            speedMultiplier = 1; // Сброс скорости
             cars = [];
             player.x = w / 2 - player.width / 2;
             document.getElementById('score-val').innerText = '0';
@@ -507,5 +544,4 @@
     </script>
 </body>
 </html>
-
 
