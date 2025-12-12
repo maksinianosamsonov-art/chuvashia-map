@@ -67,14 +67,16 @@
         .score-pill span { color: #f1c40f; }
 
         .speedometer {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(231, 76, 60, 0.8); /* Красный фон для скорости */
             backdrop-filter: blur(5px);
-            padding: 5px 15px;
+            padding: 8px 20px;
             border-radius: 20px;
-            color: rgba(255,255,255,0.9);
-            font-size: 14px;
-            font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
         }
 
         /* --- ЭКРАНЫ --- */
@@ -179,9 +181,10 @@
         /* --- ПОЛИЦЕЙСКИЙ ДИАЛОГ --- */
         #police-screen {
             background: rgba(0, 0, 30, 0.4);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             justify-content: center;
             z-index: 100;
+            padding-bottom: 0;
         }
 
         .police-card {
@@ -194,13 +197,16 @@
             max-width: 350px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             animation: shake 0.5s ease-out;
+            position: absolute;
+            top: 20%; /* Чуть выше центра, чтобы видеть Оксану */
         }
 
         @keyframes shake {
             0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
             100% { transform: translateX(0); }
         }
 
@@ -209,31 +215,37 @@
             font-weight: 900;
             text-transform: uppercase;
             font-size: 18px;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
 
         .police-text {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             line-height: 1.4;
         }
         
         .police-btn {
             background: #34495e;
             color: white;
-            padding: 15px;
+            padding: 16px;
             width: 100%;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
+            box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+            transition: transform 0.1s;
         }
+        
+        .police-btn:active { transform: scale(0.98); }
 
         .leaderboard-mini { margin-bottom: 25px; width: 100%; }
         .lb-row { display: flex; justify-content: space-between; color: #eee; padding: 5px 0; border-bottom: 1px solid #ffffff20;}
@@ -249,7 +261,7 @@
             <div class="score-container">
                 <div class="score-pill"><span id="score-val">0</span> PTS</div>
             </div>
-            <div class="speedometer"><span id="speed-val">0</span> KM/H</div>
+            <div class="speedometer" id="speed-box"><span id="speed-val">60</span> KM/H</div>
         </div>
     </div>
 
@@ -265,12 +277,12 @@
     <!-- СЦЕНА С ГАИШНИКОМ -->
     <div id="police-screen" class="screen hidden">
         <div class="police-card">
-            <div class="police-title">📍 БАТЫРЕВО</div>
+            <div class="police-title">👮‍♂️ ДПС БАТЫРЕВО</div>
             <div class="police-text">
                 — Куда летим, Оксана?<br>
                 Ты наши дороги видела?!
             </div>
-            <button class="police-btn" onclick="resolveBatyrevoEvent()">я больше так не буду</button>
+            <button class="police-btn" onclick="resolveBatyrevoEvent()">я больше так не буду :(</button>
         </div>
     </div>
 
@@ -297,13 +309,13 @@
 
         const chuvashiaTowns = [
             'Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 
-            'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин'
+            'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин',
+            'Комсомольское', 'Ибреси', 'Козловка'
         ];
 
-        // Состояние игры
         const state = {
             running: false,
-            paused: false, // Для диалогов
+            paused: false,
             score: 0,
             speedMultiplier: 1,
             laneOffset: 0,
@@ -316,7 +328,6 @@
 
         let cars = [];
         let coins = [];
-        let particles = [];
         let scenery = [];
 
         const colors = {
@@ -342,90 +353,79 @@
 
         // --- ГРАФИКА: ПОЛИЦЕЙСКИЙ ---
         function drawPolice(ctx, x, y) {
-            const width = 50;
-            const height = 100;
+            const width = 60;
+            const height = 110;
 
-            // Тень
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath(); ctx.ellipse(x + width/2, y + height, width/2, 5, 0, 0, Math.PI*2); ctx.fill();
+            // Рисуем на весь рост (стоящий на дороге)
+            
+            // Ноги
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(x + 15, y + 70, 14, 40);
+            ctx.fillRect(x + 35, y + 70, 14, 40);
 
-            // Ноги (Форма)
-            ctx.fillStyle = '#2c3e50'; // Темно-синие брюки
-            ctx.fillRect(x + 10, y + 60, 12, 40);
-            ctx.fillRect(x + 28, y + 60, 12, 40);
-
-            // Тело (Жилет ДПС)
-            ctx.fillStyle = '#b8e994'; // Салатовый жилет
-            ctx.fillRect(x + 5, y + 25, 40, 35);
-            // Полосы отражающие
+            // Тело (Жилет)
+            ctx.fillStyle = '#b8e994';
+            ctx.beginPath();
+            ctx.roundRect(x + 10, y + 30, 45, 45, 5);
+            ctx.fill();
+            
+            // Полосы
             ctx.fillStyle = '#bdc3c7';
-            ctx.fillRect(x + 5, y + 35, 40, 5);
-            ctx.fillRect(x + 5, y + 45, 40, 5);
+            ctx.fillRect(x + 10, y + 42, 45, 6);
+            ctx.fillRect(x + 10, y + 55, 45, 6);
 
-            // Руки
-            ctx.fillStyle = '#2980b9'; // Рубашка
-            ctx.fillRect(x - 5, y + 25, 10, 30); // Левая
-            ctx.fillRect(x + 45, y + 25, 10, 30); // Правая
-
-            // Жезл (в правой руке)
+            // Рука с жезлом
             ctx.save();
-            ctx.translate(x + 50, y + 40);
-            ctx.rotate(-0.5);
+            ctx.translate(x + 60, y + 45);
+            ctx.rotate(-0.8);
             ctx.fillStyle = '#000';
-            ctx.fillRect(0, -20, 4, 40); // Основа
-            ctx.fillStyle = '#fff'; // Полоски
-            ctx.fillRect(0, -15, 4, 5);
-            ctx.fillRect(0, -5, 4, 5);
-            ctx.fillRect(0, 5, 4, 5);
+            ctx.fillRect(0, -25, 5, 50); // Жезл
+            ctx.fillStyle = '#fff'; 
+            ctx.fillRect(0, -20, 5, 8);
+            ctx.fillRect(0, -8, 5, 8);
+            ctx.fillRect(0, 5, 5, 8);
             ctx.restore();
 
             // Голова
-            ctx.fillStyle = '#f1c40f'; // Кожа (условно)
-            ctx.fillStyle = colors.skin;
-            ctx.beginPath(); ctx.arc(x + 25, y + 15, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffdbac';
+            ctx.beginPath(); ctx.arc(x + 32, y + 20, 14, 0, Math.PI*2); ctx.fill();
 
             // Фуражка
             ctx.fillStyle = '#2c3e50';
-            ctx.beginPath(); 
-            ctx.moveTo(x + 10, y + 8); 
-            ctx.lineTo(x + 40, y + 8); 
-            ctx.lineTo(x + 35, y - 5); 
-            ctx.lineTo(x + 15, y - 5); 
+            ctx.beginPath();
+            ctx.moveTo(x + 15, y + 12);
+            ctx.lineTo(x + 50, y + 12);
+            ctx.lineTo(x + 45, y - 5);
+            ctx.lineTo(x + 20, y - 5);
             ctx.fill();
-            ctx.fillStyle = '#c0392b'; // Красный околыш
-            ctx.fillRect(x + 10, y + 5, 30, 4);
+            ctx.fillStyle = '#c0392b';
+            ctx.fillRect(x + 15, y + 8, 35, 5);
         }
 
-        // --- ГРАФИКА: ОКСАНА (Упрощенно из прошлого файла) ---
+        // --- ГРАФИКА: ОКСАНА ---
         function drawOksana(ctx, x, y, width, height, isMenu) {
             const breath = Math.sin(globalFrame * 0.1) * (isMenu ? 2 : 1); 
             y += breath;
             
-            // Тень
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.beginPath(); ctx.ellipse(x + width/2, y + height - 2, width/2, 6, 0, 0, Math.PI*2); ctx.fill();
 
-            // Джинсы
             ctx.fillStyle = colors.jeans;
             ctx.beginPath();
             ctx.moveTo(x + width*0.15, y + height*0.5); ctx.lineTo(x + width*0.5, y + height*0.5); ctx.lineTo(x + width*0.45, y + height*0.9); ctx.lineTo(x + width*0.15, y + height*0.9);
             ctx.moveTo(x + width*0.5, y + height*0.5); ctx.lineTo(x + width*0.85, y + height*0.5); ctx.lineTo(x + width*0.85, y + height*0.9); ctx.lineTo(x + width*0.55, y + height*0.9);
             ctx.rect(x + width*0.15, y + height*0.45, width*0.7, height*0.06); ctx.fill();
             
-            // Водолазка
             ctx.fillStyle = colors.top;
             ctx.beginPath(); ctx.roundRect(x + width*0.15, y + height*0.18, width*0.7, height*0.3, 8); ctx.fill();
 
-            // Руки
             ctx.fillStyle = colors.skin;
             ctx.beginPath(); ctx.arc(x + width*0.11, y + height*0.44, width*0.05, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(x + width*0.89, y + height*0.44, width*0.05, 0, Math.PI*2); ctx.fill();
 
-            // Голова
             ctx.fillStyle = colors.skin;
             ctx.beginPath(); ctx.ellipse(x + width/2, y + height*0.12, width*0.22, height*0.13, 0, 0, Math.PI*2); ctx.fill();
 
-            // Волосы
             ctx.fillStyle = colors.hair;
             ctx.beginPath();
             ctx.moveTo(x + width*0.2, y + height*0.1);
@@ -435,7 +435,6 @@
             ctx.quadraticCurveTo(x - width*0.1, y + height*0.4, x + width*0.2, y + height*0.1);
             ctx.fill();
             
-            // Челка
             ctx.beginPath();
             ctx.moveTo(x + width*0.5, y + height*0.02);
             ctx.quadraticCurveTo(x + width*0.2, y + height*0.08, x + width*0.15, y + height*0.25);
@@ -445,9 +444,9 @@
         }
 
         function drawEnvironment() {
-            ctx.fillStyle = '#27ae60'; ctx.fillRect(0, 0, w, h); // Трава
-            ctx.fillStyle = '#34495e'; ctx.fillRect(15, 0, w - 30, h); // Дорога
-            ctx.fillStyle = '#f1c40f'; ctx.fillRect(15, 0, 5, h); ctx.fillRect(w-20, 0, 5, h); // Обочина
+            ctx.fillStyle = '#27ae60'; ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#34495e'; ctx.fillRect(15, 0, w - 30, h);
+            ctx.fillStyle = '#f1c40f'; ctx.fillRect(15, 0, 5, h); ctx.fillRect(w-20, 0, 5, h);
 
             ctx.strokeStyle = 'rgba(255,255,255,0.6)';
             ctx.lineWidth = 6;
@@ -477,11 +476,20 @@
         function drawCar(c) {
             ctx.fillStyle = c.color;
             ctx.beginPath(); ctx.roundRect(c.x, c.y, c.width, c.height, 10); ctx.fill();
-            // Логотип упрощенно
+            
             const cx = c.x + c.width/2; const cy = c.y + c.height - 15;
-            if (c.brand === 'mercedes') { ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.stroke(); }
-            else if (c.brand === 'bmw') { ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill(); }
-            else { ctx.fillStyle = '#dfe6e9'; ctx.font = 'bold 8px Arial'; ctx.fillText('L', cx, cy+3); }
+            if (c.brand === 'mercedes') { 
+                ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.stroke(); 
+            } else if (c.brand === 'bmw') { 
+                ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill(); 
+            } else { 
+                ctx.fillStyle = '#dfe6e9'; ctx.font = 'bold 8px Arial'; ctx.fillText('L', cx, cy+3); 
+            }
+            
+            // Стекла
+            ctx.fillStyle = '#222';
+            ctx.fillRect(c.x + 5, c.y + 15, c.width - 10, 15);
+            ctx.fillRect(c.x + 5, c.y + c.height - 25, c.width - 10, 10);
         }
 
         function drawCoin(c) {
@@ -491,20 +499,28 @@
 
         // --- ЛОГИКА ---
         function update() {
-            if (state.paused) return; // Игра на паузе (диалог)
+            if (state.paused) return;
 
             globalFrame++;
             state.score++;
             
-            // Скорость
-            if (state.score % 300 === 0) state.speedMultiplier += 0.05;
-            state.currentSpeed = Math.floor(60 + (state.speedMultiplier - 1) * 60);
-            document.getElementById('speed-val').innerText = state.currentSpeed;
+            // РАСЧЕТ СКОРОСТИ (Ускоренный для интереса)
+            // База 60, каждые 10 очков +1 км/ч
+            // Максимум 120 (если не Батырево)
+            let rawSpeed = 60 + Math.floor(state.score / 10);
             
-            // === СОБЫТИЕ БАТЫРЕВО ===
-            if (state.currentSpeed >= 100 && !state.batyrevoEventTriggered) {
+            if (rawSpeed >= 100 && !state.batyrevoEventTriggered) {
+                state.currentSpeed = 100;
                 triggerBatyrevoEvent();
                 return;
+            }
+            state.currentSpeed = rawSpeed;
+            document.getElementById('speed-val').innerText = state.currentSpeed;
+            
+            // Реальная сложность (множитель) растет медленнее, чем цифры скорости
+            // Чтобы игра не становилась невозможной на "100 км/ч"
+            if (state.score % 500 === 0) {
+                state.speedMultiplier += 0.05;
             }
 
             state.laneOffset = (state.laneOffset + 8 * state.speedMultiplier) % 100;
@@ -530,7 +546,7 @@
                 let obj = list[i];
                 obj.y += 8 * state.speedMultiplier; 
                 if (type === 'car') {
-                     obj.y = obj.y - 8 * state.speedMultiplier + obj.speed; // Машины едут со своей скоростью
+                     obj.y = obj.y - 8 * state.speedMultiplier + obj.speed; 
                      if (obj.y > h) list.splice(i, 1);
                      if (rectIntersect(player.x + 10, player.y + 10, player.w - 20, player.h - 20, obj.x, obj.y, obj.width, obj.height)) gameOver();
                 } else if (type === 'coin') {
@@ -549,16 +565,24 @@
             state.batyrevoEventTriggered = true;
             state.paused = true;
             document.getElementById('police-screen').classList.remove('hidden');
+            // Эффект тряски спидометра
+            document.getElementById('speed-box').style.transform = "scale(1.2)";
+            setTimeout(() => document.getElementById('speed-box').style.transform = "scale(1)", 200);
+            
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         }
 
         function resolveBatyrevoEvent() {
             document.getElementById('police-screen').classList.add('hidden');
             state.paused = false;
-            // Сброс скорости (штраф)
-            state.speedMultiplier = 1.0; 
-            // Отбросим машины чуть назад, чтобы не врезаться сразу
-            cars.forEach(c => c.y -= 300);
+            // Штраф: сбрасываем очки так, чтобы скорость упала до 70
+            // 70 = 60 + score/10 -> score/10 = 10 -> score = 100
+            // Но мы не хотим терять весь прогресс, просто немного "откатим" спидометр
+            const penaltyScore = 10 * 10; // 100 очков
+            state.score = Math.max(0, state.score - 300); // Откат скорости назад
+            
+            // Отодвигаем машины
+            cars.forEach(c => c.y -= 400);
         }
 
         function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
@@ -583,8 +607,19 @@
             if (!safe) return;
 
             if (type === 'car') {
-                const brands = ['mercedes', 'bmw', 'lexus'];
-                cars.push({ x: x, y: -150, width: 50, height: 90, speed: (3 + Math.random()*3)*state.speedMultiplier, color: '#bdc3c7', brand: brands[Math.floor(Math.random()*3)] });
+                const brandRoll = Math.random();
+                let brand = 'normal';
+                let color = '#fff';
+
+                if (brandRoll < 0.33) {
+                    brand = 'mercedes'; color = '#bdc3c7';
+                } else if (brandRoll < 0.66) {
+                    brand = 'bmw'; color = '#2c3e50';
+                } else {
+                    brand = 'lexus'; color = '#57606f';
+                }
+
+                cars.push({ x: x, y: -150, width: 50, height: 90, speed: (3 + Math.random()*3)*state.speedMultiplier, color: color, brand: brand });
             } else {
                 coins.push({ x: x, y: -50 });
             }
@@ -597,9 +632,10 @@
                 scenery.forEach(drawSceneryItem);
                 coins.forEach(drawCoin);
                 
-                // Рисуем Гаишника, если пауза и событие Батырево
+                // Полицейский (рисуем прямо на дороге во время паузы)
                 if (state.paused && state.batyrevoEventTriggered) {
-                    drawPolice(ctx, w/2 - 25, player.y - 120);
+                    // Рисуем его перед игроком
+                    drawPolice(ctx, player.x + player.w + 10, player.y - 20);
                 }
 
                 cars.forEach(drawCar);
