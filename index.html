@@ -481,10 +481,14 @@
                 ctx.fillStyle = '#7f8c8d';
                 ctx.fillRect(item.x - 2, y, 4, 60);
                 
-                // Табличка
-                const signW = 100;
+                // Подготовка шрифта для расчета ширины
+                ctx.font = 'bold 12px Montserrat';
+                const textMetrics = ctx.measureText(item.text);
+                const signW = Math.max(100, textMetrics.width + 20); // Адаптивная ширина
                 const signH = 30;
-                const signX = item.side === 'left' ? item.x - signW : item.x;
+                
+                // Знак "растет" внутрь экрана
+                const signX = item.side === 'left' ? item.x : item.x - signW;
                 const signY = y - 50;
 
                 ctx.fillStyle = colors.signBlue;
@@ -495,7 +499,6 @@
 
                 // Текст
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 10px Montserrat';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(item.text, signX + signW/2, signY + signH/2);
@@ -646,13 +649,18 @@
                 // Деревья частые, знаки редкие
                 const isSign = Math.random() < 0.15; 
                 
-                // Координаты вне дороги
-                let x = side === 'left' ? Math.random() * -20 + 5 : w - 20 + Math.random() * 20;
+                // Координаты: теперь столбы стоят прямо на краю дороги
+                let x = side === 'left' ? 5 : w - 5; 
+                
+                if (!isSign) {
+                     // Деревья могут быть чуть разбросаны на траве
+                     x = side === 'left' ? Math.random() * -10 : w - 10 + Math.random() * 10;
+                }
                 
                 if (isSign) {
                     const text = chuvashiaTowns[Math.floor(Math.random() * chuvashiaTowns.length)];
                     scenery.push({
-                        type: 'sign', x: side === 'left' ? 20 : w - 20, y: -60, text: text, side: side
+                        type: 'sign', x: x, y: -60, text: text, side: side
                     });
                 } else {
                     scenery.push({
