@@ -217,12 +217,12 @@
             x: 0,
             y: 0,
             width: 40,
-            height: 90, // Чуть выше для элегантности
+            height: 90, 
             speed: 5,
             colorHair: '#1a1a1a', 
-            colorSkin: '#fce3c7', // Светлый телесный
-            colorTop: '#151515',  // Глубокий черный
-            colorJeans: '#34495e' // Сине-серая джинса
+            colorSkin: '#fce3c7', 
+            colorTop: '#151515',  
+            colorJeans: '#34495e' 
         };
 
         let cars = [];
@@ -271,19 +271,19 @@
             ctx.beginPath();
             // Левая нога
             ctx.moveTo(x + width * 0.15, y + height * 0.48);
-            ctx.lineTo(x + width * 0.48, y + height * 0.48); // промежность
-            ctx.lineTo(x + width * 0.45, y + height * 0.92); // лодыжка
+            ctx.lineTo(x + width * 0.48, y + height * 0.48); 
+            ctx.lineTo(x + width * 0.45, y + height * 0.92); 
             ctx.lineTo(x + width * 0.2, y + height * 0.92);
             // Правая нога
             ctx.moveTo(x + width * 0.52, y + height * 0.48);
-            ctx.lineTo(x + width * 0.85, y + height * 0.48); // бедро
-            ctx.lineTo(x + width * 0.8, y + height * 0.92); // лодыжка
+            ctx.lineTo(x + width * 0.85, y + height * 0.48); 
+            ctx.lineTo(x + width * 0.8, y + height * 0.92); 
             ctx.lineTo(x + width * 0.55, y + height * 0.92);
             // Талия (Верх джинс)
             ctx.rect(x + width * 0.2, y + height * 0.42, width * 0.6, height * 0.08);
             ctx.fill();
 
-            // Пояс/Пуговица (деталь)
+            // Пояс/Пуговица
             ctx.fillStyle = '#bbb';
             ctx.beginPath(); ctx.arc(x + width * 0.5, y + height * 0.44, width * 0.03, 0, Math.PI * 2); ctx.fill();
 
@@ -291,15 +291,15 @@
             ctx.fillStyle = player.colorTop;
             ctx.beginPath();
             // Плечи и корпус
-            ctx.moveTo(x + width * 0.15, y + height * 0.18); // левое плечо
-            ctx.lineTo(x + width * 0.85, y + height * 0.18); // правое плечо
-            ctx.lineTo(x + width * 0.8, y + height * 0.43); // правый бок (талия)
-            ctx.lineTo(x + width * 0.2, y + height * 0.43); // левый бок (талия)
+            ctx.moveTo(x + width * 0.15, y + height * 0.18); 
+            ctx.lineTo(x + width * 0.85, y + height * 0.18); 
+            ctx.lineTo(x + width * 0.8, y + height * 0.43); 
+            ctx.lineTo(x + width * 0.2, y + height * 0.43); 
             ctx.fill();
 
             // Руки
-            ctx.fillStyle = '#1a1a1a'; // Чуть темнее торса для контраста
-            // Левая рука (вдоль тела)
+            ctx.fillStyle = '#1a1a1a'; 
+            // Левая рука
             ctx.beginPath();
             ctx.moveTo(x + width * 0.15, y + height * 0.18);
             ctx.lineTo(x + width * 0.05, y + height * 0.45);
@@ -324,81 +324,93 @@
             // 4. Голова
             ctx.fillStyle = player.colorSkin;
             ctx.beginPath();
-            // Овал лица
-            ctx.ellipse(x + width/2, y + height * 0.1, width * 0.22, height * 0.11, 0, 0, Math.PI * 2);
+            // Более естественный овал лица
+            ctx.ellipse(x + width/2, y + height * 0.1, width * 0.21, height * 0.11, 0, 0, Math.PI * 2);
             ctx.fill();
 
             // --- ДЕТАЛИ ЛИЦА (Только в меню/крупном плане) ---
             if (isBig) {
-                // Глаза
+                // Глаза (миндалевидные)
+                ctx.fillStyle = '#fff'; // Белок
+                ctx.beginPath(); 
+                ctx.ellipse(x + width*0.4, y + height*0.1, width*0.045, height*0.02, 0, 0, Math.PI*2); 
+                ctx.fill();
+                ctx.beginPath(); 
+                ctx.ellipse(x + width*0.6, y + height*0.1, width*0.045, height*0.02, 0, 0, Math.PI*2); 
+                ctx.fill();
+
+                // Радужка
                 ctx.fillStyle = '#2c3e50';
-                // Левый
-                ctx.beginPath(); 
-                ctx.ellipse(x + width*0.4, y + height*0.1, width*0.04, height*0.02, 0, 0, Math.PI*2); 
-                ctx.fill();
-                // Правый
-                ctx.beginPath(); 
-                ctx.ellipse(x + width*0.6, y + height*0.1, width*0.04, height*0.02, 0, 0, Math.PI*2); 
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.4, y + height*0.1, width*0.02, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.6, y + height*0.1, width*0.02, 0, Math.PI*2); ctx.fill();
                 
                 // Блеск в глазах
                 ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.arc(x + width*0.41, y + height*0.095, width*0.01, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + width*0.61, y + height*0.095, width*0.01, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.41, y + height*0.095, width*0.008, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.61, y + height*0.095, width*0.008, 0, Math.PI*2); ctx.fill();
 
-                // Брови
-                ctx.strokeStyle = '#1a1a1a';
-                ctx.lineWidth = width * 0.015;
-                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.08); ctx.quadraticCurveTo(x+width*0.4, y+height*0.07, x+width*0.45, y+height*0.08); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.08); ctx.quadraticCurveTo(x+width*0.6, y+height*0.07, x+width*0.65, y+height*0.08); ctx.stroke();
+                // Ресницы
+                ctx.strokeStyle = '#111';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.095); ctx.quadraticCurveTo(x + width*0.4, y + height*0.08, x + width*0.45, y + height*0.095); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.095); ctx.quadraticCurveTo(x + width*0.6, y + height*0.08, x + width*0.65, y + height*0.095); ctx.stroke();
 
-                // Нос (легкая тень)
+                // Брови (более изящные)
+                ctx.lineWidth = width * 0.01;
+                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.075); ctx.quadraticCurveTo(x+width*0.4, y+height*0.065, x+width*0.45, y+height*0.075); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.075); ctx.quadraticCurveTo(x+width*0.6, y+height*0.065, x+width*0.65, y+height*0.075); ctx.stroke();
+
+                // Нос (аккуратный)
                 ctx.fillStyle = '#e5c2a0';
-                ctx.beginPath(); ctx.arc(x + width*0.5, y + height*0.12, width*0.02, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); 
+                ctx.arc(x + width*0.5, y + height*0.115, width*0.015, 0, Math.PI, false); 
+                ctx.fill();
 
-                // Губы
-                ctx.fillStyle = '#c0392b';
+                // Губы (более естественная форма)
+                ctx.fillStyle = '#d35400';
                 ctx.beginPath();
-                ctx.ellipse(x + width/2, y + height * 0.15, width * 0.06, height * 0.02, 0, 0, Math.PI*2);
+                ctx.ellipse(x + width/2, y + height * 0.15, width * 0.05, height * 0.015, 0, 0, Math.PI*2);
                 ctx.fill();
                 
-                // Румянец
-                ctx.fillStyle = 'rgba(231, 76, 60, 0.1)';
-                ctx.beginPath(); ctx.arc(x + width*0.35, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + width*0.65, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
+                // Родинка (как на фото)
+                ctx.fillStyle = '#5d4037';
+                ctx.beginPath(); ctx.arc(x + width*0.58, y + height*0.13, width*0.005, 0, Math.PI*2); ctx.fill();
             }
 
-            // 5. Волосы (Длинные, темные, волнистые)
+            // 5. Волосы (Длинные, темные, роскошные)
             ctx.fillStyle = player.colorHair;
             ctx.beginPath();
             
-            // Макушка
-            ctx.arc(x + width/2, y + height * 0.08, width * 0.38, Math.PI, 0); 
+            // Основной объем сверху
+            ctx.moveTo(x + width * 0.2, y + height * 0.1);
+            ctx.quadraticCurveTo(x + width * 0.5, y - height * 0.05, x + width * 0.8, y + height * 0.1);
             
-            // Правая сторона (волна)
-            ctx.bezierCurveTo(x + width * 1.0, y + height * 0.2, x + width * 1.1, y + height * 0.4, x + width * 0.9, y + height * 0.55);
-            ctx.lineTo(x + width * 0.7, y + height * 0.55); // конец пряди
+            // Правая прядь (волнистая)
+            ctx.bezierCurveTo(x + width * 1.1, y + height * 0.3, x + width * 0.9, y + height * 0.5, x + width * 1.0, y + height * 0.6);
+            ctx.lineTo(x + width * 0.8, y + height * 0.6); 
+            ctx.bezierCurveTo(x + width * 0.7, y + height * 0.4, x + width * 0.8, y + height * 0.2, x + width * 0.72, y + height * 0.1);
             
-            // Левая сторона (волна)
-            ctx.bezierCurveTo(x - width * 0.1, y + height * 0.4, x + width * 0.0, y + height * 0.2, x + width * 0.12, y + height * 0.08);
-            ctx.lineTo(x + width * 0.1, y + height * 0.55); // конец левой пряди
-            ctx.bezierCurveTo(x - width * 0.1, y + height * 0.4, x + width * 0.0, y + height * 0.2, x + width * 0.12, y + height * 0.08);
+            // Левая прядь (волнистая)
+            ctx.lineTo(x + width * 0.28, y + height * 0.1);
+            ctx.bezierCurveTo(x + width * 0.2, y + height * 0.2, x + width * 0.3, y + height * 0.4, x + width * 0.2, y + height * 0.6);
+            ctx.lineTo(x + width * 0.0, y + height * 0.6);
+            ctx.bezierCurveTo(x + width * 0.1, y + height * 0.5, x - width * 0.1, y + height * 0.3, x + width * 0.2, y + height * 0.1);
 
             ctx.fill();
 
-            // Передние пряди (челка/укладка)
+            // Челка / пробор
             ctx.beginPath();
-            ctx.moveTo(x + width * 0.5, y + height * 0.02); // пробор
-            ctx.quadraticCurveTo(x + width * 0.2, y + height * 0.05, x + width * 0.15, y + height * 0.3);
-            ctx.lineTo(x + width * 0.3, y + height * 0.3); // толщина пряди
-            ctx.quadraticCurveTo(x + width * 0.35, y + height * 0.1, x + width * 0.5, y + height * 0.02);
+            ctx.moveTo(x + width * 0.5, y + height * 0.01);
+            ctx.quadraticCurveTo(x + width * 0.2, y + height * 0.05, x + width * 0.18, y + height * 0.25);
+            ctx.lineTo(x + width * 0.25, y + height * 0.25); 
+            ctx.quadraticCurveTo(x + width * 0.3, y + height * 0.1, x + width * 0.5, y + height * 0.01);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.moveTo(x + width * 0.5, y + height * 0.02); // пробор
-            ctx.quadraticCurveTo(x + width * 0.8, y + height * 0.05, x + width * 0.85, y + height * 0.3);
-            ctx.lineTo(x + width * 0.7, y + height * 0.3); // толщина пряди
-            ctx.quadraticCurveTo(x + width * 0.65, y + height * 0.1, x + width * 0.5, y + height * 0.02);
+            ctx.moveTo(x + width * 0.5, y + height * 0.01);
+            ctx.quadraticCurveTo(x + width * 0.8, y + height * 0.05, x + width * 0.82, y + height * 0.25);
+            ctx.lineTo(x + width * 0.75, y + height * 0.25); 
+            ctx.quadraticCurveTo(x + width * 0.7, y + height * 0.1, x + width * 0.5, y + height * 0.01);
             ctx.fill();
         }
 
@@ -485,20 +497,36 @@
             const logoSize = 6;
 
             if (car.brand === 'mercedes') {
+                // Круг
                 ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1.5;
                 ctx.beginPath(); ctx.arc(centerX, hoodY, logoSize, 0, Math.PI * 2); ctx.stroke();
+                // Звезда (статичная, геометрическая)
                 ctx.beginPath();
-                ctx.moveTo(centerX, hoodY - logoSize); ctx.lineTo(centerX, hoodY); ctx.lineTo(centerX - logoSize * 0.8, hoodY + logoSize * 0.6);
-                ctx.moveTo(centerX, hoodY); ctx.lineTo(centerX + logoSize * 0.8, hoodY + logoSize * 0.6);
+                ctx.moveTo(centerX, hoodY - logoSize); 
+                ctx.lineTo(centerX, hoodY); 
+                ctx.lineTo(centerX + logoSize * 0.866, hoodY + logoSize * 0.5); // Правый луч
+                ctx.moveTo(centerX, hoodY); 
+                ctx.lineTo(centerX - logoSize * 0.866, hoodY + logoSize * 0.5); // Левый луч
                 ctx.stroke();
+
             } else if (car.brand === 'bmw') {
+                // BMW Лого
                 ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(centerX, hoodY, logoSize, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, 0, Math.PI/2); ctx.lineTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI, Math.PI * 1.5); ctx.fill();
                 ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI * 1.5, Math.PI * 2); ctx.lineTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI/2, Math.PI); ctx.fill();
+            
             } else if (car.brand === 'lexus') {
-                ctx.strokeStyle = '#eee'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(centerX, hoodY, logoSize, logoSize * 0.7, 0, 0, Math.PI * 2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(centerX - 2, hoodY - 3); ctx.lineTo(centerX - 2, hoodY + 2); ctx.lineTo(centerX + 3, hoodY + 2); ctx.stroke();
+                // Надпись Lexus вместо логотипа L
+                ctx.fillStyle = '#eee';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                // Тень для читаемости
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 2;
+                ctx.fillText('Lexus', centerX, hoodY);
+                ctx.shadowBlur = 0;
             }
         }
 
