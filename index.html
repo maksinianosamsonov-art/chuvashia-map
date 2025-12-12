@@ -325,92 +325,135 @@
             ctx.fillStyle = player.colorSkin;
             ctx.beginPath();
             // Более естественный овал лица
-            ctx.ellipse(x + width/2, y + height * 0.1, width * 0.21, height * 0.11, 0, 0, Math.PI * 2);
+            ctx.ellipse(x + width/2, y + height * 0.1, width * 0.2, height * 0.12, 0, 0, Math.PI * 2);
             ctx.fill();
 
             // --- ДЕТАЛИ ЛИЦА (Только в меню/крупном плане) ---
             if (isBig) {
-                // Глаза (миндалевидные)
-                ctx.fillStyle = '#fff'; // Белок
+                const eyeY = y + height * 0.1;
+                const eyeSize = width * 0.045;
+                const eyeXOffset = width * 0.1;
+
+                // Белок глаз
+                ctx.fillStyle = '#fff'; 
+                // Левый
                 ctx.beginPath(); 
-                ctx.ellipse(x + width*0.4, y + height*0.1, width*0.045, height*0.02, 0, 0, Math.PI*2); 
+                ctx.ellipse(x + width*0.5 - eyeXOffset, eyeY, eyeSize, eyeSize * 0.6, 0, 0, Math.PI*2); 
                 ctx.fill();
+                // Правый
                 ctx.beginPath(); 
-                ctx.ellipse(x + width*0.6, y + height*0.1, width*0.045, height*0.02, 0, 0, Math.PI*2); 
+                ctx.ellipse(x + width*0.5 + eyeXOffset, eyeY, eyeSize, eyeSize * 0.6, 0, 0, Math.PI*2); 
                 ctx.fill();
 
-                // Радужка
-                ctx.fillStyle = '#2c3e50';
-                ctx.beginPath(); ctx.arc(x + width*0.4, y + height*0.1, width*0.02, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + width*0.6, y + height*0.1, width*0.02, 0, Math.PI*2); ctx.fill();
+                // Радужка (Темно-карие)
+                ctx.fillStyle = '#3d2b1f';
+                ctx.beginPath(); ctx.arc(x + width*0.5 - eyeXOffset, eyeY, eyeSize * 0.6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.5 + eyeXOffset, eyeY, eyeSize * 0.6, 0, Math.PI*2); ctx.fill();
                 
-                // Блеск в глазах
+                // Зрачок
+                ctx.fillStyle = '#000';
+                ctx.beginPath(); ctx.arc(x + width*0.5 - eyeXOffset, eyeY, eyeSize * 0.3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.5 + eyeXOffset, eyeY, eyeSize * 0.3, 0, Math.PI*2); ctx.fill();
+
+                // Блики (Оживляют взгляд)
                 ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.arc(x + width*0.41, y + height*0.095, width*0.008, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + width*0.61, y + height*0.095, width*0.008, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.5 - eyeXOffset + 2, eyeY - 2, eyeSize * 0.15, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.5 + eyeXOffset + 2, eyeY - 2, eyeSize * 0.15, 0, Math.PI*2); ctx.fill();
 
-                // Ресницы
-                ctx.strokeStyle = '#111';
-                ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.095); ctx.quadraticCurveTo(x + width*0.4, y + height*0.08, x + width*0.45, y + height*0.095); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.095); ctx.quadraticCurveTo(x + width*0.6, y + height*0.08, x + width*0.65, y + height*0.095); ctx.stroke();
-
-                // Брови (более изящные)
-                ctx.lineWidth = width * 0.01;
-                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.075); ctx.quadraticCurveTo(x+width*0.4, y+height*0.065, x+width*0.45, y+height*0.075); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.075); ctx.quadraticCurveTo(x+width*0.6, y+height*0.065, x+width*0.65, y+height*0.075); ctx.stroke();
-
-                // Нос (аккуратный)
-                ctx.fillStyle = '#e5c2a0';
+                // Ресницы (Стрелки)
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                // Левая
                 ctx.beginPath(); 
-                ctx.arc(x + width*0.5, y + height*0.115, width*0.015, 0, Math.PI, false); 
-                ctx.fill();
+                ctx.moveTo(x + width*0.5 - eyeXOffset - eyeSize, eyeY);
+                ctx.quadraticCurveTo(x + width*0.5 - eyeXOffset, eyeY - eyeSize * 0.7, x + width*0.5 - eyeXOffset + eyeSize, eyeY - 2);
+                ctx.stroke();
+                // Правая
+                ctx.beginPath(); 
+                ctx.moveTo(x + width*0.5 + eyeXOffset - eyeSize, eyeY - 2);
+                ctx.quadraticCurveTo(x + width*0.5 + eyeXOffset, eyeY - eyeSize * 0.7, x + width*0.5 + eyeXOffset + eyeSize, eyeY);
+                ctx.stroke();
 
-                // Губы (более естественная форма)
-                ctx.fillStyle = '#d35400';
+                // Брови
+                ctx.lineWidth = width * 0.008;
+                ctx.strokeStyle = '#2c2c2c';
+                ctx.beginPath(); 
+                ctx.moveTo(x + width*0.35, y + height*0.075); 
+                ctx.quadraticCurveTo(x+width*0.4, y+height*0.065, x+width*0.48, y+height*0.075); 
+                ctx.stroke();
+                
+                ctx.beginPath(); 
+                ctx.moveTo(x + width*0.52, y + height*0.075); 
+                ctx.quadraticCurveTo(x+width*0.6, y+height*0.065, x+width*0.65, y+height*0.075); 
+                ctx.stroke();
+
+                // Нос (Тенью)
+                ctx.fillStyle = 'rgba(160, 100, 80, 0.2)';
+                ctx.beginPath(); 
+                ctx.moveTo(x + width*0.5, y + height*0.1);
+                ctx.lineTo(x + width*0.49, y + height*0.13);
+                ctx.lineTo(x + width*0.51, y + height*0.13);
+                ctx.fill();
+                // Ноздри (точками)
+                ctx.fillStyle = '#c5a085';
+                ctx.beginPath(); ctx.arc(x + width*0.49, y + height*0.13, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.51, y + height*0.13, 2, 0, Math.PI*2); ctx.fill();
+
+
+                // Губы (Нюдовые)
+                ctx.fillStyle = '#c77d63';
                 ctx.beginPath();
-                ctx.ellipse(x + width/2, y + height * 0.15, width * 0.05, height * 0.015, 0, 0, Math.PI*2);
+                ctx.ellipse(x + width/2, y + height * 0.155, width * 0.05, height * 0.015, 0, 0, Math.PI*2);
+                ctx.fill();
+                // Блик на губе
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(x + width/2, y + height * 0.16, width * 0.02, height * 0.005, 0, 0, Math.PI*2);
                 ctx.fill();
                 
-                // Родинка (как на фото)
+                // Родинка
                 ctx.fillStyle = '#5d4037';
-                ctx.beginPath(); ctx.arc(x + width*0.58, y + height*0.13, width*0.005, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.62, y + height*0.12, width*0.004, 0, Math.PI*2); ctx.fill();
+                
+                // Румянец
+                ctx.fillStyle = 'rgba(200, 100, 100, 0.08)';
+                ctx.beginPath(); ctx.arc(x + width*0.35, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.65, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
             }
 
-            // 5. Волосы (Длинные, темные, роскошные)
+            // 5. Волосы (Длинные, волнистые, объемные)
             ctx.fillStyle = player.colorHair;
             ctx.beginPath();
             
-            // Основной объем сверху
-            ctx.moveTo(x + width * 0.2, y + height * 0.1);
-            ctx.quadraticCurveTo(x + width * 0.5, y - height * 0.05, x + width * 0.8, y + height * 0.1);
+            // Верхний объем
+            ctx.moveTo(x + width * 0.1, y + height * 0.1);
+            ctx.bezierCurveTo(x + width * 0.2, y - height * 0.05, x + width * 0.8, y - height * 0.05, x + width * 0.9, y + height * 0.1);
             
-            // Правая прядь (волнистая)
-            ctx.bezierCurveTo(x + width * 1.1, y + height * 0.3, x + width * 0.9, y + height * 0.5, x + width * 1.0, y + height * 0.6);
-            ctx.lineTo(x + width * 0.8, y + height * 0.6); 
-            ctx.bezierCurveTo(x + width * 0.7, y + height * 0.4, x + width * 0.8, y + height * 0.2, x + width * 0.72, y + height * 0.1);
+            // Правая сторона (Спадающая на плечи)
+            ctx.bezierCurveTo(x + width * 1.15, y + height * 0.3, x + width * 0.9, y + height * 0.5, x + width * 1.05, y + height * 0.65);
+            ctx.lineTo(x + width * 0.8, y + height * 0.65); 
+            ctx.bezierCurveTo(x + width * 0.7, y + height * 0.4, x + width * 0.85, y + height * 0.2, x + width * 0.75, y + height * 0.1);
             
-            // Левая прядь (волнистая)
-            ctx.lineTo(x + width * 0.28, y + height * 0.1);
-            ctx.bezierCurveTo(x + width * 0.2, y + height * 0.2, x + width * 0.3, y + height * 0.4, x + width * 0.2, y + height * 0.6);
-            ctx.lineTo(x + width * 0.0, y + height * 0.6);
-            ctx.bezierCurveTo(x + width * 0.1, y + height * 0.5, x - width * 0.1, y + height * 0.3, x + width * 0.2, y + height * 0.1);
+            // Левая сторона
+            ctx.lineTo(x + width * 0.25, y + height * 0.1);
+            ctx.bezierCurveTo(x + width * 0.15, y + height * 0.2, x + width * 0.3, y + height * 0.4, x + width * 0.2, y + height * 0.65);
+            ctx.lineTo(x - width * 0.05, y + height * 0.65);
+            ctx.bezierCurveTo(x + width * 0.1, y + height * 0.5, x - width * 0.15, y + height * 0.3, x + width * 0.1, y + height * 0.1);
 
             ctx.fill();
 
-            // Челка / пробор
+            // Челка / пробор (Более детально)
             ctx.beginPath();
-            ctx.moveTo(x + width * 0.5, y + height * 0.01);
-            ctx.quadraticCurveTo(x + width * 0.2, y + height * 0.05, x + width * 0.18, y + height * 0.25);
-            ctx.lineTo(x + width * 0.25, y + height * 0.25); 
-            ctx.quadraticCurveTo(x + width * 0.3, y + height * 0.1, x + width * 0.5, y + height * 0.01);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(x + width * 0.5, y + height * 0.01);
-            ctx.quadraticCurveTo(x + width * 0.8, y + height * 0.05, x + width * 0.82, y + height * 0.25);
-            ctx.lineTo(x + width * 0.75, y + height * 0.25); 
-            ctx.quadraticCurveTo(x + width * 0.7, y + height * 0.1, x + width * 0.5, y + height * 0.01);
+            ctx.moveTo(x + width * 0.5, y + height * 0.02);
+            // Левая прядь
+            ctx.quadraticCurveTo(x + width * 0.3, y + height * 0.05, x + width * 0.2, y + height * 0.2);
+            ctx.lineTo(x + width * 0.28, y + height * 0.2); 
+            ctx.quadraticCurveTo(x + width * 0.35, y + height * 0.1, x + width * 0.5, y + height * 0.02);
+            // Правая прядь
+            ctx.moveTo(x + width * 0.5, y + height * 0.02);
+            ctx.quadraticCurveTo(x + width * 0.7, y + height * 0.05, x + width * 0.8, y + height * 0.2);
+            ctx.lineTo(x + width * 0.72, y + height * 0.2); 
+            ctx.quadraticCurveTo(x + width * 0.65, y + height * 0.1, x + width * 0.5, y + height * 0.02);
             ctx.fill();
         }
 
@@ -420,15 +463,15 @@
             ctx.fillRect(0, 0, w, h);
 
             // Крупная отрисовка Оксаны
-            const bigW = Math.min(w * 0.7, 240); 
-            const bigH = bigW * 2; // Более вытянутые пропорции
+            const bigW = Math.min(w * 0.7, 260); // Чуть больше
+            const bigH = bigW * 2; 
             const startX = (w - bigW) / 2;
             const startY = (h - bigH) / 2 - 60;
 
-            // Тень под персонажем в меню
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            // Мягкая тень под персонажем
+            ctx.fillStyle = 'rgba(100, 60, 40, 0.1)';
             ctx.beginPath();
-            ctx.ellipse(w/2, startY + bigH - 5, bigW/2, 10, 0, 0, Math.PI*2);
+            ctx.ellipse(w/2, startY + bigH - 5, bigW/2, 15, 0, 0, Math.PI*2);
             ctx.fill();
 
             drawCharacter(ctx, startX, startY, bigW, bigH);
@@ -459,7 +502,34 @@
         function spawnCar() {
             const carWidth = 50;
             const carHeight = 90;
-            const xPos = Math.random() * (w - carWidth);
+            const gap = 15; // Минимальное расстояние между машинами
+
+            // Попытки найти безопасное место для спавна
+            let xPos;
+            let safe = false;
+            let attempts = 0;
+
+            while (!safe && attempts < 10) {
+                xPos = Math.random() * (w - carWidth);
+                safe = true;
+
+                // Проверяем, не наезжает ли на другие машины (особенно те, что сверху)
+                for (let car of cars) {
+                    // Если машина находится в верхней части экрана (в зоне спавна)
+                    // Проверяем по вертикали (y < 0 + carHeight) и горизонтали
+                    if (car.y < carHeight * 2) { 
+                        if (Math.abs(car.x - xPos) < carWidth + gap) {
+                            safe = false;
+                            break;
+                        }
+                    }
+                }
+                attempts++;
+            }
+
+            // Если не нашли место, пропускаем спавн в этот раз
+            if (!safe) return;
+
             const baseSpeed = 2 + Math.random() * 2.5; 
 
             // Бренд
