@@ -20,7 +20,6 @@
         #gameCanvas {
             display: block;
             margin: 0 auto;
-            /* Фон Canvas будет меняться скриптом: бежевый в меню, асфальт в игре */
         }
 
         /* Интерфейс */
@@ -61,48 +60,49 @@
             padding: 20px;
         }
 
-        /* МЕНЮ: Прозрачный фон, чтобы видеть нарисованную Оксану на Canvas */
+        /* МЕНЮ */
         #menu-screen {
             background: transparent; 
             justify-content: flex-end; /* Контент снизу */
             padding-bottom: 50px;
         }
 
-        /* Стильная плашка для текста внизу */
         .menu-content {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 25px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             max-width: 400px;
             width: 100%;
-            animation: slideUp 0.5s ease-out;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
+            from { transform: translateY(100px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
         #menu-screen h1 {
             color: #2c3e50;
-            font-size: 28px;
+            font-size: 32px;
             margin: 0 0 10px 0;
             text-transform: uppercase;
+            font-weight: 800;
         }
 
         #menu-screen p {
             color: #555;
             font-size: 16px;
             margin-bottom: 20px;
-            line-height: 1.4;
+            line-height: 1.5;
+            font-weight: 500;
         }
 
-        /* GAME OVER: Темный фон */
+        /* GAME OVER */
         #game-over-screen {
             background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
             justify-content: center;
         }
         
@@ -116,7 +116,7 @@
         }
 
         .btn {
-            background: #3498db;
+            background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
             border: none;
             padding: 16px 40px;
@@ -125,7 +125,7 @@
             cursor: pointer;
             font-weight: bold;
             width: 100%;
-            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
             transition: transform 0.1s;
         }
 
@@ -144,24 +144,27 @@
         }
 
         .leaderboard h3 {
-            color: #ffcc00;
+            color: #f1c40f;
             margin-top: 0;
             text-align: center;
+            text-transform: uppercase;
         }
 
         .score-row {
             display: flex;
             justify-content: space-between;
             color: white;
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
         }
 
         .current-score-display {
-            font-size: 64px;
+            font-size: 72px;
             color: #fff;
             margin: 10px 0 30px 0;
-            font-weight: bold;
+            font-weight: 800;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
     </style>
@@ -214,17 +217,16 @@
             x: 0,
             y: 0,
             width: 40,
-            height: 70,
+            height: 90, // Чуть выше для элегантности
             speed: 5,
-            // Цвета
             colorHair: '#1a1a1a', 
-            colorSkin: '#f1c27d',
-            colorTop: '#1a1a1a', 
-            colorJeans: '#2c5a7f'
+            colorSkin: '#fce3c7', // Светлый телесный
+            colorTop: '#151515',  // Глубокий черный
+            colorJeans: '#34495e' // Сине-серая джинса
         };
 
         let cars = [];
-        const carColors = ['#e74c3c', '#f1c40f', '#9b59b6', '#2ecc71', '#ecf0f1'];
+        const genericColors = ['#e74c3c', '#f1c40f', '#2ecc71', '#d35400'];
         let laneOffset = 0;
 
         function resize() {
@@ -234,72 +236,188 @@
             canvas.height = h;
             
             if (!gameRunning) {
-                drawMenu(); // Рисуем меню при ресайзе если игра не идет
+                drawMenu(); 
             } else {
-                player.x = Math.min(player.x, w - player.width); // Коррекция позиции
+                player.x = Math.min(player.x, w - player.width);
                 player.y = h - player.height - 20;
             }
         }
         
         window.addEventListener('resize', resize);
         
-        // --- Рисование Персонажа (Универсальная функция) ---
+        // --- ПРОДВИНУТОЕ Рисование Оксаны ---
         function drawCharacter(ctx, x, y, width, height) {
-            // 1. Ноги (Джинсы)
+            const isBig = width > 100; // Проверка: рисуем в меню (крупно) или в игре
+
+            // 1. Ботинки (Черные)
+            ctx.fillStyle = '#111';
+            // Левый
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.2, y + height * 0.9);
+            ctx.lineTo(x + width * 0.45, y + height * 0.9);
+            ctx.lineTo(x + width * 0.45, y + height);
+            ctx.lineTo(x + width * 0.15, y + height);
+            ctx.fill();
+            // Правый
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.55, y + height * 0.9);
+            ctx.lineTo(x + width * 0.8, y + height * 0.9);
+            ctx.lineTo(x + width * 0.85, y + height);
+            ctx.lineTo(x + width * 0.55, y + height);
+            ctx.fill();
+
+            // 2. Джинсы (С высокой талией)
             ctx.fillStyle = player.colorJeans;
-            ctx.fillRect(x + width * 0.1, y + height * 0.45, width * 0.35, height * 0.55); // Левая
-            ctx.fillRect(x + width * 0.55, y + height * 0.45, width * 0.35, height * 0.55); // Правая
-            
-            // 2. Тело (Черная водолазка)
+            ctx.beginPath();
+            // Левая нога
+            ctx.moveTo(x + width * 0.15, y + height * 0.48);
+            ctx.lineTo(x + width * 0.48, y + height * 0.48); // промежность
+            ctx.lineTo(x + width * 0.45, y + height * 0.92); // лодыжка
+            ctx.lineTo(x + width * 0.2, y + height * 0.92);
+            // Правая нога
+            ctx.moveTo(x + width * 0.52, y + height * 0.48);
+            ctx.lineTo(x + width * 0.85, y + height * 0.48); // бедро
+            ctx.lineTo(x + width * 0.8, y + height * 0.92); // лодыжка
+            ctx.lineTo(x + width * 0.55, y + height * 0.92);
+            // Талия (Верх джинс)
+            ctx.rect(x + width * 0.2, y + height * 0.42, width * 0.6, height * 0.08);
+            ctx.fill();
+
+            // Пояс/Пуговица (деталь)
+            ctx.fillStyle = '#bbb';
+            ctx.beginPath(); ctx.arc(x + width * 0.5, y + height * 0.44, width * 0.03, 0, Math.PI * 2); ctx.fill();
+
+            // 3. Тело (Черная водолазка)
             ctx.fillStyle = player.colorTop;
             ctx.beginPath();
-            ctx.roundRect(x + width * 0.05, y + height * 0.15, width * 0.9, height * 0.35, width * 0.1);
+            // Плечи и корпус
+            ctx.moveTo(x + width * 0.15, y + height * 0.18); // левое плечо
+            ctx.lineTo(x + width * 0.85, y + height * 0.18); // правое плечо
+            ctx.lineTo(x + width * 0.8, y + height * 0.43); // правый бок (талия)
+            ctx.lineTo(x + width * 0.2, y + height * 0.43); // левый бок (талия)
             ctx.fill();
-            
-            // Рукава
-            ctx.fillRect(x - width * 0.1, y + height * 0.15, width * 0.2, height * 0.35); // Левый
-            ctx.fillRect(x + width * 0.9, y + height * 0.15, width * 0.2, height * 0.35); // Правый
 
-            // 3. Голова (Кожа)
+            // Руки
+            ctx.fillStyle = '#1a1a1a'; // Чуть темнее торса для контраста
+            // Левая рука (вдоль тела)
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.15, y + height * 0.18);
+            ctx.lineTo(x + width * 0.05, y + height * 0.45);
+            ctx.lineTo(x + width * 0.15, y + height * 0.45);
+            ctx.fill();
+            // Правая рука
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.85, y + height * 0.18);
+            ctx.lineTo(x + width * 0.95, y + height * 0.45);
+            ctx.lineTo(x + width * 0.85, y + height * 0.45);
+            ctx.fill();
+
+            // Кисти рук
+            ctx.fillStyle = player.colorSkin;
+            ctx.beginPath(); ctx.arc(x + width * 0.08, y + height * 0.48, width * 0.06, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + width * 0.92, y + height * 0.48, width * 0.06, 0, Math.PI*2); ctx.fill();
+
+            // Воротник водолазки
+            ctx.fillStyle = player.colorTop;
+            ctx.fillRect(x + width * 0.38, y + height * 0.13, width * 0.24, height * 0.06);
+
+            // 4. Голова
             ctx.fillStyle = player.colorSkin;
             ctx.beginPath();
-            ctx.arc(x + width/2, y + height * 0.1, width * 0.35, 0, Math.PI * 2);
+            // Овал лица
+            ctx.ellipse(x + width/2, y + height * 0.1, width * 0.22, height * 0.11, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 4. Волосы
-            ctx.fillStyle = player.colorHair;
-            // Хвостик
-            ctx.beginPath();
-            ctx.arc(x + width * 0.85, y + height * 0.05, width * 0.25, 0, Math.PI * 2);
-            ctx.fill();
-            // Основная прическа
-            ctx.beginPath();
-            ctx.arc(x + width/2, y + height * 0.08, width * 0.4, Math.PI, Math.PI * 2);
-            ctx.lineTo(x - width * 0.1, y + height * 0.6); 
-            ctx.lineTo(x + width * 1.1, y + height * 0.6);
-            ctx.fill();
-            
-            // Лицо (Глаза и улыбка - только если персонаж большой)
-            if (width > 60) {
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(x + width*0.35, y + height*0.1, 2, 0, Math.PI*2); // Лев глаз
-                ctx.arc(x + width*0.65, y + height*0.1, 2, 0, Math.PI*2); // Прав глаз
+            // --- ДЕТАЛИ ЛИЦА (Только в меню/крупном плане) ---
+            if (isBig) {
+                // Глаза
+                ctx.fillStyle = '#2c3e50';
+                // Левый
+                ctx.beginPath(); 
+                ctx.ellipse(x + width*0.4, y + height*0.1, width*0.04, height*0.02, 0, 0, Math.PI*2); 
                 ctx.fill();
+                // Правый
+                ctx.beginPath(); 
+                ctx.ellipse(x + width*0.6, y + height*0.1, width*0.04, height*0.02, 0, 0, Math.PI*2); 
+                ctx.fill();
+                
+                // Блеск в глазах
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(x + width*0.41, y + height*0.095, width*0.01, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.61, y + height*0.095, width*0.01, 0, Math.PI*2); ctx.fill();
+
+                // Брови
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = width * 0.015;
+                ctx.beginPath(); ctx.moveTo(x + width*0.35, y + height*0.08); ctx.quadraticCurveTo(x+width*0.4, y+height*0.07, x+width*0.45, y+height*0.08); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + width*0.55, y + height*0.08); ctx.quadraticCurveTo(x+width*0.6, y+height*0.07, x+width*0.65, y+height*0.08); ctx.stroke();
+
+                // Нос (легкая тень)
+                ctx.fillStyle = '#e5c2a0';
+                ctx.beginPath(); ctx.arc(x + width*0.5, y + height*0.12, width*0.02, 0, Math.PI*2); ctx.fill();
+
+                // Губы
+                ctx.fillStyle = '#c0392b';
+                ctx.beginPath();
+                ctx.ellipse(x + width/2, y + height * 0.15, width * 0.06, height * 0.02, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Румянец
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.1)';
+                ctx.beginPath(); ctx.arc(x + width*0.35, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + width*0.65, y + height*0.13, width*0.08, 0, Math.PI*2); ctx.fill();
             }
+
+            // 5. Волосы (Длинные, темные, волнистые)
+            ctx.fillStyle = player.colorHair;
+            ctx.beginPath();
+            
+            // Макушка
+            ctx.arc(x + width/2, y + height * 0.08, width * 0.38, Math.PI, 0); 
+            
+            // Правая сторона (волна)
+            ctx.bezierCurveTo(x + width * 1.0, y + height * 0.2, x + width * 1.1, y + height * 0.4, x + width * 0.9, y + height * 0.55);
+            ctx.lineTo(x + width * 0.7, y + height * 0.55); // конец пряди
+            
+            // Левая сторона (волна)
+            ctx.bezierCurveTo(x - width * 0.1, y + height * 0.4, x + width * 0.0, y + height * 0.2, x + width * 0.12, y + height * 0.08);
+            ctx.lineTo(x + width * 0.1, y + height * 0.55); // конец левой пряди
+            ctx.bezierCurveTo(x - width * 0.1, y + height * 0.4, x + width * 0.0, y + height * 0.2, x + width * 0.12, y + height * 0.08);
+
+            ctx.fill();
+
+            // Передние пряди (челка/укладка)
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.5, y + height * 0.02); // пробор
+            ctx.quadraticCurveTo(x + width * 0.2, y + height * 0.05, x + width * 0.15, y + height * 0.3);
+            ctx.lineTo(x + width * 0.3, y + height * 0.3); // толщина пряди
+            ctx.quadraticCurveTo(x + width * 0.35, y + height * 0.1, x + width * 0.5, y + height * 0.02);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x + width * 0.5, y + height * 0.02); // пробор
+            ctx.quadraticCurveTo(x + width * 0.8, y + height * 0.05, x + width * 0.85, y + height * 0.3);
+            ctx.lineTo(x + width * 0.7, y + height * 0.3); // толщина пряди
+            ctx.quadraticCurveTo(x + width * 0.65, y + height * 0.1, x + width * 0.5, y + height * 0.02);
+            ctx.fill();
         }
 
-        // --- Функция отрисовки МЕНЮ ---
         function drawMenu() {
-            // Фон как на картинке (Бежевый)
-            ctx.fillStyle = '#fdf6ec';
+            // Фон меню (Бежевый, теплый)
+            ctx.fillStyle = '#f9e7d8'; 
             ctx.fillRect(0, 0, w, h);
 
-            // Рисуем большую Оксану по центру
-            const bigW = Math.min(w * 0.6, 200); // Ширина не больше 200px
-            const bigH = bigW * 1.75; // Пропорции
+            // Крупная отрисовка Оксаны
+            const bigW = Math.min(w * 0.7, 240); 
+            const bigH = bigW * 2; // Более вытянутые пропорции
             const startX = (w - bigW) / 2;
-            const startY = (h - bigH) / 2 - 50; // Чуть выше центра
+            const startY = (h - bigH) / 2 - 60;
+
+            // Тень под персонажем в меню
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.beginPath();
+            ctx.ellipse(w/2, startY + bigH - 5, bigW/2, 10, 0, 0, Math.PI*2);
+            ctx.fill();
 
             drawCharacter(ctx, startX, startY, bigW, bigH);
         }
@@ -332,14 +450,56 @@
             const xPos = Math.random() * (w - carWidth);
             const baseSpeed = 2 + Math.random() * 2.5; 
 
+            // Бренд
+            const brandRoll = Math.random();
+            let brand = 'normal';
+            let color = genericColors[Math.floor(Math.random() * genericColors.length)];
+
+            if (brandRoll < 0.25) {
+                brand = 'mercedes';
+                color = '#bdc3c7'; // Серебро
+            } else if (brandRoll < 0.5) {
+                brand = 'bmw';
+                color = '#2c3e50'; // Темно-синий
+            } else if (brandRoll < 0.75) {
+                brand = 'lexus';
+                color = '#95a5a6'; // Серый
+            }
+
             cars.push({
                 x: xPos,
                 y: -100,
                 width: carWidth,
                 height: carHeight,
                 speed: baseSpeed * speedMultiplier,
-                color: carColors[Math.floor(Math.random() * carColors.length)]
+                color: color,
+                brand: brand,
+                vx: 0, 
+                behaviorTimer: 0
             });
+        }
+
+        function drawCarLogo(ctx, car) {
+            const centerX = car.x + car.width / 2;
+            const hoodY = car.y + car.height - 12; 
+            const logoSize = 6;
+
+            if (car.brand === 'mercedes') {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(centerX, hoodY, logoSize, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX, hoodY - logoSize); ctx.lineTo(centerX, hoodY); ctx.lineTo(centerX - logoSize * 0.8, hoodY + logoSize * 0.6);
+                ctx.moveTo(centerX, hoodY); ctx.lineTo(centerX + logoSize * 0.8, hoodY + logoSize * 0.6);
+                ctx.stroke();
+            } else if (car.brand === 'bmw') {
+                ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(centerX, hoodY, logoSize, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, 0, Math.PI/2); ctx.lineTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI, Math.PI * 1.5); ctx.fill();
+                ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI * 1.5, Math.PI * 2); ctx.lineTo(centerX, hoodY); ctx.arc(centerX, hoodY, logoSize-1, Math.PI/2, Math.PI); ctx.fill();
+            } else if (car.brand === 'lexus') {
+                ctx.strokeStyle = '#eee'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(centerX, hoodY, logoSize, logoSize * 0.7, 0, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(centerX - 2, hoodY - 3); ctx.lineTo(centerX - 2, hoodY + 2); ctx.lineTo(centerX + 3, hoodY + 2); ctx.stroke();
+            }
         }
 
         function update() {
@@ -348,10 +508,9 @@
             score++;
             document.getElementById('score-val').innerText = Math.floor(score / 10);
             
-            // Плавное увеличение сложности
             if (score % 300 === 0) speedMultiplier += 0.05;
 
-            // Движение (Keys)
+            // Игрок
             if (keys['ArrowLeft'] || keys['KeyA']) player.x -= 7;
             if (keys['ArrowRight'] || keys['KeyD']) player.x += 7;
             if (player.x < 0) player.x = 0;
@@ -363,14 +522,25 @@
             // Машины
             for (let i = 0; i < cars.length; i++) {
                 let car = cars[i];
+                
+                // Логика БМВ
+                if (car.brand === 'bmw') {
+                    if (Math.random() < 0.02) car.vx = (Math.random() - 0.5) * 6;
+                    car.vx *= 0.95;
+                    car.x += car.vx;
+                    if (car.x < 0) { car.x = 0; car.vx *= -0.5; }
+                    if (car.x > w - car.width) { car.x = w - car.width; car.vx *= -0.5; }
+                }
+
                 car.y += car.speed;
 
                 // Столкновение
+                const hitboxPadding = 5;
                 if (
-                    player.x < car.x + car.width &&
-                    player.x + player.width > car.x &&
-                    player.y < car.y + car.height &&
-                    player.y + player.height > car.y
+                    player.x + hitboxPadding < car.x + car.width - hitboxPadding &&
+                    player.x + player.width - hitboxPadding > car.x + hitboxPadding &&
+                    player.y + hitboxPadding < car.y + car.height - hitboxPadding &&
+                    player.y + player.height - hitboxPadding > car.y + hitboxPadding
                 ) {
                     gameOver();
                     return;
@@ -382,13 +552,11 @@
                 }
             }
 
-            // Анимация дороги
             laneOffset += 5 * speedMultiplier;
             if (laneOffset > 40) laneOffset = 0;
         }
 
         function drawGame() {
-            // Фон игры (Асфальт)
             ctx.fillStyle = '#444';
             ctx.fillRect(0, 0, w, h);
 
@@ -413,14 +581,18 @@
             // Машины
             cars.forEach(c => {
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(c.x + 10, c.y + 10, c.width, c.height); // Тень
+                ctx.fillRect(c.x + 10, c.y + 10, c.width, c.height); 
+                
                 ctx.fillStyle = c.color;
                 ctx.beginPath();
                 ctx.roundRect(c.x, c.y, c.width, c.height, 8);
                 ctx.fill();
+                
                 ctx.fillStyle = '#333';
                 ctx.fillRect(c.x + 5, c.y + 10, c.width - 10, 15);
                 ctx.fillRect(c.x + 5, c.y + c.height - 20, c.width - 10, 10);
+
+                drawCarLogo(ctx, c);
             });
         }
 
@@ -442,8 +614,8 @@
             speedMultiplier = 1;
             cars = [];
             
-            // Ресайз для корректной установки игрока
             resize();
+            // Ставим игрока в центр
             player.x = w / 2 - player.width / 2;
             player.y = h - player.height - 20;
 
@@ -466,7 +638,6 @@
             document.getElementById('game-over-screen').classList.remove('hidden');
         }
 
-        // --- Рекорды ---
         function saveScore(currentScore) {
             let scores = JSON.parse(localStorage.getItem('cityDodgeScores')) || [];
             const username = tg.initDataUnsafe?.user?.first_name || 'Вы';
@@ -490,7 +661,6 @@
             });
         }
 
-        // Первый запуск
         resize();
 
     </script>
