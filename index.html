@@ -300,27 +300,25 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- POLYFILL для roundRect (чтобы игра не ломалась на старых телефонах) ---
-        if (!CanvasRenderingContext2D.prototype.roundRect) {
-            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-                if (w < 2 * r) r = w / 2;
-                if (h < 2 * r) r = h / 2;
-                this.moveTo(x + r, y);
-                this.arcTo(x + w, y, x + w, y + h, r);
-                this.arcTo(x + w, y + h, x, y + h, r);
-                this.arcTo(x, y + h, x, y, r);
-                this.arcTo(x, y, x + w, y, r);
-                this.closePath();
-                return this;
-            };
-        }
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         let w, h;
         let animationId;
         let globalFrame = 0;
+
+        // --- УТИЛИТЫ ---
+        // Безопасная функция для рисования закругленных прямоугольников (работает везде)
+        function roundRect(ctx, x, y, width, height, radius) {
+            if (width < 2 * radius) radius = width / 2;
+            if (height < 2 * radius) radius = height / 2;
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+        }
 
         const chuvashiaTowns = [
             'Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 
@@ -368,8 +366,6 @@
 
         // --- ГРАФИКА: ПОЛИЦЕЙСКИЙ ---
         function drawPolice(ctx, x, y) {
-            const width = 60;
-            
             // Ноги
             ctx.fillStyle = '#2c3e50';
             ctx.fillRect(x + 15, y + 70, 14, 40);
@@ -378,7 +374,7 @@
             // Тело (Жилет)
             ctx.fillStyle = '#b8e994';
             ctx.beginPath();
-            ctx.roundRect(x + 10, y + 30, 45, 45, 5);
+            roundRect(ctx, x + 10, y + 30, 45, 45, 5);
             ctx.fill();
             
             // Полосы
@@ -439,12 +435,12 @@
             
             // Ботинки
             ctx.fillStyle = '#111';
-            ctx.beginPath(); ctx.roundRect(x + width*0.18, y + height*0.88, width*0.27, height*0.12, 3); ctx.fill();
-            ctx.beginPath(); ctx.roundRect(x + width*0.55, y + height*0.88, width*0.27, height*0.12, 3); ctx.fill();
+            ctx.beginPath(); roundRect(ctx, x + width*0.18, y + height*0.88, width*0.27, height*0.12, 3); ctx.fill();
+            ctx.beginPath(); roundRect(ctx, x + width*0.55, y + height*0.88, width*0.27, height*0.12, 3); ctx.fill();
 
-            // Водолазка (Облегающая)
+            // Водолазка
             ctx.fillStyle = colors.top;
-            ctx.beginPath(); ctx.roundRect(x + width*0.15, y + height*0.18, width*0.7, height*0.28, 8); ctx.fill();
+            ctx.beginPath(); roundRect(ctx, x + width*0.15, y + height*0.18, width*0.7, height*0.28, 8); ctx.fill();
 
             // Руки
             ctx.fillStyle = colors.skin;
@@ -471,7 +467,7 @@
                 ctx.beginPath(); ctx.ellipse(x + width/2, y + height*0.16, width*0.045, height*0.015, 0, 0, Math.PI*2); ctx.fill();
             }
 
-            // Волосы (Длинные темные)
+            // Волосы
             ctx.fillStyle = colors.hair;
             ctx.beginPath();
             // Макушка
@@ -513,21 +509,20 @@
         function drawCar(c) {
             // Тень
             ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.roundRect(c.x + 8, c.y + 8, c.width, c.height, 12);
-            ctx.fill();
+            ctx.beginPath(); roundRect(ctx, c.x + 8, c.y + 8, c.width, c.height, 12); ctx.fill();
 
             // Кузов
             ctx.fillStyle = c.color;
-            ctx.beginPath(); ctx.roundRect(c.x, c.y, c.width, c.height, 12); ctx.fill();
+            ctx.beginPath(); roundRect(ctx, c.x, c.y, c.width, c.height, 12); ctx.fill();
             
-            // Капот (визуальное разделение)
+            // Капот
             ctx.fillStyle = 'rgba(0,0,0,0.05)';
             ctx.fillRect(c.x + 5, c.y + c.height - 35, c.width - 10, 30);
 
             // Стекла
             ctx.fillStyle = '#222';
-            ctx.fillRect(c.x + 5, c.y + 18, c.width - 10, 16); // Переднее
-            ctx.fillRect(c.x + 5, c.y + c.height - 28, c.width - 10, 12); // Заднее
+            ctx.fillRect(c.x + 5, c.y + 18, c.width - 10, 16); 
+            ctx.fillRect(c.x + 5, c.y + c.height - 28, c.width - 10, 12); 
             
             // Крыша
             ctx.fillStyle = c.color; 
@@ -557,7 +552,6 @@
                 ctx.fillStyle = '#ecf0f1'; 
                 ctx.font = '900 11px Arial'; 
                 ctx.textAlign = 'center';
-                // Тень для читаемости
                 ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 2;
                 ctx.fillText('LEXUS', cx, cy + 4); 
                 ctx.shadowBlur = 0;
