@@ -446,7 +446,6 @@
             frame++;
             state.score++;
             
-            // Плавный разгон
             let rawSpeed = 40 + Math.floor(state.score / 25);
             state.speed = rawSpeed;
             document.getElementById('speed-val').innerText = rawSpeed;
@@ -490,12 +489,23 @@
             if (type === 'car') {
                 const lane = Math.floor(Math.random()*3);
                 const laneW = rW/3;
-                const x = rX + lane*laneW + (laneW-50)/2;
+                // --- FIX FOR GAP ---
+                // Calculate max reasonable width for a car
+                // We want it to be wide enough to block most of the lane
+                const carW = laneW * 0.75; 
+                const x = rX + lane*laneW + (laneW-carW)/2;
+                
+                // Check overlap
                 for(let o of objects) if(o.type==='car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x)<50) return;
+                
                 const brands = ['merc', 'bmw', 'lexus'];
                 const b = brands[Math.floor(Math.random()*3)];
                 let c = '#bdc3c7'; if(b==='bmw') c='#1e293b'; if(b==='lexus') c='#7f8c8d';
-                objects.push({type:'car', x:x, y:-150, width:50, height:90, speed:Math.random()*2, color:c, brand:b});
+                
+                // Keep height proportional roughly 1:1.8
+                const carH = carW * 1.8; 
+                
+                objects.push({type:'car', x:x, y:-150, width:carW, height:carH, speed:Math.random()*2, color:c, brand:b});
             } else if (type === 'tree') {
                 const side = Math.random()<0.5;
                 const x = side ? Math.random()*(rX-30) : rX+rW+Math.random()*20;
