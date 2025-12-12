@@ -11,8 +11,6 @@
         :root {
             --primary: #3498db;
             --accent: #f1c40f;
-            --glass: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
             --text-dark: #1e293b;
         }
 
@@ -23,8 +21,8 @@
             background-color: #1e293b;
             font-family: 'Inter', sans-serif;
             touch-action: none;
-            -webkit-user-select: none;
             user-select: none;
+            -webkit-user-select: none;
             color: white;
         }
 
@@ -59,7 +57,7 @@
         }
 
         .stat-pill {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             padding: 8px 16px;
@@ -96,12 +94,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end; /* Cards at bottom */
+            justify-content: flex-end;
             padding-bottom: 40px;
             pointer-events: auto;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.3s ease;
             background: rgba(0,0,0,0.4);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             z-index: 20;
         }
 
@@ -110,24 +109,23 @@
             pointer-events: none;
         }
 
-        /* Modern Card */
+        /* CARD STYLE */
         .card {
             background: white;
             color: var(--text-dark);
             width: 90%;
-            max-width: 400px;
+            max-width: 380px;
             border-radius: 28px;
             padding: 30px 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             text-align: center;
-            transform: translateY(0);
-            animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1);
             position: relative;
             overflow: hidden;
+            animation: slideUp 0.4s ease-out;
         }
 
         @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
+            from { transform: translateY(50px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
@@ -157,13 +155,14 @@
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
+            transition: transform 0.1s;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn:active { transform: scale(0.96); }
 
-        /* Dialog specific */
+        /* DIALOG STYLES */
         .dialog-header {
             display: flex;
             align-items: center;
@@ -176,7 +175,7 @@
         .avatar {
             width: 40px;
             height: 40px;
-            background: #cbd5e1;
+            background: #e2e8f0;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -188,7 +187,7 @@
             text-align: left;
             font-weight: 700;
             font-size: 16px;
-            color: #ef4444; /* Red for Police */
+            color: #ef4444;
         }
 
         .dialog-text {
@@ -197,6 +196,7 @@
             font-weight: 500;
             color: #334155;
             margin-bottom: 25px;
+            line-height: 1.4;
         }
 
     </style>
@@ -206,7 +206,7 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
-        <div class="hud-top" id="hud">
+        <div class="hud-top" id="hud" style="opacity: 0;">
             <div class="stat-pill">
                 <div class="stat-label">Очки</div>
                 <div class="stat-value" id="score-val">0</div>
@@ -223,12 +223,12 @@
         <div class="card">
             <h1>По Чувашии</h1>
             <p>Я Оксана. Помоги мне проехать через республику и не попасться ГАИшникам!</p>
-            <button class="btn" onclick="window.gameStart()">Погнали</button>
+            <button class="btn" id="btn-start">Погнали</button>
         </div>
     </div>
 
     <!-- ДИАЛОГ (ГАИ) -->
-    <div id="dialog-screen" class="screen hidden" style="background: rgba(0,0,0,0.2);">
+    <div id="dialog-screen" class="screen hidden">
         <div class="card">
             <div class="dialog-header">
                 <div class="avatar">👮‍♂️</div>
@@ -237,7 +237,7 @@
             <div class="dialog-text" id="dialog-body">
                 Текст диалога...
             </div>
-            <button class="btn" id="dialog-btn" onclick="window.gameResolve()">Понятно</button>
+            <button class="btn" id="btn-dialog-action">Понятно</button>
         </div>
     </div>
 
@@ -247,13 +247,19 @@
             <h1>Авария!</h1>
             <p>Ты врезалась. Твой итоговый счет:</p>
             <div style="font-size: 48px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
-            <button class="btn" style="background: #10b981;" onclick="window.gameStart()">Попробовать снова</button>
+            <button class="btn" id="btn-restart" style="background: #10b981;">Попробовать снова</button>
         </div>
     </div>
 
     <script>
     (function() {
-        // --- INIT ---
+        // --- Telegram Init ---
+        try {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.expand();
+            }
+        } catch(e) {}
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -261,128 +267,109 @@
         let animationId;
         let globalFrame = 0;
 
-        // Попытка инициализации TG
-        try {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.expand();
-            }
-        } catch(e){}
-
-        // --- CONFIG ---
+        // --- GAME CONFIG & STATE ---
         const cfg = {
             baseSpeed: 60,
-            roadWidth: 0.9, // 90% экрана
+            roadWidth: 0.9,
             laneCount: 3
         };
 
         const towns = ['Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин'];
 
-        // --- STATE ---
         const state = {
             running: false,
             paused: false,
             score: 0,
-            speed: 60, // Текущая скорость км/ч
+            speed: 60,
             difficulty: 1,
             laneOffset: 0,
             
-            // Logic
-            eventStage: 0, // 0 - старт, 1 - прошел Батырево, 2 - прошел Ядрин
-            lastEventScore: 0, // Очки, на которых было последнее событие
-            cooldown: 500 // Сколько очков надо проехать до след. события
+            // Events Logic
+            eventStage: 0, // 0 = Start, 1 = Passed Batyrevo, 2 = Passed Yadrin
+            lastEventScore: 0, 
+            cooldown: 500 // Points needed between events
         };
 
         const player = { x: 0, y: 0, w: 45, h: 90, targetX: 0, lean: 0 };
-        let objects = []; // Машины, монеты, знаки
+        let objects = []; 
 
-        // --- DRAWING HELPERS ---
-        function fillRoundRect(ctx, x, y, w, h, r, color) {
+        // --- DRAWING UTILS (Safe for all browsers) ---
+        function fillRoundRect(ctx, x, y, width, height, radius, color) {
+            if (width < 2 * radius) radius = width / 2;
+            if (height < 2 * radius) radius = height / 2;
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.moveTo(x + r, y);
-            ctx.arcTo(x + w, y, x + w, y + h, r);
-            ctx.arcTo(x + w, y + h, x, y + h, r);
-            ctx.arcTo(x, y + h, x, y, r);
-            ctx.arcTo(x, y, x + w, y, r);
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
             ctx.closePath();
             ctx.fill();
         }
 
-        // --- RENDERERS ---
+        // --- RENDER FUNCTIONS ---
         function drawOksana(ctx, x, y, w, h, isMenu) {
-            // Анимация
             const bounce = Math.sin(globalFrame * 0.15) * 2;
-            const sway = player.lean * 5; // Наклон при повороте
-            
             ctx.save();
             ctx.translate(x + w/2, y + h);
-            if (!isMenu) ctx.rotate(player.lean * 0.1); // Наклон корпуса
+            if (!isMenu) ctx.rotate(player.lean * 0.1); 
             ctx.translate(-(x + w/2), -(y + h));
-
             y += bounce;
 
-            // Тень
+            // Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath(); ctx.ellipse(x + w/2, y + h - 2, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
 
-            // Ноги (Джинсы)
+            // Jeans
             fillRoundRect(ctx, x + w*0.15, y + h*0.5, w*0.3, h*0.4, 4, '#34495e');
             fillRoundRect(ctx, x + w*0.55, y + h*0.5, w*0.3, h*0.4, 4, '#34495e');
             
-            // Тело (Топ)
+            // Top
             fillRoundRect(ctx, x + w*0.15, y + h*0.2, w*0.7, h*0.35, 8, '#111');
 
-            // Руки
+            // Arms
             const armOffset = isMenu ? 0 : Math.sin(globalFrame * 0.2) * 3;
             fillRoundRect(ctx, x + w*0.05, y + h*0.2 + armOffset, w*0.12, h*0.25, 4, '#ffdbac');
             fillRoundRect(ctx, x + w*0.83, y + h*0.2 - armOffset, w*0.12, h*0.25, 4, '#ffdbac');
 
-            // Голова
+            // Head
             ctx.fillStyle = '#ffdbac';
             ctx.beginPath(); ctx.ellipse(x + w/2, y + h*0.15, w*0.25, h*0.15, 0, 0, Math.PI*2); ctx.fill();
 
-            // Волосы (Пышные)
+            // Hair
             ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.arc(x + w/2, y + h*0.12, w*0.35, Math.PI, 0); // Верх
-            ctx.bezierCurveTo(x + w*1.2, y + h*0.3, x + w*0.9, y + h*0.6, x + w*0.8, y + h*0.7); // Право
+            ctx.arc(x + w/2, y + h*0.12, w*0.35, Math.PI, 0); 
+            ctx.bezierCurveTo(x + w*1.2, y + h*0.3, x + w*0.9, y + h*0.6, x + w*0.8, y + h*0.7); 
             ctx.lineTo(x + w*0.2, y + h*0.7);
-            ctx.bezierCurveTo(x + w*0.1, y + h*0.6, x - w*0.2, y + h*0.3, x + w*0.15, y + h*0.12); // Лево
+            ctx.bezierCurveTo(x + w*0.1, y + h*0.6, x - w*0.2, y + h*0.3, x + w*0.15, y + h*0.12); 
             ctx.fill();
 
-            // Лицо (если меню)
             if (isMenu) {
                 ctx.fillStyle = '#fff';
                 ctx.beginPath(); ctx.arc(x + w*0.4, y + h*0.14, 3, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x + w*0.6, y + h*0.14, 3, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#c0392b'; // Губы
+                ctx.fillStyle = '#c0392b';
                 ctx.beginPath(); ctx.arc(x + w*0.5, y + h*0.18, 2, 0, Math.PI, false); ctx.fill();
             }
-
             ctx.restore();
         }
 
         function drawCar(ctx, obj) {
             const { x, y, width, height, color, brand } = obj;
+            fillRoundRect(ctx, x + 5, y + 5, width, height, 10, 'rgba(0,0,0,0.3)'); // Shadow
+            fillRoundRect(ctx, x, y, width, height, 10, color); // Body
             
-            // Тень
-            fillRoundRect(ctx, x + 5, y + 5, width, height, 10, 'rgba(0,0,0,0.3)');
-            
-            // Кузов
-            fillRoundRect(ctx, x, y, width, height, 10, color);
-            
-            // Кабина (стекла)
             ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x + 5, y + 15, width - 10, 15); // Переднее
-            ctx.fillRect(x + 5, y + height - 25, width - 10, 10); // Заднее
+            ctx.fillRect(x + 5, y + 15, width - 10, 15); // Glass Front
+            ctx.fillRect(x + 5, y + height - 25, width - 10, 10); // Glass Back
             
-            // Крыша
             ctx.fillStyle = color;
             ctx.globalAlpha = 0.9;
-            ctx.fillRect(x + 7, y + 30, width - 14, height - 55);
+            ctx.fillRect(x + 7, y + 30, width - 14, height - 55); // Roof
             ctx.globalAlpha = 1.0;
 
-            // Логотип (Большой)
             const cx = x + width/2;
             const cy = y + height - 15;
             
@@ -396,111 +383,88 @@
                 ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 8, 0, Math.PI/2); ctx.lineTo(cx, cy); ctx.arc(cx, cy, 8, Math.PI, Math.PI*1.5); ctx.fill();
                 ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
             } else {
-                ctx.fillStyle = '#ecf0f1';
-                ctx.font = '900 10px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('LEXUS', cx, cy+3);
+                ctx.fillStyle = '#ecf0f1'; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
             }
         }
 
         function drawRoad() {
-            // Трава
-            ctx.fillStyle = '#10b981';
-            ctx.fillRect(0, 0, w, h);
-            
-            // Дорога
+            ctx.fillStyle = '#10b981'; ctx.fillRect(0, 0, w, h); // Grass
             const roadX = w * (1 - cfg.roadWidth) / 2;
             const roadW = w * cfg.roadWidth;
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(roadX, 0, roadW, h);
-            
-            // Обочины
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(roadX, 0, 5, h);
-            ctx.fillRect(roadX + roadW - 5, 0, 5, h);
+            ctx.fillStyle = '#334155'; ctx.fillRect(roadX, 0, roadW, h); // Road
+            ctx.fillStyle = '#fbbf24'; ctx.fillRect(roadX, 0, 5, h); ctx.fillRect(roadX + roadW - 5, 0, 5, h); // Borders
 
-            // Разметка
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 4;
             ctx.setLineDash([30, 50]);
             ctx.lineDashOffset = -state.laneOffset;
-            
             const laneW = roadW / cfg.laneCount;
             for(let i=1; i<cfg.laneCount; i++) {
-                ctx.beginPath();
-                ctx.moveTo(roadX + laneW*i, -50);
-                ctx.lineTo(roadX + laneW*i, h+50);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(roadX + laneW*i, -50); ctx.lineTo(roadX + laneW*i, h+50); ctx.stroke();
             }
             ctx.setLineDash([]);
         }
 
-        // --- GAME LOGIC ---
+        // --- UPDATE ---
         function update() {
             if (state.paused) return;
 
             globalFrame++;
             state.score++;
             
-            // --- СКОРОСТЬ И СОБЫТИЯ ---
-            // Скорость растет от очков
-            const targetSpeed = 60 + Math.floor(state.score / 15);
+            // Speed Calculation
+            let targetSpeed = 60 + Math.floor(state.score / 15);
             
-            // Проверяем событие (100 км/ч)
+            // Check Events
             if (targetSpeed >= 100) {
-                // Если с прошлого события прошло достаточно очков (кулдаун)
+                // Ensure cooldown has passed since last event
                 if (state.score - state.lastEventScore > state.cooldown) {
                     if (state.eventStage === 0) {
                         triggerEvent('BATYREVO');
-                        return; // Пауза обновления
+                        return; 
                     } else if (state.eventStage === 1) {
                         triggerEvent('YADRIN');
-                        return; // Пауза обновления
+                        return; 
                     }
                 }
             }
             
             state.speed = targetSpeed;
             document.getElementById('speed-val').innerText = state.speed;
-            
-            // Усложнение
             if (state.score % 500 === 0) state.difficulty += 0.1;
-
-            // Анимация дороги
             state.laneOffset = (state.laneOffset + state.speed * 0.2) % 80;
             
-            // UI
-            if (state.score % 10 === 0) {
-                document.getElementById('score-val').innerText = Math.floor(state.score/10);
-            }
+            if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
 
-            // Игрок движение
+            // Player movement
             const diff = player.targetX - player.x;
             player.x += diff * 0.15;
-            player.lean = -diff * 0.1; // Наклон при движении
+            player.lean = -diff * 0.1;
 
-            // --- СПАВН ---
+            // Spawn
             if (Math.random() < 0.02 * state.difficulty) spawnObject('car');
             if (Math.random() < 0.05 * state.difficulty) spawnObject('tree');
             if (Math.random() < 0.01) spawnObject('sign');
 
-            // --- ОБНОВЛЕНИЕ ОБЪЕКТОВ ---
+            // Update Objects
             for (let i = objects.length - 1; i >= 0; i--) {
                 let o = objects[i];
-                o.y += state.speed * 0.25; // Скорость объектов относительно дороги
+                o.y += state.speed * 0.25; 
                 
                 if (o.type === 'car') {
-                    // Машины едут с разной скоростью
-                    o.y += o.speed - (state.speed * 0.25); 
-                    
-                    // Хитбокс
-                    if (checkCollision(player, o)) {
-                        gameOver();
-                    }
+                    o.y += o.speed - (state.speed * 0.25); // Relative speed
+                    if (checkCollision(player, o)) gameOver();
                 }
-
                 if (o.y > h + 100) objects.splice(i, 1);
             }
+        }
+
+        function checkCollision(p, c) {
+            const padding = 12;
+            return (p.x + padding < c.x + c.width - padding &&
+                    p.x + p.w - padding > c.x + padding &&
+                    p.y + padding < c.y + c.height - padding &&
+                    p.y + p.h - padding > c.y + padding);
         }
 
         function spawnObject(type) {
@@ -513,9 +477,8 @@
                 const carW = 50;
                 const x = roadX + lane * laneW + (laneW - carW)/2;
                 
-                // Проверка наложения
-                for(let o of objects) {
-                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 200 && Math.abs(o.x - x) < 50) return;
+                for(let o of objects) { // Prevent overlap spawn
+                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x) < 50) return;
                 }
 
                 const brands = ['merc', 'bmw', 'lexus'];
@@ -528,13 +491,11 @@
                     type: 'car', x: x, y: -150, width: 50, height: 90,
                     speed: (4 + Math.random()*2), color: color, brand: brand
                 });
-            }
-            else if (type === 'tree') {
+            } else if (type === 'tree') {
                 const side = Math.random() < 0.5 ? 'left' : 'right';
                 const x = side === 'left' ? Math.random() * (roadX - 30) : roadX + roadW + Math.random()*20;
                 objects.push({ type: 'tree', x: x, y: -50 });
-            }
-            else if (type === 'sign') {
+            } else if (type === 'sign') {
                 const side = Math.random() < 0.5 ? 'left' : 'right';
                 const x = side === 'left' ? roadX + 5 : roadX + roadW - 5;
                 const text = towns[Math.floor(Math.random() * towns.length)];
@@ -542,23 +503,10 @@
             }
         }
 
-        function checkCollision(p, c) {
-            const padding = 10;
-            return (p.x + padding < c.x + c.width - padding &&
-                    p.x + p.w - padding > c.x + padding &&
-                    p.y + padding < c.y + c.height - padding &&
-                    p.y + p.h - padding > c.y + padding);
-        }
-
-        // --- RENDER LOOP ---
+        // --- LOOP ---
         function loop() {
-            // Фон
             drawRoad();
 
-            // Отрисовка (Сортировка по Y для глубины)
-            // Добавляем игрока в список отрисовки временно или рисуем поверх
-            // Проще: Сначала декорации, потом машины и игрок
-            
             const renderList = [...objects];
             renderList.push({ type: 'player', y: player.y });
             renderList.sort((a,b) => a.y - b.y);
@@ -568,34 +516,22 @@
                     ctx.fillStyle = '#166534';
                     ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
                     ctx.fillStyle = '#451a03'; ctx.fillRect(o.x-4, o.y, 8, 15);
-                }
-                else if (o.type === 'sign') {
+                } else if (o.type === 'sign') {
                     ctx.fillStyle = '#64748b'; ctx.fillRect(o.x-2, o.y, 4, 50);
-                    ctx.fillStyle = '#2563eb'; 
                     const signX = o.side === 'left' ? o.x : o.x - 80;
                     fillRoundRect(ctx, signX, o.y-40, 80, 25, 4, '#2563eb');
-                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
-                    ctx.fillText(o.text, signX + 40, o.y-24);
-                }
-                else if (o.type === 'car') {
+                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.textAlign = 'center'; ctx.fillText(o.text, signX + 40, o.y-24);
+                } else if (o.type === 'car') {
                     drawCar(ctx, o);
-                }
-                else if (o.type === 'player') {
+                } else if (o.type === 'player') {
                     if (state.running) drawOksana(ctx, player.x, player.y, player.w, player.h, false);
                 }
             });
 
-            // Гаишник во время события
-            if (state.paused && document.getElementById('police-screen').classList.contains('hidden') === false) {
-               drawPolice(ctx, player.x + 60, player.y - 20);
-            }
-
             if (state.running) {
                 update();
             } else if (!document.getElementById('menu-screen').classList.contains('hidden')) {
-                // Меню анимация
                 globalFrame++;
-                ctx.fillStyle = '#fdf6ec'; ctx.fillRect(0,0,w,h); // Светлый фон меню
                 const bigW = Math.min(w * 0.6, 220);
                 drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
             }
@@ -603,23 +539,24 @@
             animationId = requestAnimationFrame(loop);
         }
 
-        // --- EVENTS ---
+        // --- EVENT SYSTEM ---
         function triggerEvent(name) {
             state.paused = true;
-            document.getElementById('dialog-screen').classList.remove('hidden');
+            const el = document.getElementById('dialog-screen');
+            el.classList.remove('hidden');
             
             const title = document.getElementById('dialog-title');
             const body = document.getElementById('dialog-body');
-            const btn = document.getElementById('dialog-btn');
+            const btn = document.getElementById('btn-dialog-action');
 
             if (name === 'BATYREVO') {
                 title.innerText = 'ДПС БАТЫРЕВО';
-                body.innerText = '— Куда летим, Оксана? Ты наши дороги видела?!';
+                body.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
                 btn.innerText = 'Я больше так не буду :(';
                 btn.onclick = () => resolveEvent('PENALTY');
             } else {
                 title.innerText = 'ДПС ЯДРИН';
-                body.innerText = '— Ооо, Оксана, ты же хамар ял! Можешь ехать.';
+                body.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
                 btn.innerText = 'Маттур! (Спасибо)';
                 btn.onclick = () => resolveEvent('FREE');
             }
@@ -628,56 +565,58 @@
         function resolveEvent(type) {
             document.getElementById('dialog-screen').classList.add('hidden');
             state.paused = false;
-            state.lastEventScore = state.score; // Запоминаем когда было событие
             
+            // IMPORTANT: Update last event score to current score to reset cooldown
+            state.lastEventScore = state.score; 
+
             if (type === 'PENALTY') {
-                state.score = Math.max(0, state.score - 400); // Штраф очков (скорость упадет)
+                state.score = Math.max(0, state.score - 400); // Speed drops
                 state.eventStage = 1;
             } else {
                 state.eventStage = 2;
-                // Без штрафа
             }
             
-            // Оттолкнуть машины
+            // Push cars away
             objects.forEach(o => { if(o.type==='car') o.y -= 400; });
         }
 
-        // --- CONTROLS ---
-        function startGame() {
+        function gameOver() {
+            state.running = false;
+            document.getElementById('final-score').innerText = Math.floor(state.score/10);
+            document.getElementById('hud').style.opacity = '0';
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        // --- CONTROLS BINDING ---
+        document.getElementById('btn-start').onclick = () => {
             state.running = true;
             state.score = 0;
             state.eventStage = 0;
             state.lastEventScore = 0;
             state.difficulty = 1;
             objects = [];
-            
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            
             player.targetX = w/2 - player.w/2;
             player.x = player.targetX;
             player.y = h - player.h - 50;
-        }
+            
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('hud').style.opacity = '1';
+        };
 
-        function gameOver() {
-            state.running = false;
-            document.getElementById('final-score').innerText = Math.floor(state.score/10);
-            document.getElementById('game-over-screen').classList.remove('hidden');
-        }
+        document.getElementById('btn-restart').onclick = document.getElementById('btn-start').onclick;
 
-        // Touch
+        // Input Handling
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
-            if(state.paused) return;
+            if (state.paused) return;
             const touch = e.touches[0];
             player.targetX = touch.clientX - player.w/2;
-            // Clamps
             const roadX = w * (1 - cfg.roadWidth) / 2;
             if (player.targetX < roadX) player.targetX = roadX;
             if (player.targetX > w - roadX - player.w) player.targetX = w - roadX - player.w;
         });
 
-        // Resize
         window.onresize = () => {
             w = window.innerWidth;
             h = window.innerHeight;
@@ -685,10 +624,6 @@
             canvas.height = h;
         };
         window.onresize();
-
-        // Exports
-        window.gameStart = startGame;
-        window.gameResolve = resolveEvent;
 
         loop();
 
