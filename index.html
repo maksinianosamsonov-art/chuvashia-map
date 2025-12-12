@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>City Dodge Game</title>
-    <!-- Подключаем скрипт Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -15,13 +14,13 @@
             overflow: hidden;
             background-color: #333;
             font-family: 'Roboto', sans-serif;
-            touch-action: none; /* Отключаем зум и скролл на мобильных */
+            touch-action: none;
         }
 
         #gameCanvas {
             display: block;
             margin: 0 auto;
-            background: #444; /* Цвет асфальта */
+            /* Фон Canvas будет меняться скриптом: бежевый в меню, асфальт в игре */
         }
 
         /* Интерфейс */
@@ -43,9 +42,10 @@
             font-size: 24px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            display: none; /* Скрываем в меню */
         }
 
-        /* Общие стили для экранов */
+        /* Экраны */
         #menu-screen, #game-over-screen {
             position: absolute;
             top: 0;
@@ -55,92 +55,82 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             z-index: 10;
-            backdrop-filter: blur(5px);
             pointer-events: auto;
-            padding: 20px;
             box-sizing: border-box;
+            padding: 20px;
         }
 
-        /* Специфичные стили для Меню (Бежевый фон как на картинке) */
+        /* МЕНЮ: Прозрачный фон, чтобы видеть нарисованную Оксану на Canvas */
         #menu-screen {
-            background: #fdf6ec; /* Светло-бежевый цвет */
+            background: transparent; 
+            justify-content: flex-end; /* Контент снизу */
+            padding-bottom: 50px;
+        }
+
+        /* Стильная плашка для текста внизу */
+        .menu-content {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         #menu-screen h1 {
-            color: #2c3e50; /* Темный заголовок */
+            color: #2c3e50;
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
         }
 
         #menu-screen p {
-            color: #555; /* Темный текст */
-            background: rgba(255, 255, 255, 0.5); /* Светлая подложка */
-            border: 1px solid rgba(0,0,0,0.05);
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 1.4;
         }
 
-        #menu-screen .controls-hint {
-            color: rgba(0,0,0,0.4); /* Темная подсказка */
-        }
-
-        /* Специфичные стили для Game Over (Темный фон) */
+        /* GAME OVER: Темный фон */
         #game-over-screen {
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+        }
+        
+        #game-over-screen h1 {
+            color: #fff;
+            margin-bottom: 10px;
         }
 
         .hidden {
             display: none !important;
         }
 
-        h1 {
-            color: #fff;
-            font-size: 32px;
-            margin-bottom: 10px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* Стили для картинки персонажа в меню */
-        .intro-image {
-            width: 180px; /* Чуть увеличил */
-            height: 180px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #3498db;
-            margin-bottom: 15px;
-            background-color: #fff; /* Фон если картинка не загрузится */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        p {
-            color: #ccc;
-            font-size: 16px;
-            margin-bottom: 25px;
-            text-align: center;
-            max-width: 100%;
-            line-height: 1.5;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-        }
-
         .btn {
-            background: #3498db; /* Telegram Blue */
+            background: #3498db;
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 16px 40px;
+            font-size: 18px;
             border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
             font-weight: bold;
-            box-shadow: 0 4px 0 #2980b9;
-            margin-top: 10px;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+            transition: transform 0.1s;
         }
 
         .btn:active {
-            transform: translateY(4px);
-            box-shadow: none;
+            transform: scale(0.98);
         }
 
         /* Таблица лидеров */
@@ -168,21 +158,10 @@
         }
 
         .current-score-display {
-            font-size: 48px;
+            font-size: 64px;
             color: #fff;
-            margin: 10px 0 20px 0;
+            margin: 10px 0 30px 0;
             font-weight: bold;
-        }
-
-        /* Контролы для мобилок (визуальные подсказки) */
-        .controls-hint {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            text-align: center;
-            color: rgba(255,255,255,0.3);
-            font-size: 12px;
-            pointer-events: none;
         }
 
     </style>
@@ -192,22 +171,16 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
-        <div class="score-board">Счет: <span id="score-val">0</span></div>
+        <div class="score-board" id="game-ui">Счет: <span id="score-val">0</span></div>
     </div>
 
     <!-- Главное Меню -->
     <div id="menu-screen">
-        <!-- Картинка персонажа. Сохраните файл как oxana.jpg в папке с игрой -->
-        <img src="oxana.jpg" alt="Оксана" class="intro-image" onerror="this.style.display='none'">
-        
-        <h1>Привет!</h1>
-        <p>Я Оксана и меня постоянно пытаются задавить, помоги мне увернуться от машин..
-        <br><br>
-        <span style="font-size: 0.9em; opacity: 0.8;">Управление: Свайп влево/вправо</span>
-        </p>
-        
-        <button class="btn" onclick="startGame()">СПАСТИ ОКСАНУ</button>
-        <div class="controls-hint">version 1.1</div>
+        <div class="menu-content">
+            <h1>Привет!</h1>
+            <p>Я Оксана и меня постоянно пытаются задавить, помоги мне увернуться от машин..</p>
+            <button class="btn" onclick="startGame()">СПАСТИ ОКСАНУ</button>
+        </div>
     </div>
 
     <!-- Экран Проигрыша -->
@@ -217,50 +190,41 @@
         
         <div class="leaderboard">
             <h3>Рекорды</h3>
-            <div id="leaderboard-list">
-                <!-- Сюда JS добавит рекорды -->
-            </div>
+            <div id="leaderboard-list"></div>
         </div>
 
         <button class="btn" onclick="startGame()">ЗАНОВО</button>
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
-        
-        // Настройка Canvas
+        tg.expand();
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Состояние игры
         let gameRunning = false;
         let score = 0;
         let speedMultiplier = 1;
         let animationId;
         
-        // Размеры
         let w, h;
         
-        // Игрок (Девушка)
         const player = {
             x: 0,
             y: 0,
             width: 40,
-            height: 70, // Пропорции стоящего человека
+            height: 70,
             speed: 5,
-            colorHair: '#1a1a1a', // Темные волосы
+            // Цвета
+            colorHair: '#1a1a1a', 
             colorSkin: '#f1c27d',
-            colorTop: '#1a1a1a', // Черная водолазка
-            colorJeans: '#2c5a7f' // Синие джинсы
+            colorTop: '#1a1a1a', 
+            colorJeans: '#2c5a7f'
         };
 
-        // Враги (Машины)
         let cars = [];
         const carColors = ['#e74c3c', '#f1c40f', '#9b59b6', '#2ecc71', '#ecf0f1'];
-
-        // Дорожная разметка
         let laneOffset = 0;
 
         function resize() {
@@ -269,56 +233,108 @@
             canvas.width = w;
             canvas.height = h;
             
-            // Ставим игрока в центр снизу
-            player.x = w / 2 - player.width / 2;
-            player.y = h - player.height - 20;
+            if (!gameRunning) {
+                drawMenu(); // Рисуем меню при ресайзе если игра не идет
+            } else {
+                player.x = Math.min(player.x, w - player.width); // Коррекция позиции
+                player.y = h - player.height - 20;
+            }
         }
         
         window.addEventListener('resize', resize);
-        resize();
+        
+        // --- Рисование Персонажа (Универсальная функция) ---
+        function drawCharacter(ctx, x, y, width, height) {
+            // 1. Ноги (Джинсы)
+            ctx.fillStyle = player.colorJeans;
+            ctx.fillRect(x + width * 0.1, y + height * 0.45, width * 0.35, height * 0.55); // Левая
+            ctx.fillRect(x + width * 0.55, y + height * 0.45, width * 0.35, height * 0.55); // Правая
+            
+            // 2. Тело (Черная водолазка)
+            ctx.fillStyle = player.colorTop;
+            ctx.beginPath();
+            ctx.roundRect(x + width * 0.05, y + height * 0.15, width * 0.9, height * 0.35, width * 0.1);
+            ctx.fill();
+            
+            // Рукава
+            ctx.fillRect(x - width * 0.1, y + height * 0.15, width * 0.2, height * 0.35); // Левый
+            ctx.fillRect(x + width * 0.9, y + height * 0.15, width * 0.2, height * 0.35); // Правый
+
+            // 3. Голова (Кожа)
+            ctx.fillStyle = player.colorSkin;
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.1, width * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. Волосы
+            ctx.fillStyle = player.colorHair;
+            // Хвостик
+            ctx.beginPath();
+            ctx.arc(x + width * 0.85, y + height * 0.05, width * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+            // Основная прическа
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.08, width * 0.4, Math.PI, Math.PI * 2);
+            ctx.lineTo(x - width * 0.1, y + height * 0.6); 
+            ctx.lineTo(x + width * 1.1, y + height * 0.6);
+            ctx.fill();
+            
+            // Лицо (Глаза и улыбка - только если персонаж большой)
+            if (width > 60) {
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(x + width*0.35, y + height*0.1, 2, 0, Math.PI*2); // Лев глаз
+                ctx.arc(x + width*0.65, y + height*0.1, 2, 0, Math.PI*2); // Прав глаз
+                ctx.fill();
+            }
+        }
+
+        // --- Функция отрисовки МЕНЮ ---
+        function drawMenu() {
+            // Фон как на картинке (Бежевый)
+            ctx.fillStyle = '#fdf6ec';
+            ctx.fillRect(0, 0, w, h);
+
+            // Рисуем большую Оксану по центру
+            const bigW = Math.min(w * 0.6, 200); // Ширина не больше 200px
+            const bigH = bigW * 1.75; // Пропорции
+            const startX = (w - bigW) / 2;
+            const startY = (h - bigH) / 2 - 50; // Чуть выше центра
+
+            drawCharacter(ctx, startX, startY, bigW, bigH);
+        }
 
         // --- Управление ---
         let touchStartX = 0;
-        let playerTargetX = player.x; // Для плавного движения
-
-        // Клавиатура (Десктоп)
         const keys = {};
         window.addEventListener('keydown', e => keys[e.code] = true);
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // Тач (Мобилки)
         canvas.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
-            playerTargetX = player.x;
         });
 
         canvas.addEventListener('touchmove', e => {
-            e.preventDefault(); // Блокируем скролл
+            e.preventDefault();
             const touchX = e.touches[0].clientX;
             const diff = touchX - touchStartX;
-            
-            player.x += diff; // Прямое управление позицией
+            player.x += diff;
             touchStartX = touchX;
-            
-            // Ограничения экрана
             if (player.x < 0) player.x = 0;
             if (player.x > w - player.width) player.x = w - player.width;
         });
 
-        // --- Логика Игры ---
+        // --- Игровой Цикл ---
 
         function spawnCar() {
             const carWidth = 50;
             const carHeight = 90;
-            // Случайная позиция по X
             const xPos = Math.random() * (w - carWidth);
-            
-            // Уменьшили базовую скорость (было 3 + ..., стало 2 + ...)
             const baseSpeed = 2 + Math.random() * 2.5; 
 
             cars.push({
                 x: xPos,
-                y: -100, // Над экраном
+                y: -100,
                 width: carWidth,
                 height: carHeight,
                 speed: baseSpeed * speedMultiplier,
@@ -329,34 +345,27 @@
         function update() {
             if (!gameRunning) return;
 
-            // Усложнение
             score++;
             document.getElementById('score-val').innerText = Math.floor(score / 10);
             
-            // Увеличиваем скорость каждые 300 тиков (более плавно)
-            if (score % 300 === 0) {
-                speedMultiplier += 0.05;
-            }
+            // Плавное увеличение сложности
+            if (score % 300 === 0) speedMultiplier += 0.05;
 
-            // Движение клавиатурой
+            // Движение (Keys)
             if (keys['ArrowLeft'] || keys['KeyA']) player.x -= 7;
             if (keys['ArrowRight'] || keys['KeyD']) player.x += 7;
-
-            // Границы для клавиатуры
             if (player.x < 0) player.x = 0;
             if (player.x > w - player.width) player.x = w - player.width;
 
-            // Спавн машин
-            if (Math.random() < 0.02 * speedMultiplier) {
-                spawnCar();
-            }
+            // Спавн
+            if (Math.random() < 0.02 * speedMultiplier) spawnCar();
 
-            // Обновление машин
+            // Машины
             for (let i = 0; i < cars.length; i++) {
                 let car = cars[i];
                 car.y += car.speed;
 
-                // Проверка столкновения (AABB)
+                // Столкновение
                 if (
                     player.x < car.x + car.width &&
                     player.x + player.width > car.x &&
@@ -367,7 +376,6 @@
                     return;
                 }
 
-                // Удаление если уехала
                 if (car.y > h) {
                     cars.splice(i, 1);
                     i--;
@@ -379,79 +387,8 @@
             if (laneOffset > 40) laneOffset = 0;
         }
 
-        function drawPlayer(x, y, width, height) {
-            // Рисуем девушку кодом (без картинок для надежности)
-            
-            // 1. Ноги (Джинсы)
-            ctx.fillStyle = player.colorJeans;
-            // Левая нога
-            ctx.fillRect(x + width * 0.1, y + height * 0.45, width * 0.35, height * 0.55);
-            // Правая нога
-            ctx.fillRect(x + width * 0.55, y + height * 0.45, width * 0.35, height * 0.55);
-            
-            // 2. Тело (Черная водолазка)
-            ctx.fillStyle = player.colorTop;
-            // Корпус
-            ctx.beginPath();
-            ctx.roundRect(x + width * 0.05, y + height * 0.15, width * 0.9, height * 0.35, 5);
-            ctx.fill();
-            
-            // Рукава
-            ctx.fillRect(x - 5, y + height * 0.15, 8, height * 0.35); // Левый
-            ctx.fillRect(x + width - 3, y + height * 0.15, 8, height * 0.35); // Правый
-
-            // 3. Голова (Кожа)
-            ctx.fillStyle = player.colorSkin;
-            ctx.beginPath();
-            ctx.arc(x + width/2, y + height * 0.1, width * 0.35, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 4. Волосы
-            ctx.fillStyle = player.colorHair;
-            
-            // Хвостик (торчит немного вбок/вверх)
-            ctx.beginPath();
-            ctx.arc(x + width * 0.85, y + height * 0.05, 10, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Основная прическа
-            ctx.beginPath();
-            // Макушка
-            ctx.arc(x + width/2, y + height * 0.08, width * 0.4, Math.PI, Math.PI * 2);
-            // Пряди слева
-            ctx.lineTo(x, y + height * 0.5); 
-            // Пряди справа
-            ctx.lineTo(x + width, y + height * 0.5);
-            ctx.fill();
-        }
-
-        function drawCar(c) {
-            // Тень
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillRect(c.x + 10, c.y + 10, c.width, c.height);
-
-            // Кузов
-            ctx.fillStyle = c.color;
-            ctx.beginPath();
-            ctx.roundRect(c.x, c.y, c.width, c.height, 8);
-            ctx.fill();
-
-            // Стекло
-            ctx.fillStyle = '#333';
-            ctx.fillRect(c.x + 5, c.y + 10, c.width - 10, 15); // Лобовое
-            ctx.fillRect(c.x + 5, c.y + c.height - 20, c.width - 10, 10); // Заднее
-
-            // Фары
-            ctx.fillStyle = '#fff'; // Передние
-            ctx.fillRect(c.x + 2, c.y + c.height - 5, 10, 5);
-            ctx.fillRect(c.x + c.width - 12, c.y + c.height - 5, 10, 5);
-        }
-
-        function draw() {
-            // Очистка
-            ctx.clearRect(0, 0, w, h);
-
-            // Дорога (Фон)
+        function drawGame() {
+            // Фон игры (Асфальт)
             ctx.fillStyle = '#444';
             ctx.fillRect(0, 0, w, h);
 
@@ -460,8 +397,6 @@
             ctx.setLineDash([20, 20]);
             ctx.lineDashOffset = -laneOffset;
             ctx.lineWidth = 4;
-            
-            // Центральная линия
             ctx.beginPath();
             ctx.moveTo(w/2, -20);
             ctx.lineTo(w/2, h + 20);
@@ -473,16 +408,26 @@
             ctx.fillRect(w-10, 0, 10, h);
 
             // Игрок
-            drawPlayer(player.x, player.y, player.width, player.height);
+            drawCharacter(ctx, player.x, player.y, player.width, player.height);
 
             // Машины
-            cars.forEach(drawCar);
+            cars.forEach(c => {
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(c.x + 10, c.y + 10, c.width, c.height); // Тень
+                ctx.fillStyle = c.color;
+                ctx.beginPath();
+                ctx.roundRect(c.x, c.y, c.width, c.height, 8);
+                ctx.fill();
+                ctx.fillStyle = '#333';
+                ctx.fillRect(c.x + 5, c.y + 10, c.width - 10, 15);
+                ctx.fillRect(c.x + 5, c.y + c.height - 20, c.width - 10, 10);
+            });
         }
 
         function loop() {
             if (gameRunning) {
                 update();
-                draw();
+                drawGame();
                 animationId = requestAnimationFrame(loop);
             }
         }
@@ -490,29 +435,30 @@
         function startGame() {
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('game-ui').style.display = 'block';
             
-            // Сброс параметров
             gameRunning = true;
             score = 0;
-            speedMultiplier = 1; // Сброс скорости
+            speedMultiplier = 1;
             cars = [];
-            player.x = w / 2 - player.width / 2;
-            document.getElementById('score-val').innerText = '0';
             
+            // Ресайз для корректной установки игрока
+            resize();
+            player.x = w / 2 - player.width / 2;
+            player.y = h - player.height - 20;
+
+            document.getElementById('score-val').innerText = '0';
             loop();
         }
 
         function gameOver() {
             gameRunning = false;
             cancelAnimationFrame(animationId);
-            
-            // Вибрация (Haptic Feedback Telegram)
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('error');
-            }
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
 
             const finalScore = Math.floor(score / 10);
             document.getElementById('final-score').innerText = finalScore;
+            document.getElementById('game-ui').style.display = 'none';
             
             saveScore(finalScore);
             updateLeaderboardUI();
@@ -520,40 +466,21 @@
             document.getElementById('game-over-screen').classList.remove('hidden');
         }
 
-        // --- Система Рекордов ---
-        // Используем LocalStorage для демо.
-        // В реальном приложении тут были бы запросы к Firebase/базе данных.
-
+        // --- Рекорды ---
         function saveScore(currentScore) {
             let scores = JSON.parse(localStorage.getItem('cityDodgeScores')) || [];
-            
-            // Добавляем текущий результат с рандомным именем (или именем из TG)
             const username = tg.initDataUnsafe?.user?.first_name || 'Вы';
-            
             scores.push({ name: username, score: currentScore });
-            
-            // Сортируем по убыванию
             scores.sort((a, b) => b.score - a.score);
-            
-            // Храним только топ 5
             scores = scores.slice(0, 5);
-            
             localStorage.setItem('cityDodgeScores', JSON.stringify(scores));
         }
 
         function updateLeaderboardUI() {
             const list = document.getElementById('leaderboard-list');
             list.innerHTML = '';
-            
-            // Генерируем фейковые данные, если пусто (для примера)
-            let scores = JSON.parse(localStorage.getItem('cityDodgeScores'));
-            if (!scores || scores.length === 0) {
-                scores = [
-                    { name: 'Alex', score: 1200 },
-                    { name: 'Maria', score: 950 },
-                    { name: 'Boss', score: 800 }
-                ];
-            }
+            let scores = JSON.parse(localStorage.getItem('cityDodgeScores')) || 
+                        [{ name: 'Alex', score: 1200 }, { name: 'Maria', score: 950 }];
 
             scores.forEach(s => {
                 const row = document.createElement('div');
@@ -562,9 +489,9 @@
                 list.appendChild(row);
             });
         }
-        
-        // Предзагрузка таблицы при старте
-        updateLeaderboardUI();
+
+        // Первый запуск
+        resize();
 
     </script>
 </body>
