@@ -188,7 +188,7 @@
             </div>
             <div class="badge">
                 <div class="badge-label">Скорость</div>
-                <div class="badge-value"><span id="speed-val">60</span> км/ч</div>
+                <div class="badge-value"><span id="speed-val">40</span> км/ч</div>
             </div>
         </div>
     </div>
@@ -255,7 +255,7 @@
         const state = {
             screen: 'menu', // menu, game, dialog, gameover
             score: 0,
-            speed: 60,
+            speed: 40, // Начальная скорость снижена
             laneOffset: 0,
             // Events
             eventStage: 0, // 0=start, 1=passed batyrevo
@@ -265,7 +265,7 @@
 
         const player = { x: 0, y: 0, w: 50, h: 90, targetX: 0, lean: 0 };
         let objects = []; 
-        const towns = ['Чебоксары', 'Цивильск', 'Кугеси', 'Вурнары', 'Канаш'];
+        const towns = ['Чебоксары', 'Цивильск', 'Кугеси', 'Вурнары', 'Канаш', 'Ядрин', 'Шумерля', 'Алатырь'];
 
         // --- ASSETS (COLORS) ---
         const C = {
@@ -449,7 +449,7 @@
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 4;
             ctx.setLineDash([30, 40]);
-            state.laneOffset = (state.laneOffset + state.speed * 0.2) % 70;
+            state.laneOffset = (state.laneOffset + state.speed * 0.15) % 70; // Замедлил анимацию разметки
             ctx.lineDashOffset = -state.laneOffset;
             
             const laneW = rW / 3;
@@ -465,8 +465,8 @@
             frame++;
             state.score++;
             
-            // Скорость
-            let rawSpeed = 60 + Math.floor(state.score / 15);
+            // Скорость (Более плавный разгон)
+            let rawSpeed = 40 + Math.floor(state.score / 25); // Стартуем с 40, растем медленнее
             state.speed = rawSpeed;
             document.getElementById('speed-val').innerText = rawSpeed;
             if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
@@ -500,9 +500,12 @@
             // Обновление объектов
             for(let i=objects.length-1; i>=0; i--) {
                 let o = objects[i];
-                o.y += 5 + state.speed * 0.15;
+                // Замедлил движение мира, чтобы успевать читать
+                o.y += 2 + state.speed * 0.1; 
+                
                 if(o.type === 'car') {
-                    o.y += o.speed;
+                    // Машина едет немного быстрее окружения
+                    o.y += o.speed + 2; 
                     // Хитбокс
                     if(rectIntersect(player.x+10, player.y+10, player.w-20, player.h-20, o.x, o.y, o.width, o.height)) {
                         gameOver();
@@ -561,8 +564,8 @@
                         ctx.fillStyle = '#14532d'; ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
                     } else if (o.type === 'sign') {
                         ctx.fillStyle = '#7f8c8d'; ctx.fillRect(o.x, o.y-40, 4, 40);
-                        roundRect(ctx, o.x-60, o.y-60, 60, 20, 4, '#2980b9');
-                        ctx.fillStyle = '#fff'; ctx.font = '9px Inter'; ctx.fillText(o.text, o.x-55, o.y-47);
+                        roundRect(ctx, o.x-70, o.y-60, 70, 20, 4, '#2980b9');
+                        ctx.fillStyle = '#fff'; ctx.font = '10px Mulish'; ctx.textAlign = 'center'; ctx.fillText(o.text, o.x-35, o.y-47);
                     } else if (o.type === 'car') {
                         drawCar(ctx, o);
                     } else if (o.type === 'player') {
@@ -593,7 +596,7 @@
                 text.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
                 btn.innerText = 'Извините (Штраф)';
                 btn.onclick = () => {
-                    state.score = Math.max(0, state.score - 400);
+                    state.score = Math.max(0, state.score - 400); // Сброс очков
                     state.eventStage = 1;
                     resumeGame();
                 };
