@@ -1,275 +1,511 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Чувашия — Общие метки</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>City Dodge Game</title>
+    <!-- Подключаем скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #333;
+            font-family: 'Roboto', sans-serif;
+            touch-action: none; /* Отключаем зум и скролл на мобильных */
+        }
 
-  <!-- Telegram WebApp SDK -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background: #444; /* Цвет асфальта */
+        }
 
-  <style>
-    body, html {
-      margin: 0; padding: 0; height: 100%; width: 100%;
-      overflow: hidden; background: #1a1a1a;
-    }
-    #map { height: 100%; width: 100%; }
-    .status-hint {
-      position: absolute; bottom: 6px; left: 6px;
-      background: rgba(0,0,0,0.7); color: #ffcc00;
-      padding: 4px 8px; border-radius: 4px; font-size: 10px;
-      font-family: monospace; z-index: 1000;
-    }
-    .control-panel {
-      position: absolute; top: 6px; right: 6px;
-      display: flex; flex-direction: column; gap: 8px; z-index: 1000;
-    }
-    .control-btn {
-      width: 36px; height: 36px;
-      border-radius: 50%; background: #444; color: white;
-      border: 1px solid #666; display: flex; align-items: center;
-      justify-content: center; cursor: pointer;
-    }
-    #sticker-modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7); z-index: 2000;
-      align-items: center; justify-content: center;
-    }
-    #sticker-modal.active { display: flex; }
-    .modal-content {
-      background: #2d2d2d; padding: 16px; border-radius: 12px;
-      text-align: center; color: white; max-width: 280px; width: 90%;
-    }
-    .sticker-option {
-      margin: 12px 0; padding: 8px 16px;
-      background: #444; border: 1px solid #555;
-      border-radius: 8px; cursor: pointer; color: white;
-    }
-    .sticker-option:hover { background: #555; }
-    .sticker-popup {
-      font-size: 12px; padding: 8px;
-      background: #2d2d2d; border-radius: 8px;
-      color: white;
-    }
-    .sticker-popup .name { font-weight: bold; margin-bottom: 4px; }
-    .sticker-popup .time { color: #aaa; font-size: 10px; margin-bottom: 8px; }
-    .sticker-popup .delete-btn {
-      background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-      border-radius: 4px; padding: 2px 6px; font-size: 10px;
-      cursor: pointer;
-    }
-  </style>
+        /* Интерфейс */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .score-board {
+            padding: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Экран меню и проигрыша */
+        #menu-screen, #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            pointer-events: auto;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            color: #ccc;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .btn {
+            background: #3498db; /* Telegram Blue */
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #2980b9;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Таблица лидеров */
+        .leaderboard {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard h3 {
+            color: #ffcc00;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .current-score-display {
+            font-size: 48px;
+            color: #fff;
+            margin: 10px 0 30px 0;
+            font-weight: bold;
+        }
+
+        /* Контролы для мобилок (визуальные подсказки) */
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+    </style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <div class="status-hint">Удерживайте точку для метки</div>
+    <canvas id="gameCanvas"></canvas>
 
-  <div class="control-panel">
-    <button class="control-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
-    <button class="control-btn" onclick="locateUser()">📍</button>
-  </div>
-
-  <div id="sticker-modal">
-    <div class="modal-content">
-      <div style="margin-bottom: 12px;">Выберите тип метки:</div>
-      <div class="sticker-option" onclick="addSticker('car')">🚓 Патруль ДПС</div>
-      <div class="sticker-option" onclick="addSticker('sign')">⚠️ ДТП</div>
+    <div id="ui-layer">
+        <div class="score-board">Счет: <span id="score-val">0</span></div>
     </div>
-  </div>
 
-  <script>
-    // === ЗАМЕНИТЕ ЭТОТ URL НА ВАШ РЕНДЕР URL ===
-    const BACKEND_URL = 'https://ваш-рендер-url.onrender.com';
+    <!-- Главное Меню -->
+    <div id="menu-screen">
+        <h1>City Dodge</h1>
+        <p>Уворачивайся от машин!<br>Двигай пальцем или стрелками.</p>
+        <button class="btn" onclick="startGame()">ИГРАТЬ</button>
+        <div class="controls-hint">Управление: Свайп / Стрелки</div>
+    </div>
 
-    const CHUVASHIA_BOUNDS = [[54.5, 45.8], [56.4, 48.6]];
-    const CHUVASHIA_POLYGON = [
-      [56.120, 46.500], [56.130, 46.550], [56.160, 46.600], [56.195, 46.720], [56.180, 46.850],
-      [56.150, 47.000], [56.145, 47.150], [56.160, 47.250], [56.130, 47.450], [56.140, 47.550],
-      [56.100, 47.700], [56.050, 47.850], [56.000, 48.000], [55.950, 48.100], [55.850, 48.250],
-      [55.750, 48.200], [55.650, 48.350], [55.550, 48.450], [55.450, 48.400], [55.350, 48.300],
-      [55.250, 48.250], [55.150, 48.150], [55.100, 48.100], [55.050, 48.050], [55.000, 48.000],
-      [54.950, 47.950], [54.900, 47.850], [54.850, 47.750], [54.800, 47.650], [54.750, 47.600],
-      [54.700, 47.550], [54.650, 47.450], [54.600, 47.300], [54.580, 47.200], [54.600, 47.100],
-      [54.650, 46.950], [54.700, 46.850], [54.750, 46.750], [54.800, 46.650], [54.820, 46.550],
-      [54.840, 46.450], [54.850, 46.350], [54.880, 46.250], [54.950, 46.200], [55.000, 46.180],
-      [55.050, 46.150], [55.150, 46.120], [55.250, 46.100], [55.350, 46.080], [55.450, 46.100],
-      [55.550, 46.120], [55.650, 46.150], [55.750, 46.180], [55.850, 46.200], [55.950, 46.250],
-      [56.000, 46.300], [56.050, 46.350], [56.080, 46.400], [56.120, 46.500]
-    ];
-
-    const map = L.map('map', {
-      center: [55.45, 47.25],
-      zoom: 9,
-      minZoom: 8,
-      maxZoom: 18,
-      maxBounds: L.latLngBounds(CHUVASHIA_BOUNDS)
-    });
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    let dark = true;
-    const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
-    const lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    darkLayer.addTo(map);
-
-    L.polygon([
-      [[90, -180], [90, 180], [-90, 180], [-90, -180]],
-      CHUVASHIA_POLYGON
-    ], {
-      fillColor: '#080808',
-      fillOpacity: 0.95,
-      color: 'transparent',
-      interactive: false
-    }).addTo(map);
-
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.disableVerticalSwipes();
-    }
-
-    let pressTimer, selectedLocation;
-    const modal = document.getElementById('sticker-modal');
-
-    map.on('mousedown touchstart', e => {
-      if (e.type === 'mousedown' && e.originalEvent.button !== 0) return;
-      if (e.type === 'touchstart' && e.originalEvent.touches.length !== 1) return;
-      selectedLocation = e.latlng;
-      pressTimer = setTimeout(() => {
-        if (tg?.initDataUnsafe?.user) {
-          modal.classList.add('active');
-        } else {
-          tg?.requestWriteAccess(() => location.reload());
-          alert("Разрешите доступ к имени.");
-        }
-      }, 600);
-    });
-    map.on('mouseup mousemove touchend dragstart zoomstart', () => clearTimeout(pressTimer));
-
-    function closeModal() {
-      modal.classList.remove('active');
-    }
-    modal.onclick = e => { if (e.target === modal) closeModal(); };
-
-    let stickerMarkers = [];
-
-    async function loadStickers() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/stickers`);
-        const stickers = await res.json();
-        stickerMarkers.forEach(m => map.removeLayer(m));
-        stickerMarkers = [];
-
-        stickers.forEach(st => {
-          if (Date.now() - st.timestamp > 15 * 60 * 1000) return;
-
-          const icon = L.divIcon({
-            html: st.type === 'car' ? '🚓' : '⚠️',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            className: ''
-          });
-          const marker = L.marker([st.lat, st.lng], { icon }).addTo(map);
-          stickerMarkers.push(marker);
-
-          const label = L.divIcon({
-            html: `<div style="background:black;color:white;padding:2px 4px;border-radius:3px;font-size:10px;">${st.name}</div>`,
-            iconSize: [120, 20],
-            iconAnchor: [60, 0],
-            className: ''
-          });
-          L.marker([st.lat, st.lng], { icon: label, interactive: false }).addTo(map);
-
-          const timeAgo = Math.floor((Date.now() - st.timestamp) / 60000);
-          const popupContent = `
-            <div class="sticker-popup">
-              <div class="name">${st.name}</div>
-              <div class="time">${timeAgo} мин назад</div>
-              ${st.userId === (tg?.initDataUnsafe?.user?.id || '') ? 
-                `<button class="delete-btn" onclick="deleteSticker('${st.id}')">Удалить</button>` : ''}
+    <!-- Экран Проигрыша -->
+    <div id="game-over-screen" class="hidden">
+        <h1>ОЙ! АВАРИЯ!</h1>
+        <div class="current-score-display" id="final-score">0</div>
+        
+        <div class="leaderboard">
+            <h3>Рекорды</h3>
+            <div id="leaderboard-list">
+                <!-- Сюда JS добавит рекорды -->
             </div>
-          `;
-          marker.bindPopup(popupContent);
+        </div>
+
+        <button class="btn" onclick="startGame()">ЗАНОВО</button>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        
+        // Настройка Canvas
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Состояние игры
+        let gameRunning = false;
+        let score = 0;
+        let speedMultiplier = 1;
+        let animationId;
+        
+        // Размеры
+        let w, h;
+        
+        // Игрок (Девушка)
+        const player = {
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 70, // Пропорции стоящего человека
+            speed: 5,
+            colorHair: '#1a1a1a', // Темные волосы
+            colorSkin: '#f1c27d',
+            colorTop: '#1a1a1a', // Черная водолазка
+            colorJeans: '#2c5a7f' // Синие джинсы
+        };
+
+        // Враги (Машины)
+        let cars = [];
+        const carColors = ['#e74c3c', '#f1c40f', '#9b59b6', '#2ecc71', '#ecf0f1'];
+
+        // Дорожная разметка
+        let laneOffset = 0;
+
+        function resize() {
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = w;
+            canvas.height = h;
+            
+            // Ставим игрока в центр снизу
+            player.x = w / 2 - player.width / 2;
+            player.y = h - player.height - 20;
+        }
+        
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Управление ---
+        let touchStartX = 0;
+        let playerTargetX = player.x; // Для плавного движения
+
+        // Клавиатура (Десктоп)
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        // Тач (Мобилки)
+        canvas.addEventListener('touchstart', e => {
+            touchStartX = e.touches[0].clientX;
+            playerTargetX = player.x;
         });
-      } catch (err) {
-        console.error("Ошибка загрузки меток:", err);
-      }
-    }
 
-    async function deleteSticker(id) {
-      try {
-        await fetch(`${BACKEND_URL}/stickers/${id}`, { method: 'DELETE' });
-        loadStickers();
-      } catch (err) {
-        alert("Ошибка удаления метки.");
-      }
-    }
-
-    async function addSticker(type) {
-      closeModal();
-      if (!selectedLocation || !tg?.initDataUnsafe?.user) return;
-
-      const user = tg.initDataUnsafe.user;
-      const name = (user.first_name || "Друг") + (user.username ? ` (@${user.username})` : "");
-      const userId = user.id;
-
-      try {
-        const res = await fetch(`${BACKEND_URL}/stickers/check-limit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId })
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault(); // Блокируем скролл
+            const touchX = e.touches[0].clientX;
+            const diff = touchX - touchStartX;
+            
+            player.x += diff; // Прямое управление позицией
+            touchStartX = touchX;
+            
+            // Ограничения экрана
+            if (player.x < 0) player.x = 0;
+            if (player.x > w - player.width) player.x = w - player.width;
         });
-        const data = await res.json();
-        if (data.blocked) {
-          alert(`Подождите ещё ${data.remainingMinutes} мин.`);
-          return;
+
+        // --- Логика Игры ---
+
+        function spawnCar() {
+            const carWidth = 50;
+            const carHeight = 90;
+            // Случайная позиция по X
+            const xPos = Math.random() * (w - carWidth);
+            
+            cars.push({
+                x: xPos,
+                y: -100, // Над экраном
+                width: carWidth,
+                height: carHeight,
+                speed: (3 + Math.random() * 3) * speedMultiplier,
+                color: carColors[Math.floor(Math.random() * carColors.length)]
+            });
         }
 
-        await fetch(`${BACKEND_URL}/stickers`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type,
-            lat: selectedLocation.lat,
-            lng: selectedLocation.lng,
-            name,
-            userId,
-            timestamp: Date.now()
-          })
-        });
-        loadStickers();
-      } catch (err) {
-        alert("Ошибка отправки метки.");
-        console.error(err);
-      }
-    }
+        function update() {
+            if (!gameRunning) return;
 
-    function toggleTheme() {
-      dark = !dark;
-      if (dark) {
-        map.removeLayer(lightLayer); map.addLayer(darkLayer);
-        document.getElementById('themeBtn').textContent = '🌙';
-      } else {
-        map.removeLayer(darkLayer); map.addLayer(lightLayer);
-        document.getElementById('themeBtn').textContent = '☀️';
-      }
-    }
+            // Усложнение
+            score++;
+            document.getElementById('score-val').innerText = Math.floor(score / 10);
+            
+            if (score % 500 === 0) speedMultiplier += 0.1;
 
-    function locateUser() {
-      map.locate({ setView: true, maxZoom: 14 });
-    }
-    map.on('locationfound', e => {
-      L.marker(e.latlng).addTo(map).bindPopup("Вы здесь").openPopup();
-    });
+            // Движение клавиатурой
+            if (keys['ArrowLeft'] || keys['KeyA']) player.x -= 7;
+            if (keys['ArrowRight'] || keys['KeyD']) player.x += 7;
 
-    loadStickers();
-    setInterval(loadStickers, 30000);
-  </script>
+            // Границы для клавиатуры
+            if (player.x < 0) player.x = 0;
+            if (player.x > w - player.width) player.x = w - player.width;
+
+            // Спавн машин
+            if (Math.random() < 0.02 * speedMultiplier) {
+                spawnCar();
+            }
+
+            // Обновление машин
+            for (let i = 0; i < cars.length; i++) {
+                let car = cars[i];
+                car.y += car.speed;
+
+                // Проверка столкновения (AABB)
+                if (
+                    player.x < car.x + car.width &&
+                    player.x + player.width > car.x &&
+                    player.y < car.y + car.height &&
+                    player.y + player.height > car.y
+                ) {
+                    gameOver();
+                    return;
+                }
+
+                // Удаление если уехала
+                if (car.y > h) {
+                    cars.splice(i, 1);
+                    i--;
+                }
+            }
+
+            // Анимация дороги
+            laneOffset += 5 * speedMultiplier;
+            if (laneOffset > 40) laneOffset = 0;
+        }
+
+        function drawPlayer(x, y, width, height) {
+            // Рисуем девушку кодом (без картинок для надежности)
+            
+            // 1. Ноги (Джинсы)
+            ctx.fillStyle = player.colorJeans;
+            // Левая нога
+            ctx.fillRect(x + width * 0.1, y + height * 0.45, width * 0.35, height * 0.55);
+            // Правая нога
+            ctx.fillRect(x + width * 0.55, y + height * 0.45, width * 0.35, height * 0.55);
+            
+            // 2. Тело (Черная водолазка)
+            ctx.fillStyle = player.colorTop;
+            // Корпус
+            ctx.beginPath();
+            ctx.roundRect(x + width * 0.05, y + height * 0.15, width * 0.9, height * 0.35, 5);
+            ctx.fill();
+            
+            // Рукава
+            ctx.fillRect(x - 5, y + height * 0.15, 8, height * 0.35); // Левый
+            ctx.fillRect(x + width - 3, y + height * 0.15, 8, height * 0.35); // Правый
+
+            // 3. Голова (Кожа)
+            ctx.fillStyle = player.colorSkin;
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.1, width * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 4. Волосы (Длинные темные)
+            ctx.fillStyle = player.colorHair;
+            ctx.beginPath();
+            // Макушка
+            ctx.arc(x + width/2, y + height * 0.08, width * 0.4, Math.PI, Math.PI * 2);
+            // Пряди слева
+            ctx.lineTo(x, y + height * 0.5); 
+            // Пряди справа
+            ctx.lineTo(x + width, y + height * 0.5);
+            ctx.fill();
+        }
+
+        function drawCar(c) {
+            // Тень
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(c.x + 10, c.y + 10, c.width, c.height);
+
+            // Кузов
+            ctx.fillStyle = c.color;
+            ctx.beginPath();
+            ctx.roundRect(c.x, c.y, c.width, c.height, 8);
+            ctx.fill();
+
+            // Стекло
+            ctx.fillStyle = '#333';
+            ctx.fillRect(c.x + 5, c.y + 10, c.width - 10, 15); // Лобовое
+            ctx.fillRect(c.x + 5, c.y + c.height - 20, c.width - 10, 10); // Заднее
+
+            // Фары
+            ctx.fillStyle = '#fff'; // Передние
+            ctx.fillRect(c.x + 2, c.y + c.height - 5, 10, 5);
+            ctx.fillRect(c.x + c.width - 12, c.y + c.height - 5, 10, 5);
+        }
+
+        function draw() {
+            // Очистка
+            ctx.clearRect(0, 0, w, h);
+
+            // Дорога (Фон)
+            ctx.fillStyle = '#444';
+            ctx.fillRect(0, 0, w, h);
+
+            // Разметка
+            ctx.strokeStyle = '#fff';
+            ctx.setLineDash([20, 20]);
+            ctx.lineDashOffset = -laneOffset;
+            ctx.lineWidth = 4;
+            
+            // Центральная линия
+            ctx.beginPath();
+            ctx.moveTo(w/2, -20);
+            ctx.lineTo(w/2, h + 20);
+            ctx.stroke();
+
+            // Бордюры
+            ctx.fillStyle = '#888';
+            ctx.fillRect(0, 0, 10, h);
+            ctx.fillRect(w-10, 0, 10, h);
+
+            // Игрок
+            drawPlayer(player.x, player.y, player.width, player.height);
+
+            // Машины
+            cars.forEach(drawCar);
+        }
+
+        function loop() {
+            if (gameRunning) {
+                update();
+                draw();
+                animationId = requestAnimationFrame(loop);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            
+            // Сброс параметров
+            gameRunning = true;
+            score = 0;
+            speedMultiplier = 1;
+            cars = [];
+            player.x = w / 2 - player.width / 2;
+            document.getElementById('score-val').innerText = '0';
+            
+            loop();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            // Вибрация (Haptic Feedback Telegram)
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+
+            const finalScore = Math.floor(score / 10);
+            document.getElementById('final-score').innerText = finalScore;
+            
+            saveScore(finalScore);
+            updateLeaderboardUI();
+            
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        // --- Система Рекордов ---
+        // Используем LocalStorage для демо.
+        // В реальном приложении тут были бы запросы к Firebase/базе данных.
+
+        function saveScore(currentScore) {
+            let scores = JSON.parse(localStorage.getItem('cityDodgeScores')) || [];
+            
+            // Добавляем текущий результат с рандомным именем (или именем из TG)
+            const username = tg.initDataUnsafe?.user?.first_name || 'Вы';
+            
+            scores.push({ name: username, score: currentScore });
+            
+            // Сортируем по убыванию
+            scores.sort((a, b) => b.score - a.score);
+            
+            // Храним только топ 5
+            scores = scores.slice(0, 5);
+            
+            localStorage.setItem('cityDodgeScores', JSON.stringify(scores));
+        }
+
+        function updateLeaderboardUI() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+            
+            // Генерируем фейковые данные, если пусто (для примера)
+            let scores = JSON.parse(localStorage.getItem('cityDodgeScores'));
+            if (!scores || scores.length === 0) {
+                scores = [
+                    { name: 'Alex', score: 1200 },
+                    { name: 'Maria', score: 950 },
+                    { name: 'Boss', score: 800 }
+                ];
+            }
+
+            scores.forEach(s => {
+                const row = document.createElement('div');
+                row.className = 'score-row';
+                row.innerHTML = `<span>${s.name}</span><span>${s.score}</span>`;
+                list.appendChild(row);
+            });
+        }
+        
+        // Предзагрузка таблицы при старте
+        updateLeaderboardUI();
+
+    </script>
 </body>
 </html>
+
 
