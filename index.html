@@ -9,10 +9,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;700;900&display=swap');
 
         :root {
-            --bg-warm: #fdf6ec; /* Бежевый как на фото */
+            --bg-warm: #fdf6ec; 
             --primary: #3498db;
             --text-main: #2c3e50;
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.98);
         }
 
         body {
@@ -86,22 +86,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 50px;
+            justify-content: flex-end; /* Cards at bottom */
+            padding-bottom: 20px;
             pointer-events: auto;
-            background: rgba(0,0,0,0.3); /* Легкое затемнение */
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.4); 
+            backdrop-filter: blur(8px);
             transition: opacity 0.3s;
             z-index: 20;
+            overflow-y: auto; /* Allow scroll on small screens if content overflows */
         }
 
         .screen.hidden { opacity: 0; pointer-events: none; }
 
-        /* MENU SPECIFIC: Transparent background to see Oksana */
+        /* MENU SPECIFIC */
         #menu-screen {
             background: transparent; 
             backdrop-filter: none;
             justify-content: flex-end;
+            padding-bottom: 40px;
         }
 
         .card {
@@ -109,11 +111,14 @@
             width: 85%;
             max-width: 380px;
             border-radius: 30px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             text-align: center;
             animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
         }
 
         @keyframes slideUp {
@@ -122,16 +127,16 @@
         }
 
         h1 {
-            margin: 0 0 10px 0;
-            font-size: 28px;
+            margin: 0 0 5px 0;
+            font-size: 24px;
             font-weight: 900;
             color: #2c3e50;
         }
 
         p {
-            margin: 0 0 25px 0;
-            font-size: 16px;
-            line-height: 1.5;
+            margin: 0 0 20px 0;
+            font-size: 14px;
+            line-height: 1.4;
             color: #7f8c8d;
         }
 
@@ -140,15 +145,59 @@
             color: white;
             border: none;
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             border-radius: 18px;
             font-size: 18px;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
             transition: transform 0.1s;
+            margin-top: auto;
         }
         .btn:active { transform: scale(0.96); }
+
+        /* LEADERBOARD STYLES */
+        .leaderboard-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .lb-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #95a5a6;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .lb-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            font-weight: 700;
+            color: #34495e;
+        }
+        .lb-item:last-child { border-bottom: none; }
+        .lb-rank { 
+            width: 24px; 
+            display: inline-block; 
+            color: #bdc3c7; 
+        }
+        .lb-item.top-1 .lb-rank { color: #f1c40f; }
+        .lb-item.top-2 .lb-rank { color: #95a5a6; }
+        .lb-item.top-3 .lb-rank { color: #cd7f32; }
+        
+        .lb-score { color: #2c3e50; font-weight: 900; }
 
         /* DIALOG */
         .dialog-content {
@@ -198,6 +247,15 @@
         <div class="card">
             <h1>По Чувашии</h1>
             <p>Я Оксана. Еду домой. Помоги мне не попасть в аварию и не нарваться на штрафы!</p>
+            
+            <!-- Таблица рекордов в меню -->
+            <div class="leaderboard-section">
+                <div class="lb-title">🏆 Топ водителей</div>
+                <div id="menu-lb-list">
+                    <div style="text-align:center; color:#ccc; padding:10px;">Загрузка...</div>
+                </div>
+            </div>
+
             <button class="btn" id="btn-start">Поехали!</button>
         </div>
     </div>
@@ -220,13 +278,105 @@
             <h1 style="color: #c0392b;">ДТП!</h1>
             <p>Приехали... Машину помяли.</p>
             <div style="font-size: 42px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
+            
             <button class="btn" id="btn-restart">Заново</button>
         </div>
     </div>
 
-    <script>
-    (function() {
-        // --- TG SAFE INIT ---
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- FIREBASE SETUP ---
+        let db;
+        let auth;
+        let appId = 'city-dodge-app'; 
+        let userId = 'anon';
+
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                if (typeof __app_id !== 'undefined') appId = __app_id;
+
+                signInAnonymously(auth).then((userCredential) => {
+                    userId = userCredential.user.uid;
+                    // Start listening to leaderboard immediately
+                    initLeaderboard();
+                }).catch((error) => {
+                    console.error("Auth failed", error);
+                });
+            }
+        } catch (e) {
+            console.error("Firebase init error", e);
+            document.getElementById('menu-lb-list').innerHTML = '<div style="text-align:center; color:#ccc;">Рекорды недоступны</div>';
+        }
+
+        // --- LEADERBOARD LOGIC ---
+        function initLeaderboard() {
+            if (!db) return;
+            const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'citydodge_scores');
+            
+            // Rule 2: No orderBy in query. Fetch all and sort client-side.
+            onSnapshot(scoresRef, (snapshot) => {
+                const scores = [];
+                snapshot.forEach((doc) => {
+                    scores.push(doc.data());
+                });
+
+                // Sort descending
+                scores.sort((a, b) => b.score - a.score);
+                
+                // Take top 5
+                const top5 = scores.slice(0, 5);
+                renderLeaderboard(top5);
+            });
+        }
+
+        function renderLeaderboard(data) {
+            const html = data.map((entry, index) => {
+                const rankClass = index < 3 ? `top-${index+1}` : '';
+                const icon = index === 0 ? '🥇' : (index === 1 ? '🥈' : (index === 2 ? '🥉' : `#${index+1}`));
+                // Escape name to prevent XSS
+                const safeName = (entry.name || 'Аноним').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return `
+                    <div class="lb-item ${rankClass}">
+                        <div><span class="lb-rank">${icon}</span> ${safeName}</div>
+                        <div class="lb-score">${entry.score}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            const container = document.getElementById('menu-lb-list');
+            if (container) container.innerHTML = html || '<div style="text-align:center; color:#ccc; padding:10px;">Пока пусто. Стань первым!</div>';
+        }
+
+        async function saveScoreToDb(score) {
+            if (!db || !auth.currentUser) return;
+            
+            // Get user name from TG or use default
+            let userName = 'Гость';
+            if (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) {
+                userName = window.Telegram.WebApp.initDataUnsafe.user.first_name;
+            }
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'citydodge_scores'), {
+                    name: userName,
+                    score: score,
+                    uid: userId,
+                    date: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error saving score", e);
+            }
+        }
+
+        // --- GAME ENGINE ---
+        
         try { if(window.Telegram?.WebApp) window.Telegram.WebApp.expand(); } catch(e){}
 
         const canvas = document.getElementById('gameCanvas');
@@ -253,29 +403,20 @@
 
         // --- GAME STATE ---
         const state = {
-            screen: 'menu', // menu, game, dialog, gameover
+            screen: 'menu', 
             score: 0,
-            speed: 40, // Начальная скорость снижена
+            speed: 40, 
             laneOffset: 0,
-            // Events
-            eventStage: 0, // 0=start, 1=passed batyrevo
+            eventStage: 0, 
             lastEventScore: 0,
             cooldown: 600
         };
 
+        const cfg = { roadWidth: 0.9, laneCount: 3 };
         const player = { x: 0, y: 0, w: 50, h: 90, targetX: 0, lean: 0 };
         let objects = []; 
         const towns = ['Чебоксары', 'Цивильск', 'Кугеси', 'Вурнары', 'Канаш', 'Ядрин', 'Шумерля', 'Алатырь'];
-
-        // --- ASSETS (COLORS) ---
-        const C = {
-            hair: '#1a1a1a', 
-            skin: '#ffdbac', 
-            top: '#151515',  // Черная водолазка
-            jeans: '#2c5a7f', // Классический джинс
-            grass: '#2ecc71',
-            road: '#34495e'
-        };
+        const C = { hair: '#1a1a1a', skin: '#ffdbac', top: '#151515', jeans: '#2c5a7f', grass: '#2ecc71', road: '#34495e' };
 
         function resize() {
             w = window.innerWidth;
@@ -284,23 +425,18 @@
             canvas.height = h;
             if(state.screen === 'menu') {
                 player.x = w/2 - player.w/2;
-                player.y = h - player.h - 220; // Чуть выше для меню
+                player.y = h - player.h - 300; // Adjusted for leaderboard height
             } else {
                 player.y = h - player.h - 50;
             }
         }
         window.addEventListener('resize', resize);
 
-        // --- DRAWING ---
-
-        // Красивая Оксана (Canvas Art)
+        // --- RENDER ---
         function drawOksana(ctx, x, y, w, h, isMenu) {
             const t = frame * 0.05;
-            // Дыхание/поза
             const bounce = isMenu ? Math.sin(t)*2 : Math.sin(frame*0.2)*1;
             y += bounce;
-
-            // Наклон (в игре)
             const lean = isMenu ? 0 : player.lean * 0.1;
 
             ctx.save();
@@ -308,123 +444,76 @@
             ctx.rotate(lean);
             ctx.translate(-(x + w/2), -(y + h));
 
-            // Тень
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.beginPath(); ctx.ellipse(x+w/2, y+h-3, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
 
-            // 1. Ноги (Джинсы - Mom Fit, чуть свободные)
+            // Jeans
             ctx.fillStyle = C.jeans;
-            // Левая
             ctx.beginPath(); 
-            ctx.moveTo(x + w*0.15, y + h*0.5);
-            ctx.lineTo(x + w*0.48, y + h*0.5); 
-            ctx.lineTo(x + w*0.4, y + h*0.92); // Сужение к низу
-            ctx.lineTo(x + w*0.18, y + h*0.92);
-            ctx.fill();
-            // Правая
+            ctx.moveTo(x + w*0.15, y + h*0.5); ctx.lineTo(x + w*0.48, y + h*0.5); ctx.lineTo(x + w*0.4, y + h*0.92); ctx.lineTo(x + w*0.18, y + h*0.92); ctx.fill();
             ctx.beginPath(); 
-            ctx.moveTo(x + w*0.52, y + h*0.5);
-            ctx.lineTo(x + w*0.85, y + h*0.5); 
-            ctx.lineTo(x + w*0.82, y + h*0.92); 
-            ctx.lineTo(x + w*0.6, y + h*0.92);
-            ctx.fill();
-            // Верх джинс
+            ctx.moveTo(x + w*0.52, y + h*0.5); ctx.lineTo(x + w*0.85, y + h*0.5); ctx.lineTo(x + w*0.82, y + h*0.92); ctx.lineTo(x + w*0.6, y + h*0.92); ctx.fill();
             roundRect(ctx, x+w*0.15, y+h*0.45, w*0.7, h*0.12, 5, C.jeans);
             
-            // Ремень/Пуговица
-            ctx.fillStyle = '#bdc3c7';
-            ctx.beginPath(); ctx.arc(x+w*0.5, y+h*0.47, 3, 0, Math.PI*2); ctx.fill();
-
-            // 2. Ботинки (Челси, черные массивные)
+            // Boots
             ctx.fillStyle = '#111';
             roundRect(ctx, x+w*0.15, y+h*0.9, w*0.28, h*0.1, 4, '#111');
             roundRect(ctx, x+w*0.57, y+h*0.9, w*0.28, h*0.1, 4, '#111');
 
-            // 3. Торс (Черная водолазка)
+            // Torso
             roundRect(ctx, x+w*0.18, y+h*0.18, w*0.64, h*0.3, 8, C.top);
-            // Горло
             roundRect(ctx, x+w*0.35, y+h*0.14, w*0.3, h*0.06, 3, C.top);
 
-            // Грудь (легкий объем цветом)
-            ctx.fillStyle = '#222';
-            ctx.beginPath(); ctx.arc(x+w*0.35, y+h*0.28, w*0.12, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x+w*0.65, y+h*0.28, w*0.12, 0, Math.PI*2); ctx.fill();
-
-            // 4. Руки (Вдоль тела)
+            // Arms
             const armSway = isMenu ? Math.sin(t)*2 : -lean * 8;
-            roundRect(ctx, x+w*0.05, y+h*0.19+armSway, w*0.14, h*0.28, 5, C.top); // Рукав левый
-            roundRect(ctx, x+w*0.81, y+h*0.19-armSway, w*0.14, h*0.28, 5, C.top); // Рукав правый
-            
-            // Кисти
+            roundRect(ctx, x+w*0.05, y+h*0.19+armSway, w*0.14, h*0.28, 5, C.top); 
+            roundRect(ctx, x+w*0.81, y+h*0.19-armSway, w*0.14, h*0.28, 5, C.top); 
             ctx.fillStyle = C.skin;
             ctx.beginPath(); ctx.arc(x+w*0.12, y+h*0.48+armSway, w*0.06, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(x+w*0.88, y+h*0.48-armSway, w*0.06, 0, Math.PI*2); ctx.fill();
 
-            // 5. Голова
+            // Head
             ctx.fillStyle = C.skin;
             ctx.beginPath(); ctx.ellipse(x+w/2, y+h*0.12, w*0.22, h*0.13, 0, 0, Math.PI*2); ctx.fill();
 
-            // 6. Волосы (Длинные, темные, волна)
+            // Hair
             ctx.fillStyle = C.hair;
             ctx.beginPath();
-            // Макушка
             ctx.moveTo(x+w*0.1, y+h*0.1);
             ctx.quadraticCurveTo(x+w*0.5, y-h*0.08, x+w*0.9, y+h*0.1);
-            // Правая прядь (длинная)
             ctx.bezierCurveTo(x+w*1.1, y+h*0.3, x+w*0.9, y+h*0.6, x+w*0.95, y+h*0.75);
             ctx.lineTo(x+w*0.75, y+h*0.75);
             ctx.quadraticCurveTo(x+w*0.7, y+h*0.4, x+w*0.72, y+h*0.1);
-            // Левая прядь (за ухо/плечо)
             ctx.lineTo(x+w*0.28, y+h*0.1);
             ctx.quadraticCurveTo(x+w*0.25, y+h*0.4, x+w*0.2, y+h*0.75);
             ctx.lineTo(x, y+h*0.75);
             ctx.bezierCurveTo(x+w*0.1, y+h*0.6, x-w*0.1, y+h*0.3, x+w*0.1, y+h*0.1);
             ctx.fill();
 
-            // Лицо (Только в меню рисуем детали)
             if (isMenu) {
-                // Глаза
                 ctx.fillStyle = '#fff';
                 ctx.beginPath(); ctx.ellipse(x+w*0.4, y+h*0.11, w*0.06, h*0.02, 0, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.ellipse(x+w*0.6, y+h*0.11, w*0.06, h*0.02, 0, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#3e2723'; // Карие
+                ctx.fillStyle = '#3e2723'; 
                 ctx.beginPath(); ctx.arc(x+w*0.4, y+h*0.11, w*0.025, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(x+w*0.6, y+h*0.11, w*0.025, 0, Math.PI*2); ctx.fill();
-                
-                // Губы
                 ctx.fillStyle = '#d87093';
                 ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.16, w*0.04, h*0.012, 0, 0, Math.PI*2); ctx.fill();
-                
-                // Родинка (как на фото)
-                ctx.fillStyle = '#5d4037';
-                ctx.beginPath(); ctx.arc(x+w*0.62, y+h*0.13, 1.5, 0, Math.PI*2); ctx.fill();
             }
-
             ctx.restore();
         }
 
         function drawCar(ctx, o) {
             const {x, y, width, height, color, brand} = o;
-            
-            // Тень
             roundRect(ctx, x+8, y+8, width, height, 10, 'rgba(0,0,0,0.3)');
-            // Кузов
             roundRect(ctx, x, y, width, height, 10, color);
-            
-            // Стекла
             ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(x+5, y+18, width-10, 14); // Перед
-            ctx.fillRect(x+5, y+height-26, width-10, 10); // Зад
-            
-            // Крыша
-            ctx.fillStyle = color;
-            ctx.globalAlpha = 0.9;
-            ctx.fillRect(x+7, y+34, width-14, height-60);
-            ctx.globalAlpha = 1.0;
+            ctx.fillRect(x+5, y+18, width-10, 14); 
+            ctx.fillRect(x+5, y+height-26, width-10, 10); 
+            ctx.fillStyle = color; ctx.globalAlpha = 0.9;
+            ctx.fillRect(x+7, y+34, width-14, height-60); ctx.globalAlpha = 1.0;
 
-            // Логотип (Крупно)
-            const cx = x + width/2;
-            const cy = y + height - 16;
+            const cx = x + width/2; const cy = y + height - 16;
             if (brand === 'merc') {
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
                 ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.stroke();
@@ -438,20 +527,14 @@
         }
 
         function drawRoad() {
-            // Трава
             ctx.fillStyle = '#27ae60'; ctx.fillRect(0,0,w,h);
-            
-            // Дорога
             const rX = w * 0.05; const rW = w * 0.9;
             ctx.fillStyle = '#34495e'; ctx.fillRect(rX, 0, rW, h);
-            
-            // Разметка
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 4;
             ctx.setLineDash([30, 40]);
-            state.laneOffset = (state.laneOffset + state.speed * 0.15) % 70; // Замедлил анимацию разметки
+            state.laneOffset = (state.laneOffset + state.speed * 0.15) % 70;
             ctx.lineDashOffset = -state.laneOffset;
-            
             const laneW = rW / 3;
             ctx.beginPath();
             ctx.moveTo(rX + laneW, -50); ctx.lineTo(rX + laneW, h+50);
@@ -460,53 +543,41 @@
             ctx.setLineDash([]);
         }
 
-        // --- LOGIC ---
+        // --- UPDATE ---
         function update() {
             frame++;
             state.score++;
             
-            // Скорость (Более плавный разгон)
-            let rawSpeed = 40 + Math.floor(state.score / 25); // Стартуем с 40, растем медленнее
+            let rawSpeed = 40 + Math.floor(state.score / 25);
             state.speed = rawSpeed;
             document.getElementById('speed-val').innerText = rawSpeed;
             if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
 
-            // --- СЮЖЕТНЫЕ ТРИГГЕРЫ ---
             if (rawSpeed >= 100) {
                 const delta = state.score - state.lastEventScore;
-                
-                // 1. БАТЫРЕВО
                 if (state.eventStage === 0) {
                     pauseGame('batyrevo');
                     return;
                 }
-                // 2. ЯДРИН (через время)
                 else if (state.eventStage === 1 && delta > state.cooldown) {
                     pauseGame('yadrin');
                     return;
                 }
             }
 
-            // Игрок
             const diff = player.targetX - player.x;
             player.x += diff * 0.15;
             player.lean = -diff * 0.1;
 
-            // Спавн
             if (Math.random() < 0.02) spawn('car');
             if (Math.random() < 0.05) spawn('tree');
             if (Math.random() < 0.01) spawn('sign');
 
-            // Обновление объектов
             for(let i=objects.length-1; i>=0; i--) {
                 let o = objects[i];
-                // Замедлил движение мира, чтобы успевать читать
                 o.y += 2 + state.speed * 0.1; 
-                
                 if(o.type === 'car') {
-                    // Машина едет немного быстрее окружения
                     o.y += o.speed + 2; 
-                    // Хитбокс
                     if(rectIntersect(player.x+10, player.y+10, player.w-20, player.h-20, o.x, o.y, o.width, o.height)) {
                         gameOver();
                     }
@@ -521,13 +592,10 @@
                 const lane = Math.floor(Math.random()*3);
                 const laneW = rW/3;
                 const x = rX + lane*laneW + (laneW-50)/2;
-                // Check overlap
                 for(let o of objects) if(o.type==='car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x)<50) return;
-                
                 const brands = ['merc', 'bmw', 'lexus'];
                 const b = brands[Math.floor(Math.random()*3)];
-                let c = '#bdc3c7';
-                if(b==='bmw') c='#1e293b'; if(b==='lexus') c='#7f8c8d';
+                let c = '#bdc3c7'; if(b==='bmw') c='#1e293b'; if(b==='lexus') c='#7f8c8d';
                 objects.push({type:'car', x:x, y:-150, width:50, height:90, speed:Math.random()*2, color:c, brand:b});
             } else if (type === 'tree') {
                 const side = Math.random()<0.5;
@@ -543,10 +611,9 @@
             return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1;
         }
 
-        // --- GAME LOOP ---
+        // --- LOOP ---
         function loop() {
             if (state.screen === 'menu') {
-                // Фон меню (Бежевый)
                 ctx.fillStyle = '#fdf6ec'; ctx.fillRect(0,0,w,h);
                 frame++;
                 const bigW = Math.min(w * 0.6, 220);
@@ -554,11 +621,8 @@
             } 
             else if (state.screen === 'game' || state.screen === 'dialog') {
                 drawRoad();
-                
-                // Сортировка для глубины
                 const all = [...objects, {type:'player', y:player.y}];
                 all.sort((a,b)=>a.y - b.y);
-
                 all.forEach(o => {
                     if(o.type === 'tree') {
                         ctx.fillStyle = '#14532d'; ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
@@ -572,40 +636,34 @@
                         drawOksana(ctx, player.x, player.y, player.w, player.h, false);
                     }
                 });
-
                 if(state.screen === 'game') update();
             }
-            
             animationId = requestAnimationFrame(loop);
         }
 
-        // --- STORY SYSTEM ---
+        // --- STORY ---
         function pauseGame(eventId) {
             state.screen = 'dialog';
             state.lastEventScore = state.score;
             document.getElementById('dialog-screen').classList.remove('hidden');
-            
-            const icon = document.getElementById('d-icon');
-            const title = document.getElementById('d-title');
-            const text = document.getElementById('d-text');
-            const btn = document.getElementById('d-btn');
+            const dTitle = document.getElementById('d-title');
+            const dText = document.getElementById('d-text');
+            const dBtn = document.getElementById('d-btn');
 
             if (eventId === 'batyrevo') {
-                icon.innerText = '👮‍♂️';
-                title.innerText = 'ДПС БАТЫРЕВО';
-                text.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
-                btn.innerText = 'Извините (Штраф)';
-                btn.onclick = () => {
-                    state.score = Math.max(0, state.score - 400); // Сброс очков
+                dTitle.innerText = 'ДПС БАТЫРЕВО';
+                dText.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
+                dBtn.innerText = 'Извините (Штраф)';
+                dBtn.onclick = () => {
+                    state.score = Math.max(0, state.score - 400);
                     state.eventStage = 1;
                     resumeGame();
                 };
             } else if (eventId === 'yadrin') {
-                icon.innerText = '👮‍♂️';
-                title.innerText = 'ДПС ЯДРИН';
-                text.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
-                btn.innerText = 'Маттур! (Спасибо)';
-                btn.onclick = () => {
+                dTitle.innerText = 'ДПС ЯДРИН';
+                dText.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
+                dBtn.innerText = 'Маттур! (Спасибо)';
+                dBtn.onclick = () => {
                     state.eventStage = 2;
                     resumeGame();
                 };
@@ -615,7 +673,7 @@
         function resumeGame() {
             document.getElementById('dialog-screen').classList.add('hidden');
             state.screen = 'game';
-            objects.forEach(o => { if(o.type==='car') o.y -= 400; }); // Push cars
+            objects.forEach(o => { if(o.type==='car') o.y -= 400; });
         }
 
         function startGame() {
@@ -624,11 +682,9 @@
             state.lastEventScore = 0;
             objects = [];
             state.screen = 'game';
-            
             player.targetX = w/2 - player.w/2;
             player.x = player.targetX;
             player.y = h - player.h - 50;
-
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
             document.getElementById('hud').style.opacity = 1;
@@ -639,9 +695,11 @@
             document.getElementById('final-score').innerText = Math.floor(state.score/10);
             document.getElementById('game-over-screen').classList.remove('hidden');
             document.getElementById('hud').style.opacity = 0;
+            // Save score
+            saveScoreToDb(Math.floor(state.score/10));
         }
 
-        // --- CONTROLS ---
+        // --- INPUT ---
         document.getElementById('btn-start').onclick = startGame;
         document.getElementById('btn-restart').onclick = startGame;
 
@@ -654,7 +712,6 @@
             if(player.targetX > rX+rW-player.w) player.targetX = rX+rW-player.w;
         });
 
-        // Start
         resize();
         loop();
 
