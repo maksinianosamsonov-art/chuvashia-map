@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -6,24 +6,27 @@
     <title>City Dodge: Deluxe</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
 
         :root {
-            --primary: #3498db;
-            --accent: #f1c40f;
-            --text-dark: #1e293b;
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            --primary: #3b82f6;
+            --accent: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #1e293b;
+            background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
-            color: white;
+            color: var(--text-main);
         }
 
         #gameCanvas {
@@ -32,7 +35,7 @@
             height: 100%;
         }
 
-        /* --- UI OVERLAY --- */
+        /* --- UI LAYER --- */
         #ui-layer {
             position: absolute;
             top: 0;
@@ -43,7 +46,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
+            padding: 16px;
             box-sizing: border-box;
             z-index: 10;
         }
@@ -56,146 +59,155 @@
             transition: opacity 0.3s;
         }
 
-        .stat-pill {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        .stat-badge {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             padding: 8px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* SCREENS & CARDS */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Cards at bottom for reachability */
+            padding-bottom: 30px;
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: opacity 0.4s ease;
+            z-index: 20;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .card {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 400px;
+            border-radius: 32px;
+            padding: 32px 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transform: translateY(0);
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Shine effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card h1 {
+            margin: 0 0 12px 0;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card p {
+            margin: 0 0 32px 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
             border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            margin-bottom: 2px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-value.speed { color: var(--accent); }
-
-        /* SCREENS */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 40px;
-            pointer-events: auto;
-            transition: opacity 0.3s ease;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 20;
-        }
-
-        .screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* CARD STYLE */
-        .card {
-            background: white;
-            color: var(--text-dark);
-            width: 90%;
-            max-width: 380px;
-            border-radius: 28px;
-            padding: 30px 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .card h1 {
-            margin: 0 0 10px 0;
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #1e293b, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .card p {
-            margin: 0 0 25px 0;
-            font-size: 15px;
-            line-height: 1.5;
-            color: #64748b;
-        }
-
-        .btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
             transition: transform 0.1s;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:active { transform: scale(0.96); }
+        .btn:active { transform: scale(0.97); }
 
-        /* DIALOG STYLES */
-        .dialog-header {
+        /* DIALOG LAYOUT */
+        .dialog-content {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f1f5f9;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            background: #e2e8f0;
+        .char-avatar {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
+            background: #e2e8f0;
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 30px;
+            border: 3px solid rgba(255,255,255,0.2);
         }
 
-        .dialog-title {
-            text-align: left;
+        .dialog-name {
+            font-size: 12px;
+            text-transform: uppercase;
             font-weight: 700;
-            font-size: 16px;
-            color: #ef4444;
+            color: var(--accent);
+            margin-top: 8px;
         }
 
         .dialog-text {
-            text-align: left;
-            font-size: 16px;
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 600;
             line-height: 1.4;
         }
 
@@ -207,75 +219,84 @@
 
     <div id="ui-layer">
         <div class="hud-top" id="hud" style="opacity: 0;">
-            <div class="stat-pill">
+            <div class="stat-badge">
                 <div class="stat-label">Очки</div>
                 <div class="stat-value" id="score-val">0</div>
             </div>
-            <div class="stat-pill">
+            <div class="stat-badge">
                 <div class="stat-label">Скорость</div>
-                <div class="stat-value speed"><span id="speed-val">60</span> <span style="font-size:12px">км/ч</span></div>
+                <div class="stat-value" style="color: var(--accent);"><span id="speed-val">60</span></div>
             </div>
         </div>
     </div>
 
-    <!-- МЕНЮ -->
+    <!-- MAIN MENU -->
     <div id="menu-screen" class="screen">
         <div class="card">
             <h1>По Чувашии</h1>
-            <p>Я Оксана. Помоги мне проехать через республику и не попасться ГАИшникам!</p>
-            <button class="btn" id="btn-start">Погнали</button>
+            <p>Я Оксана. Еду в Чебоксары на важную встречу. Помоги мне проскочить через трафик и не попасться ГАИшникам!</p>
+            <button class="btn" id="btn-start">ПОЕХАЛИ</button>
         </div>
     </div>
 
-    <!-- ДИАЛОГ (ГАИ) -->
+    <!-- DIALOG OVERLAY -->
     <div id="dialog-screen" class="screen hidden">
         <div class="card">
-            <div class="dialog-header">
-                <div class="avatar">👮‍♂️</div>
-                <div class="dialog-title" id="dialog-title">ДПС</div>
+            <div class="dialog-content">
+                <div>
+                    <div class="char-avatar" id="dialog-icon">👮‍♂️</div>
+                    <div class="dialog-name" id="dialog-title">ДПС</div>
+                </div>
+                <div class="dialog-text" id="dialog-body">
+                    Текст диалога...
+                </div>
+                <button class="btn" id="btn-dialog-action">Действие</button>
             </div>
-            <div class="dialog-text" id="dialog-body">
-                Текст диалога...
-            </div>
-            <button class="btn" id="btn-dialog-action">Понятно</button>
         </div>
     </div>
 
     <!-- GAME OVER -->
     <div id="game-over-screen" class="screen hidden">
         <div class="card">
-            <h1>Авария!</h1>
-            <p>Ты врезалась. Твой итоговый счет:</p>
-            <div style="font-size: 48px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
-            <button class="btn" id="btn-restart" style="background: #10b981;">Попробовать снова</button>
+            <h1 style="background: linear-gradient(to right, #ef4444, #f87171); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ДТП!</h1>
+            <p>Эх, Оксана... Машину помяли.</p>
+            <div class="stat-badge" style="width: fit-content; margin: 0 auto 30px auto; background: rgba(255,255,255,0.1);">
+                <div class="stat-label">Итоговый счет</div>
+                <div class="stat-value" id="final-score" style="font-size: 32px;">0</div>
+            </div>
+            <button class="btn" id="btn-restart">ЗАНОВО</button>
         </div>
     </div>
 
     <script>
     (function() {
-        // --- Telegram Init ---
-        try {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.expand();
-            }
-        } catch(e) {}
+        // --- TG INIT ---
+        try { if (window.Telegram?.WebApp) window.Telegram.WebApp.expand(); } catch(e){}
 
+        // --- ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
         let w, h;
         let animationId;
-        let globalFrame = 0;
+        let frame = 0;
 
-        // --- GAME CONFIG & STATE ---
-        const cfg = {
-            baseSpeed: 60,
-            roadWidth: 0.9,
-            laneCount: 3
-        };
+        // Polyfill for roundRect
+        if (!ctx.roundRect) {
+            ctx.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.beginPath();
+                this.moveTo(x+r, y);
+                this.arcTo(x+w, y, x+w, y+h, r);
+                this.arcTo(x+w, y+h, x, y+h, r);
+                this.arcTo(x, y+h, x, y, r);
+                this.arcTo(x, y, x+w, y, r);
+                this.closePath();
+            };
+        }
 
-        const towns = ['Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин'];
-
+        // --- STATE ---
         const state = {
             running: false,
             paused: false,
@@ -284,932 +305,289 @@
             difficulty: 1,
             laneOffset: 0,
             
-            // Events Logic
-            eventStage: 0, // 0 = Start, 1 = Passed Batyrevo, 2 = Passed Yadrin
-            lastEventScore: 0, 
-            cooldown: 500 // Points needed between events
+            // Story Logic
+            lastEventScore: 0,
+            eventCooldown: 600, // Points between events
+            eventsTriggered: [] // 'batyrevo', 'komso', 'yadrin'
         };
 
-        const player = { x: 0, y: 0, w: 45, h: 90, targetX: 0, lean: 0 };
+        const player = { x: 0, y: 0, w: 50, h: 100, targetX: 0, lean: 0 };
         let objects = []; 
 
-        // --- DRAWING UTILS (Safe for all browsers) ---
-        function fillRoundRect(ctx, x, y, width, height, radius, color) {
-            if (width < 2 * radius) radius = width / 2;
-            if (height < 2 * radius) radius = height / 2;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.arcTo(x + width, y, x + width, y + height, radius);
-            ctx.arcTo(x + width, y + height, x, y + height, radius);
-            ctx.arcTo(x, y + height, x, y, radius);
-            ctx.arcTo(x, y, x + width, y, radius);
-            ctx.closePath();
-            ctx.fill();
-        }
+        const chuvashiaTowns = ['Чебоксары', 'Канаш', 'Шумерля', 'Алатырь', 'Цивильск', 'Кугеси', 'Вурнары'];
 
-        // --- RENDER FUNCTIONS ---
+        // --- RENDERERS ---
+
         function drawOksana(ctx, x, y, w, h, isMenu) {
-            const bounce = Math.sin(globalFrame * 0.15) * 2;
-            ctx.save();
-            ctx.translate(x + w/2, y + h);
-            if (!isMenu) ctx.rotate(player.lean * 0.1); 
-            ctx.translate(-(x + w/2), -(y + h));
+            const t = frame * 0.1;
+            const bounce = isMenu ? Math.sin(t)*3 : Math.sin(t*2)*1;
             y += bounce;
 
-            // Shadow (Тень)
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath(); ctx.ellipse(x + w/2, y + h - 2, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
+            // Наклон тела при повороте
+            const lean = isMenu ? 0 : player.lean * 0.15;
 
-            // --- LEGS (JEANS) ---
-            // Left leg
-            ctx.fillStyle = '#3b5998'; // More distinct denim blue
-            ctx.beginPath();
-            ctx.moveTo(x + w*0.18, y + h*0.5);
-            ctx.lineTo(x + w*0.48, y + h*0.5); // Crotch
-            ctx.lineTo(x + w*0.42, y + h*0.9); // Ankle inner
-            ctx.lineTo(x + w*0.2, y + h*0.9);  // Ankle outer
-            ctx.fill();
-            
-            // Right leg
-            ctx.beginPath();
-            ctx.moveTo(x + w*0.52, y + h*0.5);
-            ctx.lineTo(x + w*0.82, y + h*0.5); // Hip
-            ctx.lineTo(x + w*0.8, y + h*0.9);  // Ankle outer
-            ctx.lineTo(x + w*0.58, y + h*0.9); // Ankle inner
-            ctx.fill();
-
-            // Hips/Waist
-            fillRoundRect(ctx, x + w*0.18, y + h*0.45, w*0.64, h*0.1, 5, '#3b5998');
-
-            // --- BOOTS ---
-            ctx.fillStyle = '#111';
-            fillRoundRect(ctx, x + w*0.18, y + h*0.88, w*0.26, h*0.12, 3, '#111');
-            fillRoundRect(ctx, x + w*0.56, y + h*0.88, w*0.26, h*0.12, 3, '#111');
-
-            // --- TORSO (BLACK TURTLENECK) ---
-            // Main body
-            fillRoundRect(ctx, x + w*0.2, y + h*0.18, w*0.6, h*0.3, 8, '#1a1a1a');
-            
-            // Neck
-            fillRoundRect(ctx, x + w*0.38, y + h*0.14, w*0.24, h*0.06, 2, '#1a1a1a');
-
-            // --- ARMS ---
-            const armOffset = isMenu ? 0 : Math.sin(globalFrame * 0.2) * 3;
-            // Sleeves
-            fillRoundRect(ctx, x + w*0.08, y + h*0.19 + armOffset, w*0.14, h*0.25, 4, '#1a1a1a');
-            fillRoundRect(ctx, x + w*0.78, y + h*0.19 - armOffset, w*0.14, h*0.25, 4, '#1a1a1a');
-            // Hands
-            ctx.fillStyle = '#ffe0bd';
-            ctx.beginPath(); ctx.arc(x + w*0.15, y + h*0.44 + armOffset, w*0.06, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x + w*0.85, y + h*0.44 - armOffset, w*0.06, 0, Math.PI*2); ctx.fill();
-
-            // --- HEAD ---
-            ctx.fillStyle = '#ffe0bd'; // Skin tone
-            ctx.beginPath(); 
-            ctx.ellipse(x + w/2, y + h*0.12, w*0.24, h*0.14, 0, 0, Math.PI*2); 
-            ctx.fill();
-
-            // --- HAIR (Long, dark, flowing) ---
-            ctx.fillStyle = '#2c2c2c';
-            ctx.beginPath();
-            // Top of head
-            ctx.arc(x + w/2, y + h*0.1, w*0.38, Math.PI, 0); 
-            // Right side flow
-            ctx.bezierCurveTo(x + w*1.1, y + h*0.3, x + w*0.9, y + h*0.6, x + w*0.85, y + h*0.75); 
-            // Bottom tips
-            ctx.lineTo(x + w*0.7, y + h*0.75);
-            // Inner right side
-            ctx.bezierCurveTo(x + w*0.65, y + h*0.5, x + w*0.75, y + h*0.2, x + w*0.7, y + h*0.1);
-            // Left side flow
-            ctx.lineTo(x + w*0.3, y + h*0.1);
-            ctx.bezierCurveTo(x + w*0.25, y + h*0.2, x + w*0.35, y + h*0.5, x + w*0.3, y + h*0.75);
-            // Inner left side
-            ctx.lineTo(x + w*0.15, y + h*0.75);
-            ctx.bezierCurveTo(x + w*0.1, y + h*0.6, x - w*0.1, y + h*0.3, x + w*0.12, y + h*0.1);
-            ctx.fill();
-
-            // --- FACE DETAILS (Menu only) ---
-            if (isMenu) {
-                // Eyes (White base)
-                ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.ellipse(x + w*0.38, y + h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(x + w*0.62, y + h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
-                
-                // Irises (Brown)
-                ctx.fillStyle = '#4a3b2a';
-                ctx.beginPath(); ctx.arc(x + w*0.38, y + h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + w*0.62, y + h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
-
-                // Eyelashes/Liner
-                ctx.strokeStyle = '#1a1a1a';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath(); 
-                ctx.moveTo(x + w*0.32, y + h*0.11); 
-                ctx.quadraticCurveTo(x + w*0.38, y + h*0.09, x + w*0.44, y + h*0.11); 
-                ctx.stroke();
-                ctx.beginPath(); 
-                ctx.moveTo(x + w*0.56, y + h*0.11); 
-                ctx.quadraticCurveTo(x + w*0.62, y + h*0.09, x + w*0.68, y + h*0.11); 
-                ctx.stroke();
-
-                // Brows
-                ctx.lineWidth = 1;
-                ctx.beginPath(); 
-                ctx.moveTo(x + w*0.32, y + h*0.09); 
-                ctx.quadraticCurveTo(x + w*0.38, y + h*0.08, x + w*0.45, y + h*0.09); 
-                ctx.stroke();
-                ctx.beginPath(); 
-                ctx.moveTo(x + w*0.55, y + h*0.09); 
-                ctx.quadraticCurveTo(x + w*0.62, y + h*0.08, x + w*0.68, y + h*0.09); 
-                ctx.stroke();
-
-                // Lips (Soft pink/red)
-                ctx.fillStyle = '#d65a5a';
-                ctx.beginPath(); 
-                ctx.ellipse(x + w*0.5, y + h*0.17, w*0.05, h*0.02, 0, 0, Math.PI*2); 
-                ctx.fill();
-                
-                // Blush
-                ctx.fillStyle = 'rgba(214, 90, 90, 0.1)';
-                ctx.beginPath(); ctx.arc(x + w*0.3, y + h*0.15, w*0.07, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + w*0.7, y + h*0.15, w*0.07, 0, Math.PI*2); ctx.fill();
-            }
-
-            ctx.restore();
-        }
-
-        function drawCar(ctx, obj) {
-            const { x, y, width, height, color, brand } = obj;
-            fillRoundRect(ctx, x + 5, y + 5, width, height, 10, 'rgba(0,0,0,0.3)'); // Shadow
-            fillRoundRect(ctx, x, y, width, height, 10, color); // Body
-            
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x + 5, y + 15, width - 10, 15); // Glass Front
-            ctx.fillRect(x + 5, y + height - 25, width - 10, 10); // Glass Back
-            
-            ctx.fillStyle = color;
-            ctx.globalAlpha = 0.9;
-            ctx.fillRect(x + 7, y + 30, width - 14, height - 55); // Roof
-            ctx.globalAlpha = 1.0;
-
-            const cx = x + width/2;
-            const cy = y + height - 15;
-            
-            if (brand === 'merc') {
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx, cy-8); ctx.lineTo(cx, cy); ctx.lineTo(cx-6, cy+4); ctx.moveTo(cx, cy); ctx.lineTo(cx+6, cy+4); ctx.stroke();
-            } else if (brand === 'bmw') {
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#3498db'; 
-                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 8, 0, Math.PI/2); ctx.lineTo(cx, cy); ctx.arc(cx, cy, 8, Math.PI, Math.PI*1.5); ctx.fill();
-                ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
-            } else {
-                ctx.fillStyle = '#ecf0f1'; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
-            }
-        }
-
-        function drawRoad() {
-            ctx.fillStyle = '#10b981'; ctx.fillRect(0, 0, w, h); // Grass
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            const roadW = w * cfg.roadWidth;
-            ctx.fillStyle = '#334155'; ctx.fillRect(roadX, 0, roadW, h); // Road
-            ctx.fillStyle = '#fbbf24'; ctx.fillRect(roadX, 0, 5, h); ctx.fillRect(roadX + roadW - 5, 0, 5, h); // Borders
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([30, 50]);
-            ctx.lineDashOffset = -state.laneOffset;
-            const laneW = roadW / cfg.laneCount;
-            for(let i=1; i<cfg.laneCount; i++) {
-                ctx.beginPath(); ctx.moveTo(roadX + laneW*i, -50); ctx.lineTo(roadX + laneW*i, h+50); ctx.stroke();
-            }
-            ctx.setLineDash([]);
-        }
-
-        // --- UPDATE ---
-        function update() {
-            if (state.paused) return;
-
-            globalFrame++;
-            state.score++;
-            
-            // Speed Calculation
-            let targetSpeed = 60 + Math.floor(state.score / 15);
-            
-            // Check Events
-            if (targetSpeed >= 100) {
-                // Ensure cooldown has passed since last event
-                if (state.score - state.lastEventScore > state.cooldown) {
-                    if (state.eventStage === 0) {
-                        triggerEvent('BATYREVO');
-                        return; 
-                    } else if (state.eventStage === 1) {
-                        triggerEvent('YADRIN');
-                        return; 
-                    }
-                }
-            }
-            
-            state.speed = targetSpeed;
-            document.getElementById('speed-val').innerText = state.speed;
-            if (state.score % 500 === 0) state.difficulty += 0.1;
-            state.laneOffset = (state.laneOffset + state.speed * 0.2) % 80;
-            
-            if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
-
-            // Player movement
-            const diff = player.targetX - player.x;
-            player.x += diff * 0.15;
-            player.lean = -diff * 0.1;
-
-            // Spawn
-            if (Math.random() < 0.02 * state.difficulty) spawnObject('car');
-            if (Math.random() < 0.05 * state.difficulty) spawnObject('tree');
-            if (Math.random() < 0.01) spawnObject('sign');
-
-            // Update Objects
-            for (let i = objects.length - 1; i >= 0; i--) {
-                let o = objects[i];
-                o.y += state.speed * 0.25; 
-                
-                if (o.type === 'car') {
-                    o.y += o.speed - (state.speed * 0.25); // Relative speed
-                    if (checkCollision(player, o)) gameOver();
-                }
-                if (o.y > h + 100) objects.splice(i, 1);
-            }
-        }
-
-        function checkCollision(p, c) {
-            const padding = 12;
-            return (p.x + padding < c.x + c.width - padding &&
-                    p.x + p.w - padding > c.x + padding &&
-                    p.y + padding < c.y + c.height - padding &&
-                    p.y + p.h - padding > c.y + padding);
-        }
-
-        function spawnObject(type) {
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            const roadW = w * cfg.roadWidth;
-            
-            if (type === 'car') {
-                const laneW = roadW / cfg.laneCount;
-                const lane = Math.floor(Math.random() * cfg.laneCount);
-                const carW = 50;
-                const x = roadX + lane * laneW + (laneW - carW)/2;
-                
-                for(let o of objects) { // Prevent overlap spawn
-                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x) < 50) return;
-                }
-
-                const brands = ['merc', 'bmw', 'lexus'];
-                const brand = brands[Math.floor(Math.random()*brands.length)];
-                let color = '#bdc3c7';
-                if(brand === 'bmw') color = '#1e293b';
-                if(brand === 'lexus') color = '#475569';
-
-                objects.push({
-                    type: 'car', x: x, y: -150, width: 50, height: 90,
-                    speed: (4 + Math.random()*2), color: color, brand: brand
-                });
-            } else if (type === 'tree') {
-                const side = Math.random() < 0.5 ? 'left' : 'right';
-                const x = side === 'left' ? Math.random() * (roadX - 30) : roadX + roadW + Math.random()*20;
-                objects.push({ type: 'tree', x: x, y: -50 });
-            } else if (type === 'sign') {
-                const side = Math.random() < 0.5 ? 'left' : 'right';
-                const x = side === 'left' ? roadX + 5 : roadX + roadW - 5;
-                const text = towns[Math.floor(Math.random() * towns.length)];
-                objects.push({ type: 'sign', x: x, y: -50, side: side, text: text });
-            }
-        }
-
-        // --- LOOP ---
-        function loop() {
-            drawRoad();
-
-            const renderList = [...objects];
-            renderList.push({ type: 'player', y: player.y });
-            renderList.sort((a,b) => a.y - b.y);
-
-            renderList.forEach(o => {
-                if (o.type === 'tree') {
-                    ctx.fillStyle = '#166534';
-                    ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
-                    ctx.fillStyle = '#451a03'; ctx.fillRect(o.x-4, o.y, 8, 15);
-                } else if (o.type === 'sign') {
-                    ctx.fillStyle = '#64748b'; ctx.fillRect(o.x-2, o.y, 4, 50);
-                    const signX = o.side === 'left' ? o.x : o.x - 80;
-                    fillRoundRect(ctx, signX, o.y-40, 80, 25, 4, '#2563eb');
-                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.textAlign = 'center'; ctx.fillText(o.text, signX + 40, o.y-24);
-                } else if (o.type === 'car') {
-                    drawCar(ctx, o);
-                } else if (o.type === 'player') {
-                    if (state.running) drawOksana(ctx, player.x, player.y, player.w, player.h, false);
-                }
-            });
-
-            if (state.running) {
-                update();
-            } else if (!document.getElementById('menu-screen').classList.contains('hidden')) {
-                globalFrame++;
-                const bigW = Math.min(w * 0.6, 220);
-                drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
-            }
-
-            animationId = requestAnimationFrame(loop);
-        }
-
-        // --- EVENT SYSTEM ---
-        function triggerEvent(name) {
-            state.paused = true;
-            const el = document.getElementById('dialog-screen');
-            el.classList.remove('hidden');
-            
-            const title = document.getElementById('dialog-title');
-            const body = document.getElementById('dialog-body');
-            const btn = document.getElementById('btn-dialog-action');
-
-            if (name === 'BATYREVO') {
-                title.innerText = 'ДПС БАТЫРЕВО';
-                body.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
-                btn.innerText = 'Я больше так не буду :(';
-                btn.onclick = () => resolveEvent('PENALTY');
-            } else {
-                title.innerText = 'ДПС ЯДРИН';
-                body.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
-                btn.innerText = 'Маттур! (Спасибо)';
-                btn.onclick = () => resolveEvent('FREE');
-            }
-        }
-
-        function resolveEvent(type) {
-            document.getElementById('dialog-screen').classList.add('hidden');
-            state.paused = false;
-            
-            // IMPORTANT: Update last event score to current score to reset cooldown
-            state.lastEventScore = state.score; 
-
-            if (type === 'PENALTY') {
-                state.score = Math.max(0, state.score - 400); // Speed drops
-                state.eventStage = 1;
-            } else {
-                state.eventStage = 2;
-            }
-            
-            // Push cars away
-            objects.forEach(o => { if(o.type==='car') o.y -= 400; });
-        }
-
-        function gameOver() {
-            state.running = false;
-            document.getElementById('final-score').innerText = Math.floor(state.score/10);
-            document.getElementById('hud').style.opacity = '0';
-            document.getElementById('game-over-screen').classList.remove('hidden');
-        }
-
-        // --- CONTROLS BINDING ---
-        document.getElementById('btn-start').onclick = () => {
-            state.running = true;
-            state.score = 0;
-            state.eventStage = 0;
-            state.lastEventScore = 0;
-            state.difficulty = 1;
-            objects = [];
-            player.targetX = w/2 - player.w/2;
-            player.x = player.targetX;
-            player.y = h - player.h - 50;
-            
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('hud').style.opacity = '1';
-        };
-
-        document.getElementById('btn-restart').onclick = document.getElementById('btn-start').onclick;
-
-        // Input Handling
-        canvas.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if (state.paused) return;
-            const touch = e.touches[0];
-            player.targetX = touch.clientX - player.w/2;
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            if (player.targetX < roadX) player.targetX = roadX;
-            if (player.targetX > w - roadX - player.w) player.targetX = w - roadX - player.w;
-        });
-
-        window.onresize = () => {
-            w = window.innerWidth;
-            h = window.innerHeight;
-            canvas.width = w;
-            canvas.height = h;
-        };
-        window.onresize();
-
-        loop();
-
-    })();
-    </script>
-</body>
-</html>            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-            margin-bottom: 2px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .stat-value.speed { color: var(--accent); }
-
-        /* SCREENS */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding-bottom: 40px;
-            pointer-events: auto;
-            transition: opacity 0.3s ease;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 20;
-        }
-
-        .screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* CARD STYLE */
-        .card {
-            background: white;
-            color: var(--text-dark);
-            width: 90%;
-            max-width: 380px;
-            border-radius: 28px;
-            padding: 30px 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .card h1 {
-            margin: 0 0 10px 0;
-            font-size: 28px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #1e293b, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .card p {
-            margin: 0 0 25px 0;
-            font-size: 15px;
-            line-height: 1.5;
-            color: #64748b;
-        }
-
-        .btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.1s;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .btn:active { transform: scale(0.96); }
-
-        /* DIALOG STYLES */
-        .dialog-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            background: #e2e8f0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .dialog-title {
-            text-align: left;
-            font-weight: 700;
-            font-size: 16px;
-            color: #ef4444;
-        }
-
-        .dialog-text {
-            text-align: left;
-            font-size: 16px;
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
-
-    </style>
-</head>
-<body>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <div id="ui-layer">
-        <div class="hud-top" id="hud" style="opacity: 0;">
-            <div class="stat-pill">
-                <div class="stat-label">Очки</div>
-                <div class="stat-value" id="score-val">0</div>
-            </div>
-            <div class="stat-pill">
-                <div class="stat-label">Скорость</div>
-                <div class="stat-value speed"><span id="speed-val">60</span> <span style="font-size:12px">км/ч</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- МЕНЮ -->
-    <div id="menu-screen" class="screen">
-        <div class="card">
-            <h1>По Чувашии</h1>
-            <p>Я Оксана. Помоги мне проехать через республику и не попасться ГАИшникам!</p>
-            <button class="btn" id="btn-start">Погнали</button>
-        </div>
-    </div>
-
-    <!-- ДИАЛОГ (ГАИ) -->
-    <div id="dialog-screen" class="screen hidden">
-        <div class="card">
-            <div class="dialog-header">
-                <div class="avatar">👮‍♂️</div>
-                <div class="dialog-title" id="dialog-title">ДПС</div>
-            </div>
-            <div class="dialog-text" id="dialog-body">
-                Текст диалога...
-            </div>
-            <button class="btn" id="btn-dialog-action">Понятно</button>
-        </div>
-    </div>
-
-    <!-- GAME OVER -->
-    <div id="game-over-screen" class="screen hidden">
-        <div class="card">
-            <h1>Авария!</h1>
-            <p>Ты врезалась. Твой итоговый счет:</p>
-            <div style="font-size: 48px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
-            <button class="btn" id="btn-restart" style="background: #10b981;">Попробовать снова</button>
-        </div>
-    </div>
-
-    <script>
-    (function() {
-        // --- Telegram Init ---
-        try {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.expand();
-            }
-        } catch(e) {}
-
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let w, h;
-        let animationId;
-        let globalFrame = 0;
-
-        // --- GAME CONFIG & STATE ---
-        const cfg = {
-            baseSpeed: 60,
-            roadWidth: 0.9,
-            laneCount: 3
-        };
-
-        const towns = ['Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин'];
-
-        const state = {
-            running: false,
-            paused: false,
-            score: 0,
-            speed: 60,
-            difficulty: 1,
-            laneOffset: 0,
-            
-            // Events Logic
-            eventStage: 0, // 0 = Start, 1 = Passed Batyrevo, 2 = Passed Yadrin
-            lastEventScore: 0, 
-            cooldown: 500 // Points needed between events
-        };
-
-        const player = { x: 0, y: 0, w: 45, h: 90, targetX: 0, lean: 0 };
-        let objects = []; 
-
-        // --- DRAWING UTILS (Safe for all browsers) ---
-        function fillRoundRect(ctx, x, y, width, height, radius, color) {
-            if (width < 2 * radius) radius = width / 2;
-            if (height < 2 * radius) radius = height / 2;
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.arcTo(x + width, y, x + width, y + height, radius);
-            ctx.arcTo(x + width, y + height, x, y + height, radius);
-            ctx.arcTo(x, y + height, x, y, radius);
-            ctx.arcTo(x, y, x + width, y, radius);
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        // --- RENDER FUNCTIONS ---
-        function drawOksana(ctx, x, y, w, h, isMenu) {
-            const bounce = Math.sin(globalFrame * 0.15) * 2;
             ctx.save();
+            // Pivot at bottom center
             ctx.translate(x + w/2, y + h);
-            if (!isMenu) ctx.rotate(player.lean * 0.1); 
+            ctx.rotate(lean);
             ctx.translate(-(x + w/2), -(y + h));
-            y += bounce;
 
             // Shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath(); ctx.ellipse(x + w/2, y + h - 2, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.ellipse(x+w/2, y+h-5, w/2, 8, 0, 0, Math.PI*2); ctx.fill();
 
-            // Jeans
-            fillRoundRect(ctx, x + w*0.15, y + h*0.5, w*0.3, h*0.4, 4, '#34495e');
-            fillRoundRect(ctx, x + w*0.55, y + h*0.5, w*0.3, h*0.4, 4, '#34495e');
-            
-            // Top
-            fillRoundRect(ctx, x + w*0.15, y + h*0.2, w*0.7, h*0.35, 8, '#111');
+            // Legs (Jeans)
+            ctx.fillStyle = '#334155'; // Dark Denim
+            // Left
+            ctx.beginPath(); ctx.roundRect(x+w*0.15, y+h*0.5, w*0.3, h*0.45, 5); ctx.fill();
+            // Right
+            ctx.beginPath(); ctx.roundRect(x+w*0.55, y+h*0.5, w*0.3, h*0.45, 5); ctx.fill();
+            // Hips
+            ctx.beginPath(); ctx.roundRect(x+w*0.15, y+h*0.45, w*0.7, h*0.15, 8); ctx.fill();
+
+            // Boots
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.roundRect(x+w*0.12, y+h*0.9, w*0.36, h*0.1, 4); ctx.fill();
+            ctx.beginPath(); ctx.roundRect(x+w*0.52, y+h*0.9, w*0.36, h*0.1, 4); ctx.fill();
+
+            // Body (Turtleneck)
+            ctx.fillStyle = '#111';
+            ctx.beginPath(); ctx.roundRect(x+w*0.18, y+h*0.18, w*0.64, h*0.32, 10); ctx.fill();
+            // Neck
+            ctx.beginPath(); ctx.roundRect(x+w*0.35, y+h*0.14, w*0.3, h*0.06, 3); ctx.fill();
 
             // Arms
-            const armOffset = isMenu ? 0 : Math.sin(globalFrame * 0.2) * 3;
-            fillRoundRect(ctx, x + w*0.05, y + h*0.2 + armOffset, w*0.12, h*0.25, 4, '#ffdbac');
-            fillRoundRect(ctx, x + w*0.83, y + h*0.2 - armOffset, w*0.12, h*0.25, 4, '#ffdbac');
+            const armSway = isMenu ? Math.sin(t)*2 : -lean * 10;
+            ctx.fillStyle = '#111';
+            // Left
+            ctx.beginPath(); ctx.roundRect(x+w*0.05, y+h*0.19+armSway, w*0.15, h*0.28, 5); ctx.fill();
+            // Right
+            ctx.beginPath(); ctx.roundRect(x+w*0.8, y+h*0.19-armSway, w*0.15, h*0.28, 5); ctx.fill();
+            // Hands
+            ctx.fillStyle = '#fde6d3';
+            ctx.beginPath(); ctx.arc(x+w*0.12, y+h*0.48+armSway, w*0.06, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x+w*0.87, y+h*0.48-armSway, w*0.06, 0, Math.PI*2); ctx.fill();
 
             // Head
-            ctx.fillStyle = '#ffdbac';
-            ctx.beginPath(); ctx.ellipse(x + w/2, y + h*0.15, w*0.25, h*0.15, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fde6d3';
+            ctx.beginPath(); ctx.ellipse(x+w/2, y+h*0.12, w*0.22, h*0.14, 0, 0, Math.PI*2); ctx.fill();
 
-            // Hair
+            // Hair (Detailed)
             ctx.fillStyle = '#1a1a1a';
             ctx.beginPath();
-            ctx.arc(x + w/2, y + h*0.12, w*0.35, Math.PI, 0); 
-            ctx.bezierCurveTo(x + w*1.2, y + h*0.3, x + w*0.9, y + h*0.6, x + w*0.8, y + h*0.7); 
-            ctx.lineTo(x + w*0.2, y + h*0.7);
-            ctx.bezierCurveTo(x + w*0.1, y + h*0.6, x - w*0.2, y + h*0.3, x + w*0.15, y + h*0.12); 
+            // Top volume
+            ctx.moveTo(x+w*0.1, y+h*0.1);
+            ctx.bezierCurveTo(x+w*0.2, y-h*0.08, x+w*0.8, y-h*0.08, x+w*0.9, y+h*0.1);
+            // Right flow
+            ctx.bezierCurveTo(x+w*1.15, y+h*0.3, x+w*0.9, y+h*0.5, x+w*1.0, y+h*0.7);
+            ctx.lineTo(x+w*0.8, y+h*0.7);
+            ctx.bezierCurveTo(x+w*0.7, y+h*0.5, x+w*0.8, y+h*0.3, x+w*0.75, y+h*0.1);
+            // Left flow
+            ctx.lineTo(x+w*0.25, y+h*0.1);
+            ctx.bezierCurveTo(x+w*0.2, y+h*0.3, x+w*0.3, y+h*0.5, x+w*0.2, y+h*0.7);
+            ctx.lineTo(x, y+h*0.7);
+            ctx.bezierCurveTo(x+w*0.1, y+h*0.5, x-w*0.15, y+h*0.3, x+w*0.1, y+h*0.1);
             ctx.fill();
 
+            // Face (Menu Only)
             if (isMenu) {
+                // Eyes
                 ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.arc(x + w*0.4, y + h*0.14, 3, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + w*0.6, y + h*0.14, 3, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#c0392b';
-                ctx.beginPath(); ctx.arc(x + w*0.5, y + h*0.18, 2, 0, Math.PI, false); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(x+w*0.38, y+h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(x+w*0.62, y+h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#4b3621';
+                ctx.beginPath(); ctx.arc(x+w*0.38, y+h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x+w*0.62, y+h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
+                
+                // Lips
+                ctx.fillStyle = '#be4d25';
+                ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.17, w*0.05, h*0.015, 0, 0, Math.PI*2); ctx.fill();
+                
+                // Blush
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.15)';
+                ctx.beginPath(); ctx.arc(x+w*0.3, y+h*0.15, w*0.08, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x+w*0.7, y+h*0.15, w*0.08, 0, Math.PI*2); ctx.fill();
             }
+
             ctx.restore();
         }
 
-        function drawCar(ctx, obj) {
-            const { x, y, width, height, color, brand } = obj;
-            fillRoundRect(ctx, x + 5, y + 5, width, height, 10, 'rgba(0,0,0,0.3)'); // Shadow
-            fillRoundRect(ctx, x, y, width, height, 10, color); // Body
+        function drawCar(ctx, o) {
+            const {x, y, width, height, color, brand} = o;
             
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath(); ctx.roundRect(x+10, y+10, width, height, 12); ctx.fill();
+
+            // Body
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.roundRect(x, y, width, height, 12); ctx.fill();
+
+            // Cabin
             ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x + 5, y + 15, width - 10, 15); // Glass Front
-            ctx.fillRect(x + 5, y + height - 25, width - 10, 10); // Glass Back
+            ctx.fillRect(x+6, y+20, width-12, 15); // Front glass
+            ctx.fillRect(x+6, y+height-30, width-12, 12); // Back glass
             
+            // Roof
             ctx.fillStyle = color;
             ctx.globalAlpha = 0.9;
-            ctx.fillRect(x + 7, y + 30, width - 14, height - 55); // Roof
+            ctx.fillRect(x+8, y+35, width-16, height-65);
             ctx.globalAlpha = 1.0;
 
+            // Lights
+            ctx.fillStyle = '#ef4444'; // Brake lights
+            ctx.fillRect(x+4, y+height-5, 10, 4);
+            ctx.fillRect(x+width-14, y+height-5, 10, 4);
+
+            // Logo
             const cx = x + width/2;
-            const cy = y + height - 15;
-            
+            const cy = y + height - 20;
             if (brand === 'merc') {
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx, cy-8); ctx.lineTo(cx, cy); ctx.lineTo(cx-6, cy+4); ctx.moveTo(cx, cy); ctx.lineTo(cx+6, cy+4); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx, cy-6); ctx.lineTo(cx, cy); ctx.lineTo(cx-4, cy+3); ctx.moveTo(cx, cy); ctx.lineTo(cx+4, cy+3); ctx.stroke();
             } else if (brand === 'bmw') {
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#3498db'; 
-                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 8, 0, Math.PI/2); ctx.lineTo(cx, cy); ctx.arc(cx, cy, 8, Math.PI, Math.PI*1.5); ctx.fill();
-                ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx, cy, 6, 0, Math.PI/2); ctx.lineTo(cx,cy); ctx.arc(cx,cy,6,Math.PI,Math.PI*1.5); ctx.fill();
             } else {
-                ctx.fillStyle = '#ecf0f1'; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
+                ctx.fillStyle = '#fff'; ctx.font = '700 8px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
             }
         }
 
-        function drawRoad() {
-            ctx.fillStyle = '#10b981'; ctx.fillRect(0, 0, w, h); // Grass
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            const roadW = w * cfg.roadWidth;
-            ctx.fillStyle = '#334155'; ctx.fillRect(roadX, 0, roadW, h); // Road
-            ctx.fillStyle = '#fbbf24'; ctx.fillRect(roadX, 0, 5, h); ctx.fillRect(roadX + roadW - 5, 0, 5, h); // Borders
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([30, 50]);
-            ctx.lineDashOffset = -state.laneOffset;
-            const laneW = roadW / cfg.laneCount;
-            for(let i=1; i<cfg.laneCount; i++) {
-                ctx.beginPath(); ctx.moveTo(roadX + laneW*i, -50); ctx.lineTo(roadX + laneW*i, h+50); ctx.stroke();
-            }
-            ctx.setLineDash([]);
-        }
-
-        // --- UPDATE ---
+        // --- LOGIC ---
         function update() {
             if (state.paused) return;
 
-            globalFrame++;
+            frame++;
             state.score++;
             
-            // Speed Calculation
-            let targetSpeed = 60 + Math.floor(state.score / 15);
+            // Calc Speed
+            let rawSpeed = 60 + Math.floor(state.score / 15);
             
-            // Check Events
-            if (targetSpeed >= 100) {
-                // Ensure cooldown has passed since last event
-                if (state.score - state.lastEventScore > state.cooldown) {
-                    if (state.eventStage === 0) {
-                        triggerEvent('BATYREVO');
-                        return; 
-                    } else if (state.eventStage === 1) {
-                        triggerEvent('YADRIN');
-                        return; 
-                    }
+            // STORY TRIGGERS
+            if (rawSpeed >= 100) {
+                const timeSinceLast = state.score - state.lastEventScore;
+                
+                // 1. Batyrevo (First 100km/h)
+                if (!state.eventsTriggered.includes('batyrevo')) {
+                    triggerEvent('batyrevo');
+                    return;
+                }
+                
+                // 2. Komso (Grandma) - Needs cooldown
+                if (state.eventsTriggered.includes('batyrevo') && 
+                    !state.eventsTriggered.includes('komso') && 
+                    timeSinceLast > state.eventCooldown) {
+                    triggerEvent('komso');
+                    return;
+                }
+
+                // 3. Yadrin (Final Police) - Needs cooldown after grandma
+                if (state.eventsTriggered.includes('komso') && 
+                    !state.eventsTriggered.includes('yadrin') && 
+                    timeSinceLast > state.eventCooldown) {
+                    triggerEvent('yadrin');
+                    return;
                 }
             }
-            
-            state.speed = targetSpeed;
+
+            state.speed = rawSpeed;
             document.getElementById('speed-val').innerText = state.speed;
-            if (state.score % 500 === 0) state.difficulty += 0.1;
-            state.laneOffset = (state.laneOffset + state.speed * 0.2) % 80;
             
             if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
-
-            // Player movement
+            
+            // Movement
             const diff = player.targetX - player.x;
             player.x += diff * 0.15;
             player.lean = -diff * 0.1;
 
             // Spawn
-            if (Math.random() < 0.02 * state.difficulty) spawnObject('car');
-            if (Math.random() < 0.05 * state.difficulty) spawnObject('tree');
-            if (Math.random() < 0.01) spawnObject('sign');
+            if (Math.random() < 0.02) spawn('car');
+            if (Math.random() < 0.05) spawn('tree');
+            if (Math.random() < 0.01) spawn('sign');
 
-            // Update Objects
+            // Update entities
             for (let i = objects.length - 1; i >= 0; i--) {
                 let o = objects[i];
-                o.y += state.speed * 0.25; 
+                o.y += 5 + (state.speed * 0.15); // Base speed + relative speed
                 
                 if (o.type === 'car') {
-                    o.y += o.speed - (state.speed * 0.25); // Relative speed
-                    if (checkCollision(player, o)) gameOver();
+                    o.y += o.speed; // Car's own speed
+                    // Collision
+                    if (rectIntersect(player.x+10, player.y+10, player.w-20, player.h-20, o.x, o.y, o.width, o.height)) {
+                        gameOver();
+                    }
                 }
                 if (o.y > h + 100) objects.splice(i, 1);
             }
         }
 
-        function checkCollision(p, c) {
-            const padding = 12;
-            return (p.x + padding < c.x + c.width - padding &&
-                    p.x + p.w - padding > c.x + padding &&
-                    p.y + padding < c.y + c.height - padding &&
-                    p.y + p.h - padding > c.y + padding);
-        }
-
-        function spawnObject(type) {
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            const roadW = w * cfg.roadWidth;
+        function spawn(type) {
+            const roadW = w * 0.9;
+            const roadX = w * 0.05;
             
             if (type === 'car') {
-                const laneW = roadW / cfg.laneCount;
-                const lane = Math.floor(Math.random() * cfg.laneCount);
-                const carW = 50;
-                const x = roadX + lane * laneW + (laneW - carW)/2;
+                const laneCount = 3;
+                const laneW = roadW / laneCount;
+                const lane = Math.floor(Math.random() * laneCount);
+                const x = roadX + lane * laneW + (laneW - 50)/2;
                 
-                for(let o of objects) { // Prevent overlap spawn
-                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x) < 50) return;
+                // Check overlap
+                for(let o of objects) {
+                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 200 && Math.abs(o.x - x) < 50) return;
                 }
 
                 const brands = ['merc', 'bmw', 'lexus'];
-                const brand = brands[Math.floor(Math.random()*brands.length)];
-                let color = '#bdc3c7';
-                if(brand === 'bmw') color = '#1e293b';
-                if(brand === 'lexus') color = '#475569';
-
-                objects.push({
-                    type: 'car', x: x, y: -150, width: 50, height: 90,
-                    speed: (4 + Math.random()*2), color: color, brand: brand
-                });
-            } else if (type === 'tree') {
+                const brand = brands[Math.floor(Math.random()*3)];
+                let color = '#94a3b8';
+                if (brand === 'bmw') color = '#1e293b';
+                
+                objects.push({type: 'car', x: x, y: -150, width: 50, height: 90, speed: Math.random()*2, color: color, brand: brand});
+            } 
+            else if (type === 'tree') {
                 const side = Math.random() < 0.5 ? 'left' : 'right';
-                const x = side === 'left' ? Math.random() * (roadX - 30) : roadX + roadW + Math.random()*20;
-                objects.push({ type: 'tree', x: x, y: -50 });
-            } else if (type === 'sign') {
-                const side = Math.random() < 0.5 ? 'left' : 'right';
-                const x = side === 'left' ? roadX + 5 : roadX + roadW - 5;
-                const text = towns[Math.floor(Math.random() * towns.length)];
-                objects.push({ type: 'sign', x: x, y: -50, side: side, text: text });
+                const x = side === 'left' ? Math.random()*30 - 20 : w - Math.random()*30;
+                objects.push({type: 'tree', x: x, y: -50});
+            }
+            else if (type === 'sign') {
+                const x = w * 0.9;
+                objects.push({type: 'sign', x: x, y: -50, text: chuvashiaTowns[Math.floor(Math.random()*chuvashiaTowns.length)]});
             }
         }
 
-        // --- LOOP ---
-        function loop() {
-            drawRoad();
-
-            const renderList = [...objects];
-            renderList.push({ type: 'player', y: player.y });
-            renderList.sort((a,b) => a.y - b.y);
-
-            renderList.forEach(o => {
-                if (o.type === 'tree') {
-                    ctx.fillStyle = '#166534';
-                    ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
-                    ctx.fillStyle = '#451a03'; ctx.fillRect(o.x-4, o.y, 8, 15);
-                } else if (o.type === 'sign') {
-                    ctx.fillStyle = '#64748b'; ctx.fillRect(o.x-2, o.y, 4, 50);
-                    const signX = o.side === 'left' ? o.x : o.x - 80;
-                    fillRoundRect(ctx, signX, o.y-40, 80, 25, 4, '#2563eb');
-                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.textAlign = 'center'; ctx.fillText(o.text, signX + 40, o.y-24);
-                } else if (o.type === 'car') {
-                    drawCar(ctx, o);
-                } else if (o.type === 'player') {
-                    if (state.running) drawOksana(ctx, player.x, player.y, player.w, player.h, false);
-                }
-            });
-
-            if (state.running) {
-                update();
-            } else if (!document.getElementById('menu-screen').classList.contains('hidden')) {
-                globalFrame++;
-                const bigW = Math.min(w * 0.6, 220);
-                drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
-            }
-
-            animationId = requestAnimationFrame(loop);
+        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
+            return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1;
         }
 
-        // --- EVENT SYSTEM ---
-        function triggerEvent(name) {
+        function triggerEvent(id) {
             state.paused = true;
-            const el = document.getElementById('dialog-screen');
-            el.classList.remove('hidden');
-            
+            document.getElementById('dialog-screen').classList.remove('hidden');
+            state.eventsTriggered.push(id);
+            state.lastEventScore = state.score;
+
+            const icon = document.getElementById('dialog-icon');
             const title = document.getElementById('dialog-title');
             const body = document.getElementById('dialog-body');
             const btn = document.getElementById('btn-dialog-action');
 
-            if (name === 'BATYREVO') {
+            if (id === 'batyrevo') {
+                icon.innerText = '👮‍♂️';
                 title.innerText = 'ДПС БАТЫРЕВО';
-                body.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
-                btn.innerText = 'Я больше так не буду :(';
-                btn.onclick = () => resolveEvent('PENALTY');
-            } else {
+                body.innerHTML = '— Куда летим, гражданочка? Тут не автобан!';
+                btn.innerText = 'Извините (Штраф)';
+                btn.onclick = () => resolveEvent('penalty');
+            } else if (id === 'komso') {
+                icon.innerText = '👵';
+                title.innerText = 'БАБУШКА (с. Комсомольское)';
+                body.innerHTML = '— Внученька, подожди! Возьми пирожков в дорогу!';
+                btn.innerText = 'Спасибо, апа! (+ Очки)';
+                btn.onclick = () => resolveEvent('bonus');
+            } else if (id === 'yadrin') {
+                icon.innerText = '👮‍♂️';
                 title.innerText = 'ДПС ЯДРИН';
-                body.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
-                btn.innerText = 'Маттур! (Спасибо)';
-                btn.onclick = () => resolveEvent('FREE');
+                body.innerHTML = '— Ооо, Оксана! Хамар ял? Проезжай, не задерживаю!';
+                btn.innerText = 'Маттур! (Ехать)';
+                btn.onclick = () => resolveEvent('free');
             }
         }
 
@@ -1217,57 +595,107 @@
             document.getElementById('dialog-screen').classList.add('hidden');
             state.paused = false;
             
-            // IMPORTANT: Update last event score to current score to reset cooldown
-            state.lastEventScore = state.score; 
-
-            if (type === 'PENALTY') {
-                state.score = Math.max(0, state.score - 400); // Speed drops
-                state.eventStage = 1;
-            } else {
-                state.eventStage = 2;
+            if (type === 'penalty') {
+                state.score = Math.max(0, state.score - 400); // Reset speed
+            } else if (type === 'bonus') {
+                state.score += 500;
             }
             
-            // Push cars away
-            objects.forEach(o => { if(o.type==='car') o.y -= 400; });
+            // Clear path
+            objects = objects.filter(o => o.type !== 'car');
         }
 
-        function gameOver() {
-            state.running = false;
-            document.getElementById('final-score').innerText = Math.floor(state.score/10);
-            document.getElementById('hud').style.opacity = '0';
-            document.getElementById('game-over-screen').classList.remove('hidden');
+        // --- DRAW LOOP ---
+        function loop() {
+            // Background
+            ctx.fillStyle = '#166534'; // Grass dark
+            ctx.fillRect(0,0,w,h);
+            
+            // Road
+            const roadX = w * 0.05;
+            const roadW = w * 0.9;
+            ctx.fillStyle = '#334155'; ctx.fillRect(roadX, 0, roadW, h);
+            
+            // Markings
+            state.laneOffset = (state.laneOffset + (state.speed * 0.2)) % 60;
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([30, 30]);
+            ctx.lineDashOffset = -state.laneOffset;
+            const laneW = roadW / 3;
+            ctx.beginPath();
+            ctx.moveTo(roadX + laneW, -50); ctx.lineTo(roadX + laneW, h+50);
+            ctx.moveTo(roadX + laneW*2, -50); ctx.lineTo(roadX + laneW*2, h+50);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Objects (Sorted by Y)
+            const allObjs = [...objects, {type: 'player', y: player.y}];
+            allObjs.sort((a,b) => a.y - b.y);
+
+            allObjs.forEach(o => {
+                if (o.type === 'tree') {
+                    ctx.fillStyle = '#14532d';
+                    ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
+                } else if (o.type === 'sign') {
+                    ctx.fillStyle = '#64748b'; ctx.fillRect(o.x, o.y-30, 4, 30);
+                    ctx.fillStyle = '#3b82f6'; ctx.fillRect(o.x-60, o.y-50, 60, 20);
+                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.fillText(o.text, o.x-55, o.y-36);
+                } else if (o.type === 'car') {
+                    drawCar(ctx, o);
+                } else if (o.type === 'player') {
+                    if (state.running) drawOksana(ctx, player.x, player.y, player.w, player.h, false);
+                }
+            });
+
+            // Menu Animation
+            if (!document.getElementById('menu-screen').classList.contains('hidden')) {
+                const bigW = Math.min(w * 0.6, 200);
+                drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
+            }
+
+            animationId = requestAnimationFrame(loop);
         }
 
-        // --- CONTROLS BINDING ---
+        // --- CONTROLS ---
         document.getElementById('btn-start').onclick = () => {
             state.running = true;
             state.score = 0;
-            state.eventStage = 0;
+            state.eventsTriggered = [];
             state.lastEventScore = 0;
-            state.difficulty = 1;
             objects = [];
-            player.targetX = w/2 - player.w/2;
-            player.x = player.targetX;
-            player.y = h - player.h - 50;
             
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('hud').style.opacity = '1';
+            document.getElementById('hud').style.opacity = 1;
+            
+            player.targetX = w/2 - player.w/2;
+            player.x = player.targetX;
+            player.y = h - player.h - 50;
         };
 
         document.getElementById('btn-restart').onclick = document.getElementById('btn-start').onclick;
 
-        // Input Handling
+        function gameOver() {
+            state.running = false;
+            document.getElementById('final-score').innerText = Math.floor(state.score/10);
+            document.getElementById('hud').style.opacity = 0;
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        // Input
         canvas.addEventListener('touchmove', e => {
             e.preventDefault();
             if (state.paused) return;
-            const touch = e.touches[0];
-            player.targetX = touch.clientX - player.w/2;
-            const roadX = w * (1 - cfg.roadWidth) / 2;
-            if (player.targetX < roadX) player.targetX = roadX;
-            if (player.targetX > w - roadX - player.w) player.targetX = w - roadX - player.w;
+            player.targetX = e.touches[0].clientX - player.w/2;
+            // Clamp
+            const max = w * 0.95 - player.w;
+            const min = w * 0.05;
+            if (player.targetX < min) player.targetX = min;
+            if (player.targetX > max) player.targetX = max;
         });
 
+        // Init
         window.onresize = () => {
             w = window.innerWidth;
             h = window.innerHeight;
@@ -1275,6 +703,11 @@
             canvas.height = h;
         };
         window.onresize();
+        
+        // Expose functions for onclick
+        window.gameStart = document.getElementById('btn-start').onclick;
+        window.gameRestart = document.getElementById('btn-restart').onclick;
+        // Resolve function is global inside closure, need to expose manually if needed, but handled by closures above
 
         loop();
 
@@ -1282,4 +715,3 @@
     </script>
 </body>
 </html>
-
