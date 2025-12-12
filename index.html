@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -63,6 +63,657 @@
             padding: 8px 16px;
             border-radius: 20px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-value.speed { color: var(--accent); }
+
+        /* SCREENS */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 40px;
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 20;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* CARD STYLE */
+        .card {
+            background: white;
+            color: var(--text-dark);
+            width: 90%;
+            max-width: 380px;
+            border-radius: 28px;
+            padding: 30px 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #1e293b, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card p {
+            margin: 0 0 25px 0;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #64748b;
+        }
+
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        /* DIALOG STYLES */
+        .dialog-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .dialog-title {
+            text-align: left;
+            font-weight: 700;
+            font-size: 16px;
+            color: #ef4444;
+        }
+
+        .dialog-text {
+            text-align: left;
+            font-size: 16px;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="hud-top" id="hud" style="opacity: 0;">
+            <div class="stat-pill">
+                <div class="stat-label">Очки</div>
+                <div class="stat-value" id="score-val">0</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-label">Скорость</div>
+                <div class="stat-value speed"><span id="speed-val">60</span> <span style="font-size:12px">км/ч</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МЕНЮ -->
+    <div id="menu-screen" class="screen">
+        <div class="card">
+            <h1>По Чувашии</h1>
+            <p>Я Оксана. Помоги мне проехать через республику и не попасться ГАИшникам!</p>
+            <button class="btn" id="btn-start">Погнали</button>
+        </div>
+    </div>
+
+    <!-- ДИАЛОГ (ГАИ) -->
+    <div id="dialog-screen" class="screen hidden">
+        <div class="card">
+            <div class="dialog-header">
+                <div class="avatar">👮‍♂️</div>
+                <div class="dialog-title" id="dialog-title">ДПС</div>
+            </div>
+            <div class="dialog-text" id="dialog-body">
+                Текст диалога...
+            </div>
+            <button class="btn" id="btn-dialog-action">Понятно</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="game-over-screen" class="screen hidden">
+        <div class="card">
+            <h1>Авария!</h1>
+            <p>Ты врезалась. Твой итоговый счет:</p>
+            <div style="font-size: 48px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
+            <button class="btn" id="btn-restart" style="background: #10b981;">Попробовать снова</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        // --- Telegram Init ---
+        try {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.expand();
+            }
+        } catch(e) {}
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let w, h;
+        let animationId;
+        let globalFrame = 0;
+
+        // --- GAME CONFIG & STATE ---
+        const cfg = {
+            baseSpeed: 60,
+            roadWidth: 0.9,
+            laneCount: 3
+        };
+
+        const towns = ['Чебоксары', 'Новочебоксарск', 'Канаш', 'Алатырь', 'Шумерля', 'Цивильск', 'Кугеси', 'Вурнары', 'Ядрин'];
+
+        const state = {
+            running: false,
+            paused: false,
+            score: 0,
+            speed: 60,
+            difficulty: 1,
+            laneOffset: 0,
+            
+            // Events Logic
+            eventStage: 0, // 0 = Start, 1 = Passed Batyrevo, 2 = Passed Yadrin
+            lastEventScore: 0, 
+            cooldown: 500 // Points needed between events
+        };
+
+        const player = { x: 0, y: 0, w: 45, h: 90, targetX: 0, lean: 0 };
+        let objects = []; 
+
+        // --- DRAWING UTILS (Safe for all browsers) ---
+        function fillRoundRect(ctx, x, y, width, height, radius, color) {
+            if (width < 2 * radius) radius = width / 2;
+            if (height < 2 * radius) radius = height / 2;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function drawOksana(ctx, x, y, w, h, isMenu) {
+            const bounce = Math.sin(globalFrame * 0.15) * 2;
+            ctx.save();
+            ctx.translate(x + w/2, y + h);
+            if (!isMenu) ctx.rotate(player.lean * 0.1); 
+            ctx.translate(-(x + w/2), -(y + h));
+            y += bounce;
+
+            // Shadow (Тень)
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath(); ctx.ellipse(x + w/2, y + h - 2, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
+
+            // --- LEGS (JEANS) ---
+            // Left leg
+            ctx.fillStyle = '#3b5998'; // More distinct denim blue
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.18, y + h*0.5);
+            ctx.lineTo(x + w*0.48, y + h*0.5); // Crotch
+            ctx.lineTo(x + w*0.42, y + h*0.9); // Ankle inner
+            ctx.lineTo(x + w*0.2, y + h*0.9);  // Ankle outer
+            ctx.fill();
+            
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(x + w*0.52, y + h*0.5);
+            ctx.lineTo(x + w*0.82, y + h*0.5); // Hip
+            ctx.lineTo(x + w*0.8, y + h*0.9);  // Ankle outer
+            ctx.lineTo(x + w*0.58, y + h*0.9); // Ankle inner
+            ctx.fill();
+
+            // Hips/Waist
+            fillRoundRect(ctx, x + w*0.18, y + h*0.45, w*0.64, h*0.1, 5, '#3b5998');
+
+            // --- BOOTS ---
+            ctx.fillStyle = '#111';
+            fillRoundRect(ctx, x + w*0.18, y + h*0.88, w*0.26, h*0.12, 3, '#111');
+            fillRoundRect(ctx, x + w*0.56, y + h*0.88, w*0.26, h*0.12, 3, '#111');
+
+            // --- TORSO (BLACK TURTLENECK) ---
+            // Main body
+            fillRoundRect(ctx, x + w*0.2, y + h*0.18, w*0.6, h*0.3, 8, '#1a1a1a');
+            
+            // Neck
+            fillRoundRect(ctx, x + w*0.38, y + h*0.14, w*0.24, h*0.06, 2, '#1a1a1a');
+
+            // --- ARMS ---
+            const armOffset = isMenu ? 0 : Math.sin(globalFrame * 0.2) * 3;
+            // Sleeves
+            fillRoundRect(ctx, x + w*0.08, y + h*0.19 + armOffset, w*0.14, h*0.25, 4, '#1a1a1a');
+            fillRoundRect(ctx, x + w*0.78, y + h*0.19 - armOffset, w*0.14, h*0.25, 4, '#1a1a1a');
+            // Hands
+            ctx.fillStyle = '#ffe0bd';
+            ctx.beginPath(); ctx.arc(x + w*0.15, y + h*0.44 + armOffset, w*0.06, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + w*0.85, y + h*0.44 - armOffset, w*0.06, 0, Math.PI*2); ctx.fill();
+
+            // --- HEAD ---
+            ctx.fillStyle = '#ffe0bd'; // Skin tone
+            ctx.beginPath(); 
+            ctx.ellipse(x + w/2, y + h*0.12, w*0.24, h*0.14, 0, 0, Math.PI*2); 
+            ctx.fill();
+
+            // --- HAIR (Long, dark, flowing) ---
+            ctx.fillStyle = '#2c2c2c';
+            ctx.beginPath();
+            // Top of head
+            ctx.arc(x + w/2, y + h*0.1, w*0.38, Math.PI, 0); 
+            // Right side flow
+            ctx.bezierCurveTo(x + w*1.1, y + h*0.3, x + w*0.9, y + h*0.6, x + w*0.85, y + h*0.75); 
+            // Bottom tips
+            ctx.lineTo(x + w*0.7, y + h*0.75);
+            // Inner right side
+            ctx.bezierCurveTo(x + w*0.65, y + h*0.5, x + w*0.75, y + h*0.2, x + w*0.7, y + h*0.1);
+            // Left side flow
+            ctx.lineTo(x + w*0.3, y + h*0.1);
+            ctx.bezierCurveTo(x + w*0.25, y + h*0.2, x + w*0.35, y + h*0.5, x + w*0.3, y + h*0.75);
+            // Inner left side
+            ctx.lineTo(x + w*0.15, y + h*0.75);
+            ctx.bezierCurveTo(x + w*0.1, y + h*0.6, x - w*0.1, y + h*0.3, x + w*0.12, y + h*0.1);
+            ctx.fill();
+
+            // --- FACE DETAILS (Menu only) ---
+            if (isMenu) {
+                // Eyes (White base)
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.ellipse(x + w*0.38, y + h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(x + w*0.62, y + h*0.12, w*0.06, h*0.025, 0, 0, Math.PI*2); ctx.fill();
+                
+                // Irises (Brown)
+                ctx.fillStyle = '#4a3b2a';
+                ctx.beginPath(); ctx.arc(x + w*0.38, y + h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + w*0.62, y + h*0.12, w*0.03, 0, Math.PI*2); ctx.fill();
+
+                // Eyelashes/Liner
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath(); 
+                ctx.moveTo(x + w*0.32, y + h*0.11); 
+                ctx.quadraticCurveTo(x + w*0.38, y + h*0.09, x + w*0.44, y + h*0.11); 
+                ctx.stroke();
+                ctx.beginPath(); 
+                ctx.moveTo(x + w*0.56, y + h*0.11); 
+                ctx.quadraticCurveTo(x + w*0.62, y + h*0.09, x + w*0.68, y + h*0.11); 
+                ctx.stroke();
+
+                // Brows
+                ctx.lineWidth = 1;
+                ctx.beginPath(); 
+                ctx.moveTo(x + w*0.32, y + h*0.09); 
+                ctx.quadraticCurveTo(x + w*0.38, y + h*0.08, x + w*0.45, y + h*0.09); 
+                ctx.stroke();
+                ctx.beginPath(); 
+                ctx.moveTo(x + w*0.55, y + h*0.09); 
+                ctx.quadraticCurveTo(x + w*0.62, y + h*0.08, x + w*0.68, y + h*0.09); 
+                ctx.stroke();
+
+                // Lips (Soft pink/red)
+                ctx.fillStyle = '#d65a5a';
+                ctx.beginPath(); 
+                ctx.ellipse(x + w*0.5, y + h*0.17, w*0.05, h*0.02, 0, 0, Math.PI*2); 
+                ctx.fill();
+                
+                // Blush
+                ctx.fillStyle = 'rgba(214, 90, 90, 0.1)';
+                ctx.beginPath(); ctx.arc(x + w*0.3, y + h*0.15, w*0.07, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + w*0.7, y + h*0.15, w*0.07, 0, Math.PI*2); ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawCar(ctx, obj) {
+            const { x, y, width, height, color, brand } = obj;
+            fillRoundRect(ctx, x + 5, y + 5, width, height, 10, 'rgba(0,0,0,0.3)'); // Shadow
+            fillRoundRect(ctx, x, y, width, height, 10, color); // Body
+            
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(x + 5, y + 15, width - 10, 15); // Glass Front
+            ctx.fillRect(x + 5, y + height - 25, width - 10, 10); // Glass Back
+            
+            ctx.fillStyle = color;
+            ctx.globalAlpha = 0.9;
+            ctx.fillRect(x + 7, y + 30, width - 14, height - 55); // Roof
+            ctx.globalAlpha = 1.0;
+
+            const cx = x + width/2;
+            const cy = y + height - 15;
+            
+            if (brand === 'merc') {
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx, cy-8); ctx.lineTo(cx, cy); ctx.lineTo(cx-6, cy+4); ctx.moveTo(cx, cy); ctx.lineTo(cx+6, cy+4); ctx.stroke();
+            } else if (brand === 'bmw') {
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#3498db'; 
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, 8, 0, Math.PI/2); ctx.lineTo(cx, cy); ctx.arc(cx, cy, 8, Math.PI, Math.PI*1.5); ctx.fill();
+                ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.stroke();
+            } else {
+                ctx.fillStyle = '#ecf0f1'; ctx.font = '900 10px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
+            }
+        }
+
+        function drawRoad() {
+            ctx.fillStyle = '#10b981'; ctx.fillRect(0, 0, w, h); // Grass
+            const roadX = w * (1 - cfg.roadWidth) / 2;
+            const roadW = w * cfg.roadWidth;
+            ctx.fillStyle = '#334155'; ctx.fillRect(roadX, 0, roadW, h); // Road
+            ctx.fillStyle = '#fbbf24'; ctx.fillRect(roadX, 0, 5, h); ctx.fillRect(roadX + roadW - 5, 0, 5, h); // Borders
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([30, 50]);
+            ctx.lineDashOffset = -state.laneOffset;
+            const laneW = roadW / cfg.laneCount;
+            for(let i=1; i<cfg.laneCount; i++) {
+                ctx.beginPath(); ctx.moveTo(roadX + laneW*i, -50); ctx.lineTo(roadX + laneW*i, h+50); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        // --- UPDATE ---
+        function update() {
+            if (state.paused) return;
+
+            globalFrame++;
+            state.score++;
+            
+            // Speed Calculation
+            let targetSpeed = 60 + Math.floor(state.score / 15);
+            
+            // Check Events
+            if (targetSpeed >= 100) {
+                // Ensure cooldown has passed since last event
+                if (state.score - state.lastEventScore > state.cooldown) {
+                    if (state.eventStage === 0) {
+                        triggerEvent('BATYREVO');
+                        return; 
+                    } else if (state.eventStage === 1) {
+                        triggerEvent('YADRIN');
+                        return; 
+                    }
+                }
+            }
+            
+            state.speed = targetSpeed;
+            document.getElementById('speed-val').innerText = state.speed;
+            if (state.score % 500 === 0) state.difficulty += 0.1;
+            state.laneOffset = (state.laneOffset + state.speed * 0.2) % 80;
+            
+            if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
+
+            // Player movement
+            const diff = player.targetX - player.x;
+            player.x += diff * 0.15;
+            player.lean = -diff * 0.1;
+
+            // Spawn
+            if (Math.random() < 0.02 * state.difficulty) spawnObject('car');
+            if (Math.random() < 0.05 * state.difficulty) spawnObject('tree');
+            if (Math.random() < 0.01) spawnObject('sign');
+
+            // Update Objects
+            for (let i = objects.length - 1; i >= 0; i--) {
+                let o = objects[i];
+                o.y += state.speed * 0.25; 
+                
+                if (o.type === 'car') {
+                    o.y += o.speed - (state.speed * 0.25); // Relative speed
+                    if (checkCollision(player, o)) gameOver();
+                }
+                if (o.y > h + 100) objects.splice(i, 1);
+            }
+        }
+
+        function checkCollision(p, c) {
+            const padding = 12;
+            return (p.x + padding < c.x + c.width - padding &&
+                    p.x + p.w - padding > c.x + padding &&
+                    p.y + padding < c.y + c.height - padding &&
+                    p.y + p.h - padding > c.y + padding);
+        }
+
+        function spawnObject(type) {
+            const roadX = w * (1 - cfg.roadWidth) / 2;
+            const roadW = w * cfg.roadWidth;
+            
+            if (type === 'car') {
+                const laneW = roadW / cfg.laneCount;
+                const lane = Math.floor(Math.random() * cfg.laneCount);
+                const carW = 50;
+                const x = roadX + lane * laneW + (laneW - carW)/2;
+                
+                for(let o of objects) { // Prevent overlap spawn
+                    if (o.type === 'car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x) < 50) return;
+                }
+
+                const brands = ['merc', 'bmw', 'lexus'];
+                const brand = brands[Math.floor(Math.random()*brands.length)];
+                let color = '#bdc3c7';
+                if(brand === 'bmw') color = '#1e293b';
+                if(brand === 'lexus') color = '#475569';
+
+                objects.push({
+                    type: 'car', x: x, y: -150, width: 50, height: 90,
+                    speed: (4 + Math.random()*2), color: color, brand: brand
+                });
+            } else if (type === 'tree') {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                const x = side === 'left' ? Math.random() * (roadX - 30) : roadX + roadW + Math.random()*20;
+                objects.push({ type: 'tree', x: x, y: -50 });
+            } else if (type === 'sign') {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                const x = side === 'left' ? roadX + 5 : roadX + roadW - 5;
+                const text = towns[Math.floor(Math.random() * towns.length)];
+                objects.push({ type: 'sign', x: x, y: -50, side: side, text: text });
+            }
+        }
+
+        // --- LOOP ---
+        function loop() {
+            drawRoad();
+
+            const renderList = [...objects];
+            renderList.push({ type: 'player', y: player.y });
+            renderList.sort((a,b) => a.y - b.y);
+
+            renderList.forEach(o => {
+                if (o.type === 'tree') {
+                    ctx.fillStyle = '#166534';
+                    ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
+                    ctx.fillStyle = '#451a03'; ctx.fillRect(o.x-4, o.y, 8, 15);
+                } else if (o.type === 'sign') {
+                    ctx.fillStyle = '#64748b'; ctx.fillRect(o.x-2, o.y, 4, 50);
+                    const signX = o.side === 'left' ? o.x : o.x - 80;
+                    fillRoundRect(ctx, signX, o.y-40, 80, 25, 4, '#2563eb');
+                    ctx.fillStyle = 'white'; ctx.font = '10px Inter'; ctx.textAlign = 'center'; ctx.fillText(o.text, signX + 40, o.y-24);
+                } else if (o.type === 'car') {
+                    drawCar(ctx, o);
+                } else if (o.type === 'player') {
+                    if (state.running) drawOksana(ctx, player.x, player.y, player.w, player.h, false);
+                }
+            });
+
+            if (state.running) {
+                update();
+            } else if (!document.getElementById('menu-screen').classList.contains('hidden')) {
+                globalFrame++;
+                const bigW = Math.min(w * 0.6, 220);
+                drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
+            }
+
+            animationId = requestAnimationFrame(loop);
+        }
+
+        // --- EVENT SYSTEM ---
+        function triggerEvent(name) {
+            state.paused = true;
+            const el = document.getElementById('dialog-screen');
+            el.classList.remove('hidden');
+            
+            const title = document.getElementById('dialog-title');
+            const body = document.getElementById('dialog-body');
+            const btn = document.getElementById('btn-dialog-action');
+
+            if (name === 'BATYREVO') {
+                title.innerText = 'ДПС БАТЫРЕВО';
+                body.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
+                btn.innerText = 'Я больше так не буду :(';
+                btn.onclick = () => resolveEvent('PENALTY');
+            } else {
+                title.innerText = 'ДПС ЯДРИН';
+                body.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
+                btn.innerText = 'Маттур! (Спасибо)';
+                btn.onclick = () => resolveEvent('FREE');
+            }
+        }
+
+        function resolveEvent(type) {
+            document.getElementById('dialog-screen').classList.add('hidden');
+            state.paused = false;
+            
+            // IMPORTANT: Update last event score to current score to reset cooldown
+            state.lastEventScore = state.score; 
+
+            if (type === 'PENALTY') {
+                state.score = Math.max(0, state.score - 400); // Speed drops
+                state.eventStage = 1;
+            } else {
+                state.eventStage = 2;
+            }
+            
+            // Push cars away
+            objects.forEach(o => { if(o.type==='car') o.y -= 400; });
+        }
+
+        function gameOver() {
+            state.running = false;
+            document.getElementById('final-score').innerText = Math.floor(state.score/10);
+            document.getElementById('hud').style.opacity = '0';
+            document.getElementById('game-over-screen').classList.remove('hidden');
+        }
+
+        // --- CONTROLS BINDING ---
+        document.getElementById('btn-start').onclick = () => {
+            state.running = true;
+            state.score = 0;
+            state.eventStage = 0;
+            state.lastEventScore = 0;
+            state.difficulty = 1;
+            objects = [];
+            player.targetX = w/2 - player.w/2;
+            player.x = player.targetX;
+            player.y = h - player.h - 50;
+            
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('hud').style.opacity = '1';
+        };
+
+        document.getElementById('btn-restart').onclick = document.getElementById('btn-start').onclick;
+
+        // Input Handling
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (state.paused) return;
+            const touch = e.touches[0];
+            player.targetX = touch.clientX - player.w/2;
+            const roadX = w * (1 - cfg.roadWidth) / 2;
+            if (player.targetX < roadX) player.targetX = roadX;
+            if (player.targetX > w - roadX - player.w) player.targetX = w - roadX - player.w;
+        });
+
+        window.onresize = () => {
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = w;
+            canvas.height = h;
+        };
+        window.onresize();
+
+        loop();
+
+    })();
+    </script>
+</body>
+</html>            display: flex;
             flex-direction: column;
             align-items: center;
             border: 1px solid rgba(255,255,255,0.1);
@@ -631,3 +1282,4 @@
     </script>
 </body>
 </html>
+
