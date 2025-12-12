@@ -306,7 +306,8 @@
             score: 0,
             speedMultiplier: 1,
             laneOffset: 0,
-            currentSpeed: 60
+            currentSpeed: 60,
+            lastSignTime: 0 // Для отслеживания времени знаков
         };
 
         const player = { x: 0, y: 0, w: 45, h: 95, targetX: 0, vx: 0 };
@@ -595,9 +596,18 @@
             player.x += (player.targetX - player.x) * 0.15;
             
             // Спавн
+            // 1. Деревья
+            if (Math.random() < 0.06 * state.speedMultiplier) spawnObject('tree');
+            // 2. Машины
             if (Math.random() < 0.02 * state.speedMultiplier) spawnObject('car');
+            // 3. Монеты
             if (Math.random() < 0.005) spawnObject('coin');
-            if (Math.random() < 0.06 * state.speedMultiplier) spawnObject('scenery');
+            
+            // 4. Знаки (Каждые 5 секунд)
+            if (Date.now() - state.lastSignTime > 5000) {
+                spawnObject('sign');
+                state.lastSignTime = Date.now();
+            }
 
             // Обновление машин
             for (let i = cars.length - 1; i >= 0; i--) {
@@ -644,29 +654,25 @@
         }
 
         function spawnObject(type) {
-            if (type === 'scenery') {
+            if (type === 'sign') {
                 const side = Math.random() < 0.5 ? 'left' : 'right';
-                // Деревья частые, знаки редкие
-                const isSign = Math.random() < 0.15; 
-                
-                // Координаты: теперь столбы стоят прямо на краю дороги
+                // Столб на краю дороги
                 let x = side === 'left' ? 5 : w - 5; 
                 
-                if (!isSign) {
-                     // Деревья могут быть чуть разбросаны на траве
-                     x = side === 'left' ? Math.random() * -10 : w - 10 + Math.random() * 10;
-                }
-                
-                if (isSign) {
-                    const text = chuvashiaTowns[Math.floor(Math.random() * chuvashiaTowns.length)];
-                    scenery.push({
-                        type: 'sign', x: x, y: -60, text: text, side: side
-                    });
-                } else {
-                    scenery.push({
-                        type: 'tree', x: x, y: -50
-                    });
-                }
+                const text = chuvashiaTowns[Math.floor(Math.random() * chuvashiaTowns.length)];
+                scenery.push({
+                    type: 'sign', x: x, y: -60, text: text, side: side
+                });
+                return;
+            }
+
+            if (type === 'tree') {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                // Деревья разбросаны на обочине
+                let x = side === 'left' ? Math.random() * -10 : w - 10 + Math.random() * 10;
+                scenery.push({
+                    type: 'tree', x: x, y: -50
+                });
                 return;
             }
 
@@ -691,7 +697,7 @@
                     speed: (3 + Math.random() * 3) * state.speedMultiplier,
                     color: color, brand: brand, vx: 0
                 });
-            } else {
+            } else if (type === 'coin') {
                 coins.push({ x: x, y: -50 });
             }
         }
@@ -743,6 +749,7 @@
             state.running = true;
             state.score = 0;
             state.speedMultiplier = 1;
+            state.lastSignTime = Date.now(); // Сброс таймера знаков
             cars = [];
             coins = [];
             particles = [];
