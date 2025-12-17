@@ -13,14 +13,13 @@
       --text-white: #ffffff;
       --card-bg: #14182b;
       --accent-blue: #3a506b;
-      --glow-yellow: #ffff00;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -103,10 +102,10 @@
       align-items: center;
       margin-bottom: 15px;
       padding: 10px;
-      background: rgba(20, 24, 43, 0.7);
-      border-radius: 15px;
+      background: rgba(20, 24, 43, 0.8);
+      border-radius: 16px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 0, 255, 0.3);
+      border: 1px solid rgba(255, 0, 255, 0.4);
     }
 
     .avatar {
@@ -119,7 +118,7 @@
       align-items: center;
       font-weight: bold;
       font-size: 18px;
-      box-shadow: 0 0 8px var(--neon-pink);
+      box-shadow: 0 0 10px var(--neon-pink);
     }
 
     .stats {
@@ -130,13 +129,13 @@
     .stat-item {
       background: var(--card-bg);
       padding: 6px 10px;
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-width: 50px;
       font-size: 12px;
-      border: 1px solid rgba(0, 255, 136, 0.3);
+      border: 1px solid rgba(0, 255, 136, 0.4);
     }
 
     .stat-value {
@@ -165,87 +164,86 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.4));
+      filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.5));
       transition: transform 0.3s ease;
     }
 
     .oksana-image:hover {
-      transform: scale(1.03);
+      transform: scale(1.05);
     }
 
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-10px); }
     }
 
     .dialog-box {
       background: var(--card-bg);
-      padding: 16px;
-      border-radius: 16px;
+      padding: 18px;
+      border-radius: 18px;
       margin: 15px 0;
       position: relative;
       border-left: 4px solid var(--neon-pink);
-      box-shadow: 0 4px 20px rgba(255, 0, 255, 0.15);
+      box-shadow: 0 6px 25px rgba(255, 0, 255, 0.2);
     }
 
     .dialog-text {
       font-size: 16px;
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 15px;
       text-align: center;
     }
 
     .memes-gallery {
       display: flex;
-      gap: 10px;
-      margin: 12px 0;
+      gap: 12px;
+      margin: 15px 0;
       overflow-x: auto;
-      padding: 8px 0;
+      padding: 10px 0;
     }
 
     .meme-item {
-      min-width: 75px;
-      height: 75px;
-      background: rgba(255, 0, 255, 0.08);
+      min-width: 80px;
+      height: 80px;
+      background: rgba(255, 0, 255, 0.1);
       border: 2px solid var(--neon-pink);
-      border-radius: 12px;
+      border-radius: 14px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 11px;
       text-align: center;
-      padding: 6px;
+      padding: 8px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
     }
 
     .meme-item:hover {
-      transform: scale(1.08);
-      box-shadow: 0 0 12px var(--neon-pink);
+      transform: scale(1.1);
+      box-shadow: 0 0 15px var(--neon-pink);
     }
 
     .actions {
       display: flex;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 12px;
+      margin-top: 20px;
     }
 
     .btn {
       flex: 1;
-      padding: 14px;
+      padding: 16px;
       border: none;
-      border-radius: 14px;
-      font-weight: 600;
-      font-size: 15px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 16px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
       text-align: center;
-      font-weight: bold;
     }
 
     .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(255, 0, 255, 0.5);
     }
 
     .btn-primary {
@@ -261,36 +259,23 @@
 
     .notification {
       position: fixed;
-      top: 65px;
+      top: 70px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--neon-green);
       color: #000;
-      padding: 12px 24px;
-      border-radius: 16px;
+      padding: 14px 28px;
+      border-radius: 18px;
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.3s;
-      box-shadow: 0 0 20px var(--neon-green);
-      font-weight: 600;
+      box-shadow: 0 0 25px var(--neon-green);
+      font-weight: 700;
       pointer-events: none;
     }
 
     .notification.show {
       opacity: 1;
-    }
-
-    .screen-title {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-
-    .screen-subtitle {
-      font-size: 14px;
-      opacity: 0.8;
-      text-align: center;
     }
   </style>
 </head>
@@ -298,7 +283,7 @@
   <div id="app">
     <div id="loading">
       <div class="spinner"></div>
-      <div class="neon-text" style="font-size: 22px; margin-top: 20px;">Загрузка Оксаны...</div>
+      <div class="neon-text" style="font-size: 24px; margin-top: 20px;">Загрузка Оксаны...</div>
     </div>
 
     <div id="main-screen">
@@ -322,7 +307,7 @@
 
       <div class="oksana-container">
         <div class="oksana-sprite">
-          <img src="https://placehold.co/240x280/ff66cc/ffffff?text=Оксана+Чебоксары" alt="Оксана" class="oksana-image">
+          <img src="https://placehold.co/240x280/ff66cc/ffffff?text=Оксана" alt="Оксана" class="oksana-image">
         </div>
       </div>
 
@@ -336,12 +321,14 @@
           <div class="meme-item">"I'm ready"</div>
           <div class="meme-item">"This is fine"</div>
           <div class="meme-item">"When you see"</div>
+          <div class="meme-item">"Nope"</div>
+          <div class="meme-item">"Okay"</div>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn btn-primary" id="start-mission">Начать миссию 🚀</button>
-        <button class="btn btn-secondary" id="view-leaderboard">🏆 Лидеры</button>
+        <button class="btn btn-primary" id="daily-mission">Ежедневная миссия 🎯</button>
+        <button class="btn btn-secondary" id="garage">Моя тачка 🚗</button>
       </div>
     </div>
 
@@ -352,10 +339,10 @@
     const Telegram = window.Telegram || { WebApp: { ready: () => {}, expand: () => {} } };
 
     const gameState = {
-      currentScreen: 'main',
       day: 1,
       coins: 100,
-      level: 1
+      level: 1,
+      lastClaimed: 0
     };
 
     const elements = {
@@ -365,8 +352,8 @@
       coins: document.getElementById('coins'),
       level: document.getElementById('level'),
       day: document.getElementById('day'),
-      startMission: document.getElementById('start-mission'),
-      viewLeaderboard: document.getElementById('view-leaderboard'),
+      dailyMission: document.getElementById('daily-mission'),
+      garage: document.getElementById('garage'),
       notification: document.getElementById('notification')
     };
 
@@ -381,7 +368,7 @@
           elements.mainScreen.style.opacity = '1';
           elements.mainScreen.style.transform = 'translateY(0)';
         }, 500);
-      }, 1500);
+      }, 1200);
 
       updateUI();
       setupEventListeners();
@@ -394,21 +381,24 @@
     }
 
     function setupEventListeners() {
-      elements.startMission.addEventListener('click', startMission);
-      elements.viewLeaderboard.addEventListener('click', showLeaderboard);
+      elements.dailyMission.addEventListener('click', handleDailyMission);
+      elements.garage.addEventListener('click', handleGarage);
     }
 
-    function startMission() {
-      gameState.coins += 25;
-      gameState.level = 2;
-      updateUI();
+    function handleDailyMission() {
+      const reward = 50 + (gameState.day * 5);
+      gameState.coins += reward;
+      gameState.level = Math.min(gameState.level + 1, 30);
+      gameState.day = Math.min(gameState.day + 1, 30);
       
-      showNotification('🏁 Миссия начата!\n+25 монет!');
-      elements.dialogText.innerHTML = 'Отлично! 🎉<br><br>Ты начал первую миссию!<br>Сегодня мы будем исследовать Чебоксары и искать мемные артефакты!<br><br>Завтра будет новое приключение!';
+      updateUI();
+      showNotification(`🎯 Миссия выполнена!\n+${reward} монет!`);
+      
+      elements.dialogText.innerHTML = `Отличная работа! 🎉<br><br>Ты выполнил миссию Дня ${gameState.day - 1}!<br>Получено ${reward} монет!<br><br>Завтра будет новое задание!`;
     }
 
-    function showLeaderboard() {
-      showNotification('🏆 Таблица лидеров\nВ разработке для GitHub!');
+    function handleGarage() {
+      showNotification('🚗 Твоя тачка в гараже!\nВ разработке для GitHub версии!');
     }
 
     function showNotification(message) {
@@ -417,7 +407,7 @@
       
       setTimeout(() => {
         elements.notification.className = 'notification';
-      }, 3000);
+      }, 2500);
     }
 
     document.addEventListener('DOMContentLoaded', initApp);
