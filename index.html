@@ -3,649 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>City Dodge: Life</title>
+    <title>Мир Снов Оксаны</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;700;900&display=swap');
-
-        :root {
-            --bg-warm: #fdf6ec; 
-            --primary: #3498db;
-            --text-main: #2c3e50;
-            --card-bg: rgba(255, 255, 255, 0.98);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
 
         body {
-            margin: 0;
-            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: #0f172a;
             overflow: hidden;
-            background-color: var(--bg-warm);
-            font-family: 'Mulish', sans-serif;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
-            color: var(--text-main);
+            touch-action: none; /* Предотвращает зум и скролл на мобильных */
         }
 
-        #gameCanvas {
+        /* Анимация фона */
+        .stars {
+            background: black url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/stars.png) repeat;
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
+            display: block;
+            z-index: 0;
+        }
+
+        /* UI Элементы */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .game-canvas {
             display: block;
             width: 100%;
             height: 100%;
+            z-index: 1;
         }
 
-        /* --- UI --- */
-        #ui-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 10;
-        }
-
-        /* HUD */
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .badge {
-            background: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 70px;
-        }
-
-        .badge-label {
-            font-size: 10px;
-            color: #95a5a6;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .badge-value {
-            font-size: 20px;
-            font-weight: 900;
-            color: #2c3e50;
-        }
-
-        /* SCREENS */
-        .screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end; /* Cards at bottom */
-            padding-bottom: 20px;
-            pointer-events: auto;
-            background: rgba(0,0,0,0.4); 
-            backdrop-filter: blur(8px);
-            transition: opacity 0.3s;
-            z-index: 20;
-            overflow-y: auto; 
-        }
-
-        .screen.hidden { opacity: 0; pointer-events: none; }
-
-        /* MENU SPECIFIC */
-        #menu-screen {
-            background: transparent; 
-            backdrop-filter: none;
-            justify-content: flex-end;
-            padding-bottom: 40px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            width: 85%;
-            max-width: 380px;
-            border-radius: 30px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            text-align: center;
-            animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        h1 {
-            margin: 0 0 5px 0;
-            font-size: 24px;
-            font-weight: 900;
-            color: #2c3e50;
-        }
-
-        p {
-            margin: 0 0 20px 0;
-            font-size: 14px;
-            line-height: 1.4;
-            color: #7f8c8d;
-        }
-
-        .btn {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 18px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.3);
-            transition: transform 0.1s;
-            margin-top: auto;
-        }
-        .btn:active { transform: scale(0.96); }
-
-        /* LEADERBOARD STYLES */
-        .leaderboard-section {
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-            flex-grow: 1;
-            overflow-y: auto;
-            max-height: 150px;
-        }
-
-        .lb-title {
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #95a5a6;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-
-        .lb-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-            font-weight: 700;
-            color: #34495e;
-        }
-        .lb-item:last-child { border-bottom: none; }
-        .lb-rank { width: 24px; display: inline-block; color: #bdc3c7; }
-        .lb-item.top-1 .lb-rank { color: #f1c40f; }
+        .hidden { display: none !important; }
         
-        .lb-score { color: #2c3e50; font-weight: 900; }
-
-        /* DIALOG */
-        .dialog-content {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .dialog-avatar {
-            font-size: 40px;
-            margin-bottom: -10px;
-        }
-        .dialog-title {
-            color: #c0392b;
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 14px;
-            letter-spacing: 1px;
-        }
-        .dialog-text {
-            font-size: 18px;
-            font-weight: 700;
-            color: #34495e;
-            line-height: 1.4;
+        /* Анимация персонажа в UI */
+        .avatar-pulse {
+            animation: pulse-glow 2s infinite;
         }
 
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+        }
+
+        /* Текст диалога */
+        .typing-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
-<body>
+<body class="text-white h-screen w-screen flex flex-col items-center justify-center relative">
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- Задний фон -->
+    <div class="stars opacity-50"></div>
 
-    <div id="ui-layer">
-        <div class="hud" id="hud">
-            <div class="badge">
-                <div class="badge-label">Очки</div>
-                <div class="badge-value" id="score-val">0</div>
-            </div>
-            <div class="badge">
-                <div class="badge-label">Скорость</div>
-                <div class="badge-value"><span id="speed-val">40</span> км/ч</div>
-            </div>
+    <!-- UI: Главное меню -->
+    <div id="start-screen" class="glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute transition-all duration-500">
+        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-violet-500 mb-4 p-1 avatar-pulse relative overflow-hidden">
+             <!-- Здесь схематичное изображение Оксаны, можно заменить на <img> -->
+             <svg viewBox="0 0 100 100" class="w-full h-full bg-slate-900 rounded-full">
+                <circle cx="50" cy="40" r="25" fill="#fce7f3" /> <!-- Лицо -->
+                <path d="M20,40 Q50,5 80,40" fill="none" stroke="#3b0764" stroke-width="8" /> <!-- Волосы -->
+                <path d="M20,40 L20,90 Q50,110 80,90 L80,40" fill="#3b0764" /> <!-- Волосы сзади -->
+                <circle cx="40" cy="40" r="3" fill="#000" /> <!-- Глаз -->
+                <circle cx="60" cy="40" r="3" fill="#000" /> <!-- Глаз -->
+                <path d="M45,55 Q50,60 55,55" fill="none" stroke="#000" stroke-width="2" /> <!-- Улыбка -->
+             </svg>
+        </div>
+        <h1 class="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">Оксана</h1>
+        <h2 class="text-xl mb-4 font-bold text-gray-200">В Мире Снов</h2>
+        <p class="text-center text-sm text-gray-300 mb-6 leading-relaxed">
+            Помоги Оксане собрать звезды и убежать от кошмаров, чтобы проснуться.
+        </p>
+        <button onclick="startGame()" class="w-full bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
+            Начать путешествие
+        </button>
+    </div>
+
+    <!-- UI: Диалог -->
+    <div id="dialog-box" class="hidden glass-panel absolute bottom-8 w-[90%] p-4 z-20 flex items-start gap-4 animate-bounce-in">
+        <div class="w-12 h-12 rounded-full bg-pink-500 flex-shrink-0 overflow-hidden border-2 border-white">
+             <svg viewBox="0 0 100 100" class="w-full h-full bg-slate-800">
+                <circle cx="50" cy="40" r="25" fill="#fce7f3" />
+                <path d="M20,40 Q50,5 80,40" fill="none" stroke="#3b0764" stroke-width="8" />
+             </svg>
+        </div>
+        <div class="flex-1">
+            <h3 class="text-pink-400 font-bold text-xs uppercase mb-1">Оксана</h3>
+            <p id="dialog-text" class="text-sm leading-snug typing-text"></p>
+            <p class="text-xs text-gray-400 mt-2 text-right">Нажми, чтобы продолжить...</p>
         </div>
     </div>
 
-    <!-- МЕНЮ -->
-    <div id="menu-screen" class="screen">
-        <div class="card">
-            <h1>По Чувашии</h1>
-            <p>Я Оксана. Еду домой. Помоги мне не попасть в аварию и не нарваться на штрафы!</p>
-            
-            <div class="leaderboard-section">
-                <div class="lb-title">🏆 Топ водителей</div>
-                <div id="menu-lb-list">Загрузка...</div>
-            </div>
-
-            <button class="btn" id="btn-start">Поехали!</button>
+    <!-- UI: Счет и Жизни -->
+    <div id="hud" class="hidden absolute top-4 left-0 w-full px-4 flex justify-between z-10 pointer-events-none">
+        <div class="glass-panel px-3 py-1 flex items-center gap-2">
+            <span class="text-yellow-400 text-xl">★</span>
+            <span id="score" class="font-bold text-lg">0</span>
+        </div>
+        <div class="glass-panel px-3 py-1">
+            <span class="text-xs text-gray-300">РЕКОРД: <span id="highscore">0</span></span>
         </div>
     </div>
 
-    <!-- ДИАЛОГ -->
-    <div id="dialog-screen" class="screen hidden">
-        <div class="card">
-            <div class="dialog-content">
-                <div class="dialog-avatar" id="d-icon">👮‍♂️</div>
-                <div class="dialog-title" id="d-title">ГАИ БАТЫРЕВО</div>
-                <div class="dialog-text" id="d-text">Текст диалога...</div>
-                <button class="btn" id="d-btn">Кнопка</button>
-            </div>
-        </div>
+    <!-- UI: Game Over -->
+    <div id="game-over" class="hidden glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute">
+        <h2 class="text-3xl font-black mb-2 text-red-400">Ой!</h2>
+        <p class="text-center text-gray-300 mb-6">Кошмар догнал тебя.<br>Собрано звезд: <span id="final-score" class="text-yellow-400 font-bold">0</span></p>
+        <button onclick="resetGame()" class="w-full bg-white text-slate-900 font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
+            Попробовать снова
+        </button>
     </div>
 
-    <!-- GAME OVER -->
-    <div id="game-over-screen" class="screen hidden">
-        <div class="card">
-            <h1 style="color: #c0392b;">ДТП!</h1>
-            <p>Приехали... Машину помяли.</p>
-            <div style="font-size: 42px; font-weight: 900; color: #2c3e50; margin-bottom: 20px;" id="final-score">0</div>
-            <button class="btn" id="btn-restart">Заново</button>
-        </div>
-    </div>
+    <canvas id="gameCanvas" class="game-canvas"></canvas>
 
     <script>
-    (function() {
-        // --- TG SAFE INIT ---
-        try { if(window.Telegram?.WebApp) window.Telegram.WebApp.expand(); } catch(e){}
-
+        // --- Telegram Integration ---
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Разворачиваем на весь экран
+        tg.ready();
+        
+        // --- Game Setup ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        let w, h;
-        let animationId;
+        let width, height;
+        const resize = () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        };
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Game State ---
+        let gameActive = false;
+        let score = 0;
+        let highScore = localStorage.getItem('oksana_game_hs') || 0;
+        document.getElementById('highscore').innerText = highScore;
         let frame = 0;
+        let gameSpeed = 5;
+        let difficultyMultiplier = 1;
 
-        // --- UTILS ---
-        function roundRect(ctx, x, y, width, height, radius, color) {
-            if (width < 2 * radius) radius = width / 2;
-            if (height < 2 * radius) radius = height / 2;
-            ctx.fillStyle = color;
+        // --- Story Data ---
+        const storyLines = [
+            "Где я? Это похоже на сон...",
+            "Нужно собирать эти звезды, чтобы осветить путь!",
+            "Эти красные блоки выглядят опасно...",
+            "Я чувствую, что становлюсь быстрее!"
+        ];
+        let storyIndex = 0;
+
+        // --- Assets (Drawing Functions) ---
+        // Рисуем Оксану (упрощенно для Canvas)
+        const drawPlayer = (x, y, w, h, isJumping) => {
+            ctx.save();
+            ctx.translate(x + w/2, y + h/2);
+            // Прыжок - небольшой наклон
+            if(isJumping) ctx.rotate(-0.2); 
+            else ctx.rotate(Math.sin(frame * 0.1) * 0.05); // Бег - покачивание
+
+            // Тело
+            ctx.fillStyle = '#ec4899'; // Розовый
+            ctx.fillRect(-w/2, -h/2 + 10, w, h-10);
+            
+            // Голова
+            ctx.fillStyle = '#fce7f3'; // Светлая кожа
             ctx.beginPath();
-            ctx.moveTo(x + radius, y);
-            ctx.arcTo(x + width, y, x + width, y + height, radius);
-            ctx.arcTo(x + width, y + height, x, y + height, radius);
-            ctx.arcTo(x, y + height, x, y, radius);
-            ctx.arcTo(x, y, x + width, y, radius);
-            ctx.closePath();
+            ctx.arc(0, -h/2 + 5, w/1.8, 0, Math.PI * 2);
             ctx.fill();
-        }
 
-        // --- GAME STATE ---
-        const state = {
-            screen: 'menu', 
-            score: 0,
-            speed: 40, 
-            laneOffset: 0,
-            eventStage: 0, 
-            lastEventScore: 0,
-            cooldown: 600
+            // Волосы
+            ctx.fillStyle = '#3b0764'; // Темные волосы
+            ctx.beginPath();
+            ctx.arc(0, -h/2 + 5, w/1.6, Math.PI, Math.PI * 2);
+            ctx.fill();
+            
+            // Глаза
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-5, -h/2 + 5, 2, 0, Math.PI * 2);
+            ctx.arc(5, -h/2 + 5, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+            
+            // Эффект следа (Trail)
+            if (frame % 5 === 0) {
+                particles.push(new Particle(x, y + h, 'rgba(236, 72, 153, 0.5)'));
+            }
         };
 
-        const cfg = { roadWidth: 0.9, laneCount: 3 };
-        const player = { x: 0, y: 0, w: 50, h: 90, targetX: 0, lean: 0 };
-        let objects = []; 
-        const towns = ['Чебоксары', 'Цивильск', 'Кугеси', 'Вурнары', 'Канаш', 'Ядрин', 'Шумерля', 'Алатырь'];
-        const C = { hair: '#1a1a1a', skin: '#ffdbac', top: '#151515', jeans: '#2c5a7f', grass: '#2ecc71', road: '#34495e' };
-
-        function resize() {
-            w = window.innerWidth;
-            h = window.innerHeight;
-            canvas.width = w;
-            canvas.height = h;
-            if(state.screen === 'menu') {
-                player.x = w/2 - player.w/2;
-                player.y = h - player.h - 300; 
-            } else {
-                player.y = h - player.h - 50;
+        // --- Classes ---
+        class Player {
+            constructor() {
+                this.w = 40;
+                this.h = 60;
+                this.x = 50;
+                this.y = height - 150; // Ground level
+                this.dy = 0;
+                this.jumpPower = -15;
+                this.gravity = 0.8;
+                this.isJumping = false;
+                this.groundY = height - 100;
             }
-        }
-        window.addEventListener('resize', resize);
 
-        // --- RENDER ---
-        function drawOksana(ctx, x, y, w, h, isMenu) {
-            const t = frame * 0.05;
-            const bounce = isMenu ? Math.sin(t)*2 : Math.sin(frame*0.2)*1;
-            y += bounce;
-            const lean = isMenu ? 0 : player.lean * 0.1;
+            update() {
+                // Gravity
+                this.dy += this.gravity;
+                this.y += this.dy;
 
-            ctx.save();
-            ctx.translate(x + w/2, y + h);
-            ctx.rotate(lean);
-            ctx.translate(-(x + w/2), -(y + h));
-
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.beginPath(); ctx.ellipse(x+w/2, y+h-3, w/2, 6, 0, 0, Math.PI*2); ctx.fill();
-
-            // Jeans
-            ctx.fillStyle = C.jeans;
-            ctx.beginPath(); 
-            ctx.moveTo(x + w*0.15, y + h*0.5); ctx.lineTo(x + w*0.48, y + h*0.5); ctx.lineTo(x + w*0.4, y + h*0.92); ctx.lineTo(x + w*0.18, y + h*0.92); ctx.fill();
-            ctx.beginPath(); 
-            ctx.moveTo(x + w*0.52, y + h*0.5); ctx.lineTo(x + w*0.85, y + h*0.5); ctx.lineTo(x + w*0.82, y + h*0.92); ctx.lineTo(x + w*0.6, y + h*0.92); ctx.fill();
-            roundRect(ctx, x+w*0.15, y+h*0.45, w*0.7, h*0.12, 5, C.jeans);
-            
-            // Boots
-            ctx.fillStyle = '#111';
-            roundRect(ctx, x+w*0.15, y+h*0.9, w*0.28, h*0.1, 4, '#111');
-            roundRect(ctx, x+w*0.57, y+h*0.9, w*0.28, h*0.1, 4, '#111');
-
-            // Torso
-            roundRect(ctx, x+w*0.18, y+h*0.18, w*0.64, h*0.3, 8, C.top);
-            roundRect(ctx, x+w*0.35, y+h*0.14, w*0.3, h*0.06, 3, C.top);
-
-            // Arms
-            const armSway = isMenu ? Math.sin(t)*2 : -lean * 8;
-            roundRect(ctx, x+w*0.05, y+h*0.19+armSway, w*0.14, h*0.28, 5, C.top); 
-            roundRect(ctx, x+w*0.81, y+h*0.19-armSway, w*0.14, h*0.28, 5, C.top); 
-            ctx.fillStyle = C.skin;
-            ctx.beginPath(); ctx.arc(x+w*0.12, y+h*0.48+armSway, w*0.06, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(x+w*0.88, y+h*0.48-armSway, w*0.06, 0, Math.PI*2); ctx.fill();
-
-            // Head
-            ctx.fillStyle = C.skin;
-            ctx.beginPath(); ctx.ellipse(x+w/2, y+h*0.12, w*0.22, h*0.13, 0, 0, Math.PI*2); ctx.fill();
-
-            // Hair
-            ctx.fillStyle = C.hair;
-            ctx.beginPath();
-            ctx.moveTo(x+w*0.1, y+h*0.1);
-            ctx.quadraticCurveTo(x+w*0.5, y-h*0.08, x+w*0.9, y+h*0.1);
-            ctx.bezierCurveTo(x+w*1.1, y+h*0.3, x+w*0.9, y+h*0.6, x+w*0.95, y+h*0.75);
-            ctx.lineTo(x+w*0.75, y+h*0.75);
-            ctx.quadraticCurveTo(x+w*0.7, y+h*0.4, x+w*0.72, y+h*0.1);
-            ctx.lineTo(x+w*0.28, y+h*0.1);
-            ctx.quadraticCurveTo(x+w*0.25, y+h*0.4, x+w*0.2, y+h*0.75);
-            ctx.lineTo(x, y+h*0.75);
-            ctx.bezierCurveTo(x+w*0.1, y+h*0.6, x-w*0.1, y+h*0.3, x+w*0.1, y+h*0.1);
-            ctx.fill();
-
-            if (isMenu) {
-                ctx.fillStyle = '#fff';
-                ctx.beginPath(); ctx.ellipse(x+w*0.4, y+h*0.11, w*0.06, h*0.02, 0, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(x+w*0.6, y+h*0.11, w*0.06, h*0.02, 0, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#3e2723'; 
-                ctx.beginPath(); ctx.arc(x+w*0.4, y+h*0.11, w*0.025, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(x+w*0.6, y+h*0.11, w*0.025, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#d87093';
-                ctx.beginPath(); ctx.ellipse(x+w*0.5, y+h*0.16, w*0.04, h*0.012, 0, 0, Math.PI*2); ctx.fill();
+                // Ground collision
+                if (this.y + this.h > this.groundY) {
+                    this.y = this.groundY - this.h;
+                    this.dy = 0;
+                    this.isJumping = false;
+                }
             }
-            ctx.restore();
-        }
 
-        function drawCar(ctx, o) {
-            const {x, y, width, height, color, brand} = o;
-            roundRect(ctx, x+8, y+8, width, height, 10, 'rgba(0,0,0,0.3)');
-            roundRect(ctx, x, y, width, height, 10, color);
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(x+5, y+18, width-10, 14); 
-            ctx.fillRect(x+5, y+height-26, width-10, 10); 
-            ctx.fillStyle = color; ctx.globalAlpha = 0.9;
-            ctx.fillRect(x+7, y+34, width-14, height-60); ctx.globalAlpha = 1.0;
+            jump() {
+                if (!this.isJumping) {
+                    this.dy = this.jumpPower;
+                    this.isJumping = true;
+                    // Haptic feedback for Telegram
+                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                }
+            }
 
-            const cx = x + width/2; const cy = y + height - 16;
-            if (brand === 'merc') {
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx, cy-6); ctx.lineTo(cx, cy); ctx.lineTo(cx-4, cy+3); ctx.moveTo(cx, cy); ctx.lineTo(cx+4, cy+3); ctx.stroke();
-            } else if (brand === 'bmw') {
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx, cy, 6, 0, Math.PI/2); ctx.lineTo(cx,cy); ctx.arc(cx,cy,6,Math.PI,Math.PI*1.5); ctx.fill();
-            } else {
-                ctx.fillStyle = '#ecf0f1'; ctx.font = '700 8px Arial'; ctx.textAlign = 'center'; ctx.fillText('LEXUS', cx, cy+3);
+            draw() {
+                drawPlayer(this.x, this.y, this.w, this.h, this.isJumping);
             }
         }
 
-        function drawRoad() {
-            ctx.fillStyle = '#27ae60'; ctx.fillRect(0,0,w,h);
-            const rX = w * 0.05; const rW = w * 0.9;
-            ctx.fillStyle = '#34495e'; ctx.fillRect(rX, 0, rW, h);
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([30, 40]);
-            state.laneOffset = (state.laneOffset + state.speed * 0.15) % 70;
-            ctx.lineDashOffset = -state.laneOffset;
-            const laneW = rW / 3;
-            ctx.beginPath();
-            ctx.moveTo(rX + laneW, -50); ctx.lineTo(rX + laneW, h+50);
-            ctx.moveTo(rX + laneW*2, -50); ctx.lineTo(rX + laneW*2, h+50);
-            ctx.stroke();
-            ctx.setLineDash([]);
+        class Obstacle {
+            constructor() {
+                this.w = 30 + Math.random() * 20;
+                this.h = 30 + Math.random() * 30;
+                this.x = width;
+                this.y = (height - 100) - this.h;
+                this.color = '#ef4444'; // Red danger
+                this.markedForDeletion = false;
+            }
+
+            update() {
+                this.x -= gameSpeed;
+                if (this.x + this.w < 0) this.markedForDeletion = true;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.shadowBlur = 0;
+            }
         }
 
-        // --- UPDATE ---
-        function update() {
-            frame++;
-            state.score++;
-            
-            let rawSpeed = 40 + Math.floor(state.score / 25);
-            state.speed = rawSpeed;
-            document.getElementById('speed-val').innerText = rawSpeed;
-            if (state.score % 10 === 0) document.getElementById('score-val').innerText = Math.floor(state.score/10);
+        class Star {
+            constructor() {
+                this.size = 15;
+                this.x = width;
+                this.y = (height - 100) - 40 - Math.random() * 100; // Random height
+                this.markedForDeletion = false;
+                this.angle = 0;
+            }
 
-            if (rawSpeed >= 100) {
-                const delta = state.score - state.lastEventScore;
-                if (state.eventStage === 0) {
-                    pauseGame('batyrevo');
+            update() {
+                this.x -= gameSpeed;
+                this.angle += 0.1;
+                if (this.x + this.size < 0) this.markedForDeletion = true;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = '#fbbf24';
+                ctx.beginPath();
+                for(let i = 0; i < 5; i++){
+                    ctx.lineTo(Math.cos((18 + i * 72) * 0.0174533) * this.size, 
+                               Math.sin((18 + i * 72) * 0.0174533) * this.size);
+                    ctx.lineTo(Math.cos((54 + i * 72) * 0.0174533) * (this.size/2), 
+                               Math.sin((54 + i * 72) * 0.0174533) * (this.size/2));
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 2;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.speedX = -gameSpeed;
+                this.color = color;
+                this.life = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.05;
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // --- Logic Variables ---
+        let player = new Player();
+        let obstacles = [];
+        let stars = [];
+        let particles = [];
+        let obstacleTimer = 0;
+        let starTimer = 0;
+
+        // --- Input Handling ---
+        const handleInput = () => {
+            if (gameActive) {
+                // Если диалог открыт, закрываем его
+                const dialog = document.getElementById('dialog-box');
+                if (!dialog.classList.contains('hidden')) {
+                    closeDialog();
                     return;
                 }
-                else if (state.eventStage === 1 && delta > state.cooldown) {
-                    pauseGame('yadrin');
-                    return;
+                player.jump();
+            }
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') handleInput();
+        });
+        window.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent double firing
+            handleInput();
+        }, {passive: false});
+        window.addEventListener('mousedown', handleInput);
+
+        // --- Dialog System ---
+        function showDialog(text) {
+            gameActive = false; // Pause game logic, but loop continues for rendering
+            const dialog = document.getElementById('dialog-box');
+            const textEl = document.getElementById('dialog-text');
+            dialog.classList.remove('hidden');
+            
+            // Typewriter effect
+            textEl.innerHTML = '';
+            let i = 0;
+            const type = () => {
+                if (i < text.length) {
+                    textEl.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, 30);
                 }
-            }
-
-            const diff = player.targetX - player.x;
-            player.x += diff * 0.15;
-            player.lean = -diff * 0.1;
-
-            if (Math.random() < 0.02) spawn('car');
-            if (Math.random() < 0.05) spawn('tree');
-            if (Math.random() < 0.01) spawn('sign');
-
-            for(let i=objects.length-1; i>=0; i--) {
-                let o = objects[i];
-                o.y += 2 + state.speed * 0.1; 
-                if(o.type === 'car') {
-                    o.y += o.speed + 2; 
-                    if(rectIntersect(player.x+10, player.y+10, player.w-20, player.h-20, o.x, o.y, o.width, o.height)) {
-                        gameOver();
-                    }
-                }
-                if(o.y > h + 100) objects.splice(i, 1);
-            }
+            };
+            type();
         }
 
-        function spawn(type) {
-            const rX = w * 0.05; const rW = w * 0.9;
-            if (type === 'car') {
-                const lane = Math.floor(Math.random()*3);
-                const laneW = rW/3;
-                // --- FIX FOR GAP ---
-                // Calculate max reasonable width for a car
-                // We want it to be wide enough to block most of the lane
-                const carW = laneW * 0.75; 
-                const x = rX + lane*laneW + (laneW-carW)/2;
-                
-                // Check overlap
-                for(let o of objects) if(o.type==='car' && Math.abs(o.y - (-150)) < 180 && Math.abs(o.x - x)<50) return;
-                
-                const brands = ['merc', 'bmw', 'lexus'];
-                const b = brands[Math.floor(Math.random()*3)];
-                let c = '#bdc3c7'; if(b==='bmw') c='#1e293b'; if(b==='lexus') c='#7f8c8d';
-                
-                // Keep height proportional roughly 1:1.8
-                const carH = carW * 1.8; 
-                
-                objects.push({type:'car', x:x, y:-150, width:carW, height:carH, speed:Math.random()*2, color:c, brand:b});
-            } else if (type === 'tree') {
-                const side = Math.random()<0.5;
-                const x = side ? Math.random()*(rX-30) : rX+rW+Math.random()*20;
-                objects.push({type:'tree', x:x, y:-50});
-            } else if (type === 'sign') {
-                const x = rX+rW-5;
-                objects.push({type:'sign', x:x, y:-50, text:towns[Math.floor(Math.random()*towns.length)]});
-            }
+        function closeDialog() {
+            document.getElementById('dialog-box').classList.add('hidden');
+            gameActive = true;
+            // Увеличиваем сложность после диалога
+            gameSpeed += 0.5;
         }
 
-        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
-            return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1;
-        }
-
-        // --- LOOP ---
-        function loop() {
-            if (state.screen === 'menu') {
-                ctx.fillStyle = '#fdf6ec'; ctx.fillRect(0,0,w,h);
-                frame++;
-                const bigW = Math.min(w * 0.6, 220);
-                drawOksana(ctx, (w-bigW)/2, h - bigW*2 - 180, bigW, bigW*2, true);
-            } 
-            else if (state.screen === 'game' || state.screen === 'dialog') {
-                drawRoad();
-                const all = [...objects, {type:'player', y:player.y}];
-                all.sort((a,b)=>a.y - b.y);
-                all.forEach(o => {
-                    if(o.type === 'tree') {
-                        ctx.fillStyle = '#14532d'; ctx.beginPath(); ctx.moveTo(o.x, o.y-40); ctx.lineTo(o.x+20, o.y); ctx.lineTo(o.x-20, o.y); ctx.fill();
-                    } else if (o.type === 'sign') {
-                        ctx.fillStyle = '#7f8c8d'; ctx.fillRect(o.x, o.y-40, 4, 40);
-                        roundRect(ctx, o.x-70, o.y-60, 70, 20, 4, '#2980b9');
-                        ctx.fillStyle = '#fff'; ctx.font = '10px Mulish'; ctx.textAlign = 'center'; ctx.fillText(o.text, o.x-35, o.y-47);
-                    } else if (o.type === 'car') {
-                        drawCar(ctx, o);
-                    } else if (o.type === 'player') {
-                        drawOksana(ctx, player.x, player.y, player.w, player.h, false);
-                    }
-                });
-                if(state.screen === 'game') update();
-            }
-            animationId = requestAnimationFrame(loop);
-        }
-
-        // --- STORY ---
-        function pauseGame(eventId) {
-            state.screen = 'dialog';
-            state.lastEventScore = state.score;
-            document.getElementById('dialog-screen').classList.remove('hidden');
-            const dTitle = document.getElementById('d-title');
-            const dText = document.getElementById('d-text');
-            const dBtn = document.getElementById('d-btn');
-
-            if (eventId === 'batyrevo') {
-                dTitle.innerText = 'ДПС БАТЫРЕВО';
-                dText.innerHTML = '— Куда летим, Оксана?<br>Ты наши дороги видела?!';
-                dBtn.innerText = 'Извините (Штраф)';
-                dBtn.onclick = () => {
-                    state.score = Math.max(0, state.score - 400);
-                    state.eventStage = 1;
-                    resumeGame();
-                };
-            } else if (eventId === 'yadrin') {
-                dTitle.innerText = 'ДПС ЯДРИН';
-                dText.innerHTML = '— Ооо, Оксана, ты же хамар ял!<br>Можешь ехать.';
-                dBtn.innerText = 'Маттур! (Спасибо)';
-                dBtn.onclick = () => {
-                    state.eventStage = 2;
-                    resumeGame();
-                };
-            }
-        }
-
-        function resumeGame() {
-            document.getElementById('dialog-screen').classList.add('hidden');
-            state.screen = 'game';
-            objects.forEach(o => { if(o.type==='car') o.y -= 400; });
-        }
+        // --- Core Functions ---
 
         function startGame() {
-            state.score = 0;
-            state.eventStage = 0;
-            state.lastEventScore = 0;
-            objects = [];
-            state.screen = 'game';
-            player.targetX = w/2 - player.w/2;
-            player.x = player.targetX;
-            player.y = h - player.h - 50;
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('hud').style.opacity = 1;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+            
+            resetVars();
+            gameActive = true;
+            
+            // Show intro dialog immediately
+            setTimeout(() => showDialog(storyLines[0]), 500);
+            
+            animate();
+        }
+
+        function resetVars() {
+            player = new Player();
+            obstacles = [];
+            stars = [];
+            particles = [];
+            score = 0;
+            gameSpeed = 5;
+            document.getElementById('score').innerText = '0';
+            frame = 0;
+        }
+
+        function resetGame() {
+            startGame();
         }
 
         function gameOver() {
-            state.screen = 'gameover';
-            document.getElementById('final-score').innerText = Math.floor(state.score/10);
-            document.getElementById('game-over-screen').classList.remove('hidden');
-            document.getElementById('hud').style.opacity = 0;
-            saveScore(Math.floor(state.score/10));
+            gameActive = false;
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('oksana_game_hs', highScore);
+                document.getElementById('highscore').innerText = highScore;
+            }
+            
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('game-over').classList.remove('hidden');
+            document.getElementById('hud').classList.add('hidden');
         }
 
-        // --- STORAGE ---
-        function saveScore(s) {
-            let scores = JSON.parse(localStorage.getItem('cd_scores') || '[]');
-            const name = window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'Водитель';
-            scores.push({n: name, s: s});
-            scores.sort((a,b) => b.s - a.s);
-            localStorage.setItem('cd_scores', JSON.stringify(scores.slice(0,5)));
-            updateLeaderboardUI(scores.slice(0,5));
+        function checkCollisions() {
+            // Obstacles
+            obstacles.forEach(obs => {
+                if (
+                    player.x < obs.x + obs.w &&
+                    player.x + player.w > obs.x &&
+                    player.y < obs.y + obs.h &&
+                    player.y + player.h > obs.y
+                ) {
+                    gameOver();
+                }
+            });
+
+            // Stars
+            stars.forEach(star => {
+                if (!star.markedForDeletion &&
+                    player.x < star.x + star.size &&
+                    player.x + player.w > star.x &&
+                    player.y < star.y + star.size &&
+                    player.y + player.h > star.y
+                ) {
+                    star.markedForDeletion = true;
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    
+                    // Trigger particles
+                    for(let k=0; k<5; k++) particles.push(new Particle(star.x, star.y, '#fbbf24'));
+
+                    // Story Triggers based on score
+                    if (score === 50) showDialog(storyLines[1]);
+                    if (score === 150) showDialog(storyLines[2]);
+                    if (score === 300) showDialog(storyLines[3]);
+                }
+            });
         }
 
-        function updateLeaderboardUI(scores) {
-            if(!scores) scores = JSON.parse(localStorage.getItem('cd_scores') || '[]');
-            const html = scores.map((e,i) => `
-                <div class="lb-item top-${i+1}">
-                    <div><span class="lb-rank">#${i+1}</span> ${e.n}</div>
-                    <div class="lb-score">${e.s}</div>
-                </div>`).join('');
-            document.getElementById('menu-lb-list').innerHTML = html || '<div style="text-align:center;color:#aaa">Нет рекордов</div>';
+        // --- Main Loop ---
+        function animate() {
+            if (!document.getElementById('game-over').classList.contains('hidden')) return; // Stop if game over
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw Floor
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, height - 100, width, 100);
+            ctx.fillStyle = '#334155'; // Ground detail
+            ctx.fillRect(0, height - 95, width, 2);
+
+            if (gameActive) {
+                frame++;
+                
+                // Spawn Obstacles
+                if (obstacleTimer > 150 - (gameSpeed * 2) + Math.random() * 50) {
+                    obstacles.push(new Obstacle());
+                    obstacleTimer = 0;
+                } else {
+                    obstacleTimer++;
+                }
+
+                // Spawn Stars
+                if (starTimer > 100 + Math.random() * 100) {
+                    stars.push(new Star());
+                    starTimer = 0;
+                } else {
+                    starTimer++;
+                }
+
+                player.update();
+                
+                // Update Objects
+                [...obstacles, ...stars, ...particles].forEach(obj => obj.update());
+                
+                // Cleanup
+                obstacles = obstacles.filter(o => !o.markedForDeletion);
+                stars = stars.filter(s => !s.markedForDeletion);
+                particles = particles.filter(p => p.life > 0);
+                
+                checkCollisions();
+            }
+
+            // Draw Everything
+            stars.forEach(s => s.draw());
+            obstacles.forEach(o => o.draw());
+            player.draw();
+            particles.forEach(p => p.draw());
+
+            requestAnimationFrame(animate);
         }
 
-        // --- CONTROLS ---
-        document.getElementById('btn-start').onclick = startGame;
-        document.getElementById('btn-restart').onclick = startGame;
-
-        canvas.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if(state.screen !== 'game') return;
-            player.targetX = e.touches[0].clientX - player.w/2;
-            const rX = w*0.05; const rW = w*0.9;
-            if(player.targetX < rX) player.targetX = rX;
-            if(player.targetX > rX+rW-player.w) player.targetX = rX+rW-player.w;
-        });
-
-        // Init
-        updateLeaderboardUI();
+        // First resize to set ground correct
         resize();
-        loop();
-
-    })();
+        
     </script>
 </body>
 </html>
