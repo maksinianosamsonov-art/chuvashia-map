@@ -3,519 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Приключения Оксаны</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Истории Оксаны</title>
+    
+    <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (для JSX в браузере) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* Базовые стили и анимации */
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #0f172a; /* Default, will be changed by JS */
-            overflow: hidden;
-            touch-action: none;
-            transition: background-color 1s ease;
+            background-color: var(--tg-theme-bg-color, #1a202c);
+            color: var(--tg-theme-text-color, #f7fafc);
+            overflow: hidden; /* Предотвращаем скролл всей страницы */
+            touch-action: manipulation;
         }
 
+        /* Утилиты для новеллы */
+        .novel-text {
+            font-family: 'Lora', serif;
+        }
+
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 500ms, transform 500ms;
+        }
+        .fade-exit {
+            opacity: 1;
+        }
+        .fade-exit-active {
+            opacity: 0;
+            transition: opacity 300ms;
+        }
+
+        /* Эффект стекла */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(var(--tg-theme-bg-color-rgb, 30, 41, 59), 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
         }
 
-        .game-canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+        /* Скрываем скроллбар */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        .hidden { display: none !important; }
-        
-        .avatar-pulse {
-            animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-        }
-
-        .typing-text::after {
+        /* Анимация печати */
+        .typing-cursor::after {
             content: '|';
-            animation: blink 1s infinite;
+            animation: blink 1s step-start infinite;
         }
         @keyframes blink { 50% { opacity: 0; } }
-
-        /* Стили для фото персонажа */
-        .character-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
+        
+        /* Кнопки выборов */
+        .choice-btn {
+            background-color: var(--tg-theme-button-color, #3b82f6);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            transition: all 0.2s;
+        }
+        .choice-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
         }
     </style>
 </head>
-<body class="text-white h-screen w-screen flex flex-col items-center justify-center relative transition-colors duration-1000">
+<body>
+    <div id="root"></div>
 
-    <!-- UI: Главное меню -->
-    <div id="start-screen" class="glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute transition-all duration-500">
-        <div class="w-28 h-28 rounded-full border-4 border-white/30 mb-4 avatar-pulse relative overflow-hidden bg-black">
-             <!-- 
-                ВАЖНО: Чтобы использовать твоё фото, замени src ниже на "image_d88765.jpg" 
-                и положи файл рядом с html файлом.
-             -->
-             <img id="ui-avatar" src="https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c" alt="Оксана" class="character-img">
-        </div>
-        <h1 id="game-title" class="text-4xl font-black mb-2 text-center text-white drop-shadow-md">Оксана</h1>
-        <h2 id="scenario-title" class="text-xl mb-4 font-bold text-gray-200 text-center">...</h2>
-        <p id="scenario-desc" class="text-center text-sm text-gray-100 mb-6 leading-relaxed font-semibold shadow-black drop-shadow-sm">
-            Загрузка сюжета...
-        </p>
-        <button onclick="startGame()" class="w-full bg-white text-slate-900 font-bold py-4 px-6 rounded-2xl shadow-xl transform transition active:scale-95 text-lg hover:bg-gray-100">
-            НАЧАТЬ ИГРУ
-        </button>
-    </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
 
-    <!-- UI: Диалог -->
-    <div id="dialog-box" class="hidden glass-panel absolute bottom-12 w-[90%] p-5 z-20 flex items-start gap-4 animate-bounce-in">
-        <div class="w-14 h-14 rounded-full bg-white/20 flex-shrink-0 overflow-hidden border-2 border-white">
-             <img id="dialog-avatar" src="" class="character-img">
-        </div>
-        <div class="flex-1">
-            <h3 class="text-white font-bold text-xs uppercase mb-1 opacity-80">Оксана говорит:</h3>
-            <p id="dialog-text" class="text-base font-bold leading-snug typing-text shadow-black drop-shadow-md"></p>
-            <p class="text-xs text-white/60 mt-2 text-right">Нажми, чтобы продолжить...</p>
-        </div>
-    </div>
-
-    <!-- UI: HUD -->
-    <div id="hud" class="hidden absolute top-safe left-0 w-full p-4 flex justify-between z-10 pointer-events-none mt-2">
-        <div class="glass-panel px-4 py-2 flex items-center gap-2">
-            <span class="text-yellow-300 text-2xl drop-shadow-md">★</span>
-            <span id="score" class="font-black text-xl">0</span>
-        </div>
-        <div class="glass-panel px-4 py-2">
-            <span class="text-xs font-bold opacity-80">РЕКОРД: <span id="highscore">0</span></span>
-        </div>
-    </div>
-
-    <!-- UI: Game Over -->
-    <div id="game-over" class="hidden glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute">
-        <h2 class="text-4xl font-black mb-2 text-red-100 drop-shadow-md">Ой!</h2>
-        <p class="text-center text-white mb-6 text-lg">
-            Приключение прервалось.<br>
-            <span class="text-sm opacity-75">Твой результат:</span> <span id="final-score" class="text-yellow-300 font-bold text-2xl">0</span>
-        </p>
-        <button onclick="location.reload()" class="w-full bg-white text-slate-900 font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
-            Попробовать другой сюжет
-        </button>
-    </div>
-
-    <canvas id="gameCanvas" class="game-canvas"></canvas>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-
-        // --- КОНФИГУРАЦИЯ ИГРОКА (ФОТО) ---
-        // Замени ссылку ниже на 'image_d88765.jpg' если файл лежит рядом
-        const PLAYER_IMAGE_SRC = "https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c"; 
-        
-        // --- СЦЕНАРИИ ИГРЫ ---
-        const scenarios = [
-            {
-                id: 'dream',
-                title: 'Мир Снов',
-                desc: 'Оксана попала в странный сон. Собирай звезды памяти, чтобы проснуться!',
-                bgColor: '#0f172a', // Темно-синий
-                groundColor: '#1e293b',
-                obstacleColor: '#ef4444', // Красный
-                starColor: '#fbbf24',
-                dialogs: [
-                    "Ого, где это я? Все такое странное...",
-                    "Я помню этот путь... нужно бежать быстрее!",
-                    "Кошмары становятся ближе, страшно!",
-                    "Я вижу свет в конце тоннеля!"
+        // --- ДАННЫЕ СЮЖЕТА ---
+        const STORIES = {
+            intro: {
+                id: 'intro',
+                text: "Привет! Меня зовут Оксана. Мне 18, я учусь на фотографа и живу в этом, казалось бы, обычном городе.",
+                background: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=1286&auto=format&fit=crop",
+                speaker: "Оксана",
+                emotion: "smile",
+                choices: [
+                    { text: "Рассказать о себе", next: "intro_2" }
                 ]
             },
-            {
-                id: 'forest',
-                title: 'Волшебный Лес',
-                desc: 'Заколдованный лес полон магии. Собирай светлячков и избегай злых пней!',
-                bgColor: '#14532d', // Темно-зеленый
-                groundColor: '#365314',
-                obstacleColor: '#581c87', // Фиолетовый
-                starColor: '#bef264', // Лайм
-                dialogs: [
-                    "Какой красивый лес, но тут опасно.",
-                    "Светлячки показывают мне дорогу.",
-                    "Деревья шепчутся... нужно спешить.",
-                    "Я почти выбралась из чащи!"
+            intro_2: {
+                id: 'intro_2',
+                text: "Сегодня особенный день. У меня выходной, и я могу пойти куда угодно. Что выберем?",
+                background: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=1286&auto=format&fit=crop",
+                speaker: "Оксана",
+                choices: [
+                    { text: "Пойти в парк (Романтика) 💖", next: "romance_start", type: "romance" },
+                    { text: "Найти старую камеру (Детектив) 🔍", next: "detective_start", type: "detective" },
+                    { text: "Зайти в антикварный магазин (Мистика) 🔮", next: "mystic_start", type: "mystic" }
                 ]
             },
-            {
-                id: 'candy',
-                title: 'Сладкое Королевство',
-                desc: 'Все сделано из сладостей! Собирай леденцы, но не врежься в желейных монстров.',
-                bgColor: '#831843', // Розовый/Малиновый
-                groundColor: '#9d174d',
-                obstacleColor: '#1e1b4b', // Темно-синий
-                starColor: '#f472b6', // Розовый светлый
-                dialogs: [
-                    "Ммм, тут пахнет ванилью!",
-                    "Так много конфет, но нельзя останавливаться.",
-                    "Желейные блоки очень липкие!",
-                    "Сахарная лихорадка! Бегу быстрее!"
+
+            // --- Ветка РОМАНТИКА ---
+            romance_start: {
+                id: 'romance_start',
+                text: "Парк сегодня великолепен. Солнце пробивается сквозь листву... Ой!",
+                background: "https://images.unsplash.com/photo-1519331379826-f9491da3fa6a?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Оксана",
+                effect: "shake",
+                choices: [
+                    { text: "Что случилось?", next: "romance_collision" }
                 ]
+            },
+            romance_collision: {
+                id: 'romance_collision',
+                text: "Девушка, простите! Я засмотрелся на карту. Вы не ушиблись? — Передо мной стоит парень с добрыми глазами.",
+                background: "https://images.unsplash.com/photo-1519331379826-f9491da3fa6a?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Незнакомец",
+                characterImg: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop",
+                choices: [
+                    { text: "Всё в порядке, я Оксана.", next: "romance_meet_good" },
+                    { text: "Смотреть надо, куда идешь.", next: "romance_meet_bad" }
+                ]
+            },
+            romance_meet_good: {
+                id: 'romance_meet_good',
+                text: "Оксана... Красивое имя. А я Артём. Я фотограф, ищу вдохновение. Не хотите составить компанию?",
+                background: "https://images.unsplash.com/photo-1519331379826-f9491da3fa6a?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Артём",
+                characterImg: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop",
+                choices: [
+                    { text: "С удовольствием!", next: "romance_end_happy" },
+                    { text: "Я спешу, извини.", next: "romance_end_neutral" }
+                ]
+            },
+             romance_meet_bad: {
+                id: 'romance_meet_bad',
+                text: "Понял, не буду мешать. Хорошего дня. — Он грустно улыбнулся и ушел.",
+                background: "https://images.unsplash.com/photo-1519331379826-f9491da3fa6a?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Артём",
+                choices: [
+                    { text: "Эх, зря я так...", next: "intro_2" }
+                ]
+            },
+             romance_end_happy: {
+                id: 'romance_end_happy',
+                text: "Конец демо-версии (Романтика): Вы пошли гулять и сделали отличные кадры вместе!",
+                background: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Система",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
+            },
+            romance_end_neutral: {
+                id: 'romance_end_neutral',
+                text: "Конец демо-версии (Романтика): Вы разошлись, но, возможно, встретитесь снова.",
+                background: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1287&auto=format&fit=crop",
+                speaker: "Система",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
+            },
+
+
+            // --- Ветка ДЕТЕКТИВ ---
+            detective_start: {
+                id: 'detective_start',
+                text: "В кустах что-то блеснуло. Это старый пленочный фотоаппарат 'Зенит'. Внутри пленка.",
+                background: "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1470&auto=format&fit=crop",
+                speaker: "Оксана",
+                choices: [
+                    { text: "Проявить пленку дома", next: "detective_develop" },
+                    { text: "Отнести в полицию", next: "detective_police" }
+                ]
+            },
+            detective_develop: {
+                id: 'detective_develop',
+                text: "В красном свете лаборатории проявляются кадры... Боже мой. На фото место преступления, которое произошло вчера!",
+                background: "https://images.unsplash.com/photo-1599666505327-77564d7c0764?q=80&w=1470&auto=format&fit=crop",
+                speaker: "Оксана",
+                effect: "flash",
+                choices: [
+                    { text: "Рассмотреть детали", next: "detective_clue" }
+                ]
+            },
+            detective_clue: {
+                id: 'detective_clue',
+                text: "На заднем плане видно лицо человека. Он кажется мне знакомым...",
+                background: "https://images.unsplash.com/photo-1599666505327-77564d7c0764?q=80&w=1470&auto=format&fit=crop",
+                speaker: "Оксана",
+                choices: [
+                    { text: "Конец демо (Детектив)", next: "intro" }
+                ]
+            },
+            detective_police: {
+                id: 'detective_police',
+                text: "Полицейский скучающе принял камеру. 'Мы разберемся', - сказал он, но я видела, как он бросил её в ящик забытых вещей.",
+                background: "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1470&auto=format&fit=crop",
+                speaker: "Оксана",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
+            },
+
+            // --- Ветка МИСТИКА ---
+            mystic_start: {
+                id: 'mystic_start',
+                text: "Антикварный магазин пахнет пылью и воском. Старое зеркало в углу притягивает взгляд. Отражение в нем... движется само по себе?",
+                background: "https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?q=80&w=1470&auto=format&fit=crop",
+                speaker: "Оксана",
+                choices: [
+                    { text: "Подойти ближе", next: "mystic_touch" },
+                    { text: "Убежать", next: "mystic_run" }
+                ]
+            },
+            mystic_touch: {
+                id: 'mystic_touch',
+                text: "Я коснулась стекла. Оно холодное, как лед. Вдруг моя рука прошла сквозь него! Меня затягивает!",
+                background: "https://images.unsplash.com/photo-1518536836162-849557a55227?q=80&w=1335&auto=format&fit=crop",
+                speaker: "Оксана",
+                effect: "zoom",
+                choices: [
+                    { text: "Сопротивляться", next: "mystic_resist" },
+                    { text: "Поддаться", next: "mystic_accept" }
+                ]
+            },
+            mystic_run: {
+                id: 'mystic_run',
+                text: "Я выбежала на улицу, жадно хватая воздух. Нет, с меня хватит приключений на сегодня.",
+                background: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=1286&auto=format&fit=crop",
+                speaker: "Оксана",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
+            },
+            mystic_accept: {
+                id: 'mystic_accept',
+                text: "Конец демо (Мистика): Вы попали в Зазеркалье.",
+                background: "https://images.unsplash.com/photo-1518536836162-849557a55227?q=80&w=1335&auto=format&fit=crop",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
+            },
+             mystic_resist: {
+                id: 'mystic_resist',
+                text: "Конец демо (Мистика): Вам удалось вырваться, но зеркало треснуло.",
+                background: "https://images.unsplash.com/photo-1504194921103-f8b80cadd5e4?q=80&w=1470&auto=format&fit=crop",
+                isEnd: true,
+                choices: [{ text: "В главное меню", next: "intro" }]
             }
-        ];
-
-        // Выбор случайного сценария
-        const currentScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
-
-        // Применяем тему к UI
-        document.body.style.backgroundColor = currentScenario.bgColor;
-        document.getElementById('scenario-title').innerText = currentScenario.title;
-        document.getElementById('scenario-desc').innerText = currentScenario.desc;
-        document.getElementById('ui-avatar').src = PLAYER_IMAGE_SRC;
-        document.getElementById('dialog-avatar').src = PLAYER_IMAGE_SRC;
-
-        // --- ИГРОВОЙ ДВИЖОК ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let width, height;
-        const resize = () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-        };
-        window.addEventListener('resize', resize);
-        resize();
-
-        // Загрузка спрайта игрока
-        const playerSprite = new Image();
-        playerSprite.src = PLAYER_IMAGE_SRC;
-
-        // Переменные состояния
-        let gameActive = false;
-        let score = 0;
-        let highScore = localStorage.getItem('oksana_hs_v2') || 0;
-        document.getElementById('highscore').innerText = highScore;
-        let frame = 0;
-        let gameSpeed = 6; // Чуть быстрее старт
-        
-        // Классы
-        class Player {
-            constructor() {
-                this.size = 50; // Размер персонажа
-                this.x = 40;
-                this.y = height - 150;
-                this.dy = 0;
-                this.jumpPower = -17; // Сильнее прыжок
-                this.gravity = 0.9;
-                this.isJumping = false;
-                this.groundY = height - 100;
-                this.rotation = 0;
-            }
-
-            update() {
-                // Физика
-                this.dy += this.gravity;
-                this.y += this.dy;
-
-                // Пол
-                if (this.y + this.size > this.groundY) {
-                    this.y = this.groundY - this.size;
-                    this.dy = 0;
-                    this.isJumping = false;
-                    this.rotation = 0;
-                } else {
-                    // Вращение в прыжке для динамики
-                    this.rotation += 0.1;
-                }
-            }
-
-            jump() {
-                if (!this.isJumping) {
-                    this.dy = this.jumpPower;
-                    this.isJumping = true;
-                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                }
-            }
-
-            draw() {
-                ctx.save();
-                // Центр вращения - центр персонажа
-                ctx.translate(this.x + this.size/2, this.y + this.size/2);
-                
-                // Если бежит - покачиваемся, если прыгает - вращаем немного
-                if(this.isJumping) {
-                    // ctx.rotate(this.rotation); // Можно включить для сальто
-                    ctx.rotate(-0.2); // Просто наклон
-                } else {
-                    ctx.rotate(Math.sin(frame * 0.15) * 0.1);
-                }
-
-                // Рисуем круглое фото (маска)
-                ctx.beginPath();
-                ctx.arc(0, 0, this.size/2, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.clip();
-                
-                // Рисуем само изображение
-                if (playerSprite.complete) {
-                    ctx.drawImage(playerSprite, -this.size/2, -this.size/2, this.size, this.size);
-                } else {
-                    ctx.fillStyle = '#fff';
-                    ctx.fill();
-                }
-
-                // Обводка
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                ctx.restore();
-            }
-        }
-
-        class Obstacle {
-            constructor() {
-                this.w = 40 + Math.random() * 20;
-                this.h = 40 + Math.random() * 40;
-                this.x = width;
-                this.y = (height - 100) - this.h;
-                this.color = currentScenario.obstacleColor;
-                this.markedForDeletion = false;
-            }
-
-            update() {
-                this.x -= gameSpeed;
-                if (this.x + this.w < 0) this.markedForDeletion = true;
-            }
-
-            draw() {
-                ctx.fillStyle = this.color;
-                // Небольшое свечение
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.color;
-                
-                // Рисуем с закругленными краями
-                ctx.beginPath();
-                ctx.roundRect(this.x, this.y, this.w, this.h, 8);
-                ctx.fill();
-                
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        class Star {
-            constructor() {
-                this.size = 12; // Радиус
-                this.x = width;
-                this.y = (height - 100) - 50 - Math.random() * 120; // Разная высота
-                this.markedForDeletion = false;
-                this.angle = 0;
-            }
-
-            update() {
-                this.x -= gameSpeed;
-                this.angle += 0.05;
-                if (this.x < -50) this.markedForDeletion = true;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
-                
-                ctx.fillStyle = currentScenario.starColor;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = currentScenario.starColor;
-
-                // Рисуем звезду
-                ctx.beginPath();
-                for(let i = 0; i < 5; i++){
-                    ctx.lineTo(Math.cos((18 + i * 72) * 0.0174533) * this.size, 
-                               Math.sin((18 + i * 72) * 0.0174533) * this.size);
-                    ctx.lineTo(Math.cos((54 + i * 72) * 0.0174533) * (this.size/2), 
-                               Math.sin((54 + i * 72) * 0.0174533) * (this.size/2));
-                }
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.restore();
-                ctx.shadowBlur = 0;
-            }
-        }
-
-        // Объекты
-        let player = new Player();
-        let obstacles = [];
-        let stars = [];
-        let obstacleTimer = 0;
-        let starTimer = 0;
-
-        // Управление
-        const handleInput = () => {
-            const dialog = document.getElementById('dialog-box');
-            if (!dialog.classList.contains('hidden')) {
-                closeDialog();
-                return;
-            }
-            if (gameActive) player.jump();
         };
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') handleInput();
-        });
-        window.addEventListener('touchstart', (e) => {
-            e.preventDefault(); 
-            handleInput();
-        }, {passive: false});
-        window.addEventListener('mousedown', handleInput);
+        // --- КОМПОНЕНТЫ ---
 
-        // Логика Диалогов
-        function showDialog(text) {
-            gameActive = false; 
-            const dialog = document.getElementById('dialog-box');
-            const textEl = document.getElementById('dialog-text');
-            dialog.classList.remove('hidden');
+        // Компонент изображения персонажа (Фото игрока)
+        const OksanaAvatar = () => {
+             // Используем uploaded file reference если он был, иначе fallback
+            const avatarSrc = "https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c";
             
-            textEl.innerHTML = '';
-            let i = 0;
-            const type = () => {
-                if (i < text.length) {
-                    textEl.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, 25);
-                }
+            return (
+                <div className="w-24 h-24 rounded-full border-4 border-white/30 overflow-hidden shadow-lg bg-black relative">
+                   <img 
+                        src={avatarSrc} 
+                        alt="Oksana" 
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            );
+        };
+
+        const MainMenu = ({ onStart, hasSave }) => {
+            return (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 text-white p-6">
+                    <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1364&auto=format&fit=crop')] bg-cover bg-center"></div>
+                    <div className="z-10 text-center w-full max-w-md backdrop-blur-sm p-8 rounded-2xl border border-white/10 shadow-2xl bg-black/40">
+                        <div className="mx-auto mb-6 w-32 h-32 rounded-full border-4 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.5)] overflow-hidden">
+                             <img 
+                                src="https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c" 
+                                alt="Oksana" 
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400">Оксана</h1>
+                        <p className="text-gray-300 mb-8 font-serif italic">Интерактивная история</p>
+                        
+                        <div className="space-y-3 w-full">
+                            {hasSave && (
+                                <button 
+                                    onClick={() => onStart(true)}
+                                    className="w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-teal-600 font-bold text-lg shadow-lg active:scale-95 transition-transform"
+                                >
+                                    Продолжить
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => onStart(false)}
+                                className="w-full py-4 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 font-bold text-lg shadow-lg active:scale-95 transition-transform"
+                            >
+                                Новая игра
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Scene = ({ data, onChoice }) => {
+            const [displayText, setDisplayText] = useState('');
+            const [showChoices, setShowChoices] = useState(false);
+            const tg = window.Telegram.WebApp;
+
+            // Эффект печатной машинки
+            useEffect(() => {
+                setDisplayText('');
+                setShowChoices(false);
+                let i = 0;
+                const text = data.text;
+                const speed = 25; // ms per char
+
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        setDisplayText(prev => prev + text.charAt(i));
+                        i++;
+                    } else {
+                        clearInterval(timer);
+                        setShowChoices(true);
+                    }
+                }, speed);
+
+                return () => clearInterval(timer);
+            }, [data]);
+
+            const handleChoice = (nextId) => {
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                onChoice(nextId);
             };
-            type();
-        }
 
-        function closeDialog() {
-            document.getElementById('dialog-box').classList.add('hidden');
-            gameActive = true;
-            gameSpeed += 0.8; // Ускоряемся после диалога
-        }
+            return (
+                <div className="h-full flex flex-col relative">
+                    {/* Фон */}
+                    <div 
+                        className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out ${data.effect === 'zoom' ? 'scale-110' : 'scale-100'}`}
+                        style={{ backgroundImage: `url(${data.background})` }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-black/30"></div>
+                    </div>
 
-        function startGame() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('hud').classList.remove('hidden');
-            document.getElementById('game-over').classList.add('hidden');
+                    {/* Верхняя панель (Header) - опционально */}
+                    <div className="relative z-10 p-4 flex justify-between items-start safe-area-top">
+                        {/* Кнопки меню или инвентаря могли бы быть здесь */}
+                    </div>
+
+                    {/* Центральная часть с персонажем (если есть собеседник) */}
+                    <div className="flex-1 relative z-10 flex items-end justify-center pb-64 pointer-events-none">
+                         {data.characterImg && (
+                             <div className={`transition-all duration-500 transform translate-y-0 opacity-100`}>
+                                 <img 
+                                    src={data.characterImg} 
+                                    className="max-h-[50vh] drop-shadow-2xl" 
+                                    alt="Character"
+                                />
+                             </div>
+                         )}
+                    </div>
+
+                    {/* Текстовая панель (внизу) */}
+                    <div className="absolute bottom-0 w-full z-20 glass-panel rounded-t-3xl pb-safe">
+                        <div className="p-6">
+                            {/* Имя спикера и аватар Оксаны если это она */}
+                            <div className="flex items-center gap-3 mb-3 -mt-12">
+                                {data.speaker === "Оксана" ? (
+                                    <OksanaAvatar />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center font-bold text-xl shadow-md">
+                                        {data.speaker[0]}
+                                    </div>
+                                )}
+                                <div className="bg-black/60 backdrop-blur-md px-4 py-1 rounded-full border border-white/20">
+                                    <span className="text-pink-400 font-bold uppercase tracking-wide text-sm">
+                                        {data.speaker}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Текст */}
+                            <div className="min-h-[80px] mb-4">
+                                <p className="text-lg leading-relaxed novel-text text-gray-100">
+                                    {displayText}
+                                    {!showChoices && <span className="typing-cursor text-pink-500"></span>}
+                                </p>
+                            </div>
+
+                            {/* Кнопки выборов */}
+                            <div className={`space-y-3 transition-opacity duration-500 ${showChoices ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                                {data.choices.map((choice, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleChoice(choice.next)}
+                                        className="choice-btn w-full py-3.5 px-5 rounded-xl font-semibold text-left flex justify-between items-center group shadow-md"
+                                    >
+                                        <span>{choice.text}</span>
+                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('menu'); // menu, game
+            const [currentSceneId, setCurrentSceneId] = useState('intro');
+            const [history, setHistory] = useState([]); // Для кнопки Назад
+            const tg = window.Telegram.WebApp;
+
+            useEffect(() => {
+                tg.expand();
+                tg.ready();
+                
+                // Настройка цветов по теме Telegram
+                if (tg.themeParams) {
+                    const root = document.documentElement;
+                    root.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#1a202c');
+                    root.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#f7fafc');
+                    root.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3b82f6');
+                    root.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+                    
+                    // Конвертация HEX в RGB для стеклянного эффекта
+                    const hexToRgb = (hex) => {
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+                    }
+                    const bgRgb = hexToRgb(tg.themeParams.secondary_bg_color || '#1e293b');
+                    if(bgRgb) root.style.setProperty('--tg-theme-bg-color-rgb', bgRgb);
+                }
+
+                // Обработка кнопки Назад (системной)
+                tg.BackButton.onClick(() => {
+                     handleBack();
+                });
+            }, []);
+
+            // Управление видимостью кнопки Назад
+            useEffect(() => {
+                if (gameState === 'game' && history.length > 0) {
+                    tg.BackButton.show();
+                } else {
+                    tg.BackButton.hide();
+                }
+            }, [gameState, history]);
+
+            const handleStart = (continueGame) => {
+                if (continueGame) {
+                    const saved = localStorage.getItem('oksana_save');
+                    if (saved) {
+                        setCurrentSceneId(saved);
+                        setGameState('game');
+                        return;
+                    }
+                }
+                setCurrentSceneId('intro');
+                setHistory([]);
+                setGameState('game');
+            };
+
+            const handleChoice = (nextId) => {
+                setHistory(prev => [...prev, currentSceneId]);
+                setCurrentSceneId(nextId);
+                // Автосохранение
+                localStorage.setItem('oksana_save', nextId);
+            };
             
-            player = new Player();
-            obstacles = [];
-            stars = [];
-            score = 0;
-            gameSpeed = 6;
-            document.getElementById('score').innerText = '0';
-            
-            gameActive = true;
-            setTimeout(() => showDialog(currentScenario.dialogs[0]), 300);
-            animate();
-        }
-
-        function gameOver() {
-            gameActive = false;
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('oksana_hs_v2', highScore);
-                document.getElementById('highscore').innerText = highScore;
-            }
-            document.getElementById('final-score').innerText = score;
-            document.getElementById('game-over').classList.remove('hidden');
-            document.getElementById('hud').classList.add('hidden');
-        }
-
-        function animate() {
-            if (!gameActive && document.getElementById('dialog-box').classList.contains('hidden')) return; 
-
-            ctx.clearRect(0, 0, width, height);
-
-            // Отрисовка фона (земля)
-            ctx.fillStyle = currentScenario.groundColor;
-            ctx.fillRect(0, height - 100, width, 100);
-            
-            // Декоративная линия земли
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(0, height - 100, width, 4);
-
-            if (gameActive) {
-                frame++;
-
-                // Генерация препятствий
-                if (obstacleTimer > 120 - (gameSpeed * 1.5) + Math.random() * 60) {
-                    obstacles.push(new Obstacle());
-                    obstacleTimer = 0;
-                } else obstacleTimer++;
-
-                // Генерация звезд
-                if (starTimer > 60 + Math.random() * 50) {
-                    stars.push(new Star());
-                    starTimer = 0;
-                } else starTimer++;
-
-                player.update();
-                [...obstacles, ...stars].forEach(o => o.update());
-
-                // Удаление старых объектов
-                obstacles = obstacles.filter(o => !o.markedForDeletion);
-                stars = stars.filter(s => !s.markedForDeletion);
-
-                // Коллизии
-                obstacles.forEach(obs => {
-                    // Простая AABB коллизия с отступом (hitbox меньше спрайта)
-                    if (
-                        player.x + 10 < obs.x + obs.w &&
-                        player.x + player.size - 10 > obs.x &&
-                        player.y + 10 < obs.y + obs.h &&
-                        player.y + player.size > obs.y
-                    ) {
-                        gameOver();
+            const handleBack = () => {
+                setHistory(prev => {
+                    const newHistory = [...prev];
+                    const prevScene = newHistory.pop();
+                    if (prevScene) {
+                        setCurrentSceneId(prevScene);
+                        localStorage.setItem('oksana_save', prevScene);
+                        return newHistory;
+                    } else {
+                        // Если истории нет, выходим в меню
+                        setGameState('menu');
+                        return [];
                     }
                 });
+            };
 
-                stars.forEach(star => {
-                    if (!star.markedForDeletion &&
-                        player.x < star.x + star.size &&
-                        player.x + player.size > star.x &&
-                        player.y < star.y + star.size &&
-                        player.y + player.size > star.y
-                    ) {
-                        star.markedForDeletion = true;
-                        score += 10;
-                        document.getElementById('score').innerText = score;
-                        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            const hasSave = !!localStorage.getItem('oksana_save');
 
-                        // Триггеры сюжета
-                        if (score === 50) showDialog(currentScenario.dialogs[1]);
-                        if (score === 150) showDialog(currentScenario.dialogs[2]);
-                        if (score === 300) showDialog(currentScenario.dialogs[3]);
-                    }
-                });
-            }
+            return (
+                <div className="h-screen w-screen relative overflow-hidden bg-gray-900">
+                    {gameState === 'menu' && (
+                        <MainMenu onStart={handleStart} hasSave={hasSave} />
+                    )}
+                    
+                    {gameState === 'game' && STORIES[currentSceneId] && (
+                        <Scene 
+                            data={STORIES[currentSceneId]} 
+                            onChoice={handleChoice} 
+                        />
+                    )}
+                </div>
+            );
+        };
 
-            // Отрисовка
-            stars.forEach(s => s.draw());
-            obstacles.forEach(o => o.draw());
-            player.draw();
-
-            if(gameActive || !document.getElementById('dialog-box').classList.contains('hidden')) {
-                requestAnimationFrame(animate);
-            }
-        }
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
