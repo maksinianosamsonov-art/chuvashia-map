@@ -2,161 +2,292 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Оксана из Чебоксар</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <title>Оксана: Героиня Чебоксар</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            primary: '#0f172a',
-            secondary: '#1e293b',
-            accent: '#ec4899',
+            primary: '#0a0f1d',
+            secondary: '#121b2d',
+            accent: '#ff2ea6',
             neon: '#00f5d4',
-            glow: '#ff2ea6',
+            violet: '#8b5cf6',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444'
           },
           fontFamily: {
-            orbitron: ['Orbitron', 'sans-serif']
+            orbitron: ['Orbitron', 'monospace']
+          },
+          keyframes: {
+            'neon-pulse': {
+              '0%, 100%': { opacity: 0.7, boxShadow: '0 0 5px #00f5d4, 0 0 15px #00f5d4' },
+              '50%': { opacity: 1, boxShadow: '0 0 15px #00f5d4, 0 0 25px #00f5d4' }
+            },
+            'glow-pulse': {
+              '0%, 100%': { boxShadow: '0 0 10px #ff2ea6' },
+              '50%': { boxShadow: '0 0 20px #ff2ea6, 0 0 30px #ff2ea6' }
+            }
+          },
+          animation: {
+            'neon-pulse': 'neon-pulse 2s ease-in-out infinite',
+            'glow-pulse': 'glow-pulse 1.5s ease-in-out infinite'
           }
         }
       }
     }
   </script>
   <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+    
     body {
-      font-family: 'Orbitron', sans-serif;
-      background: #0f172a;
+      font-family: 'Orbitron', monospace;
+      background: linear-gradient(135deg, #0a0f1d 0%, #121b2d 100%);
       overflow: hidden;
       margin: 0;
       padding: 0;
+      height: 100vh;
+      width: 100vw;
     }
-    .neon-text {
-      text-shadow: 0 0 8px #ec4899, 0 0 16px #ec4899;
-    }
-    .neon-border {
-      box-shadow: 0 0 8px #00f5d4, inset 0 0 8px #00f5d4;
-    }
-    .btn-glow {
-      transition: all 0.2s ease;
-    }
-    .btn-glow:hover {
-      box-shadow: 0 0 16px #ff2ea6;
-      transform: scale(1.03);
-    }
+    
     canvas {
       display: block;
-      background: #0c1427;
-      width: 100%;
-      height: 100%;
+      background: #0a0f1d;
     }
-    .joystick {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: rgba(30, 41, 59, 0.6);
-      border: 2px solid #00f5d4;
-      box-shadow: 0 0 10px #00f5d4;
-      touch-action: none;
+    
+    .neon-text {
+      text-shadow: 0 0 10px #00f5d4, 0 0 20px #00f5d4, 0 0 30px #00f5d4;
     }
-    .joystick-knob {
-      position: absolute;
-      top: 25px;
-      left: 25px;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #ec4899;
-      box-shadow: 0 0 10px #ec4899;
-      touch-action: none;
+    
+    .glow-text {
+      text-shadow: 0 0 10px #ff2ea6, 0 0 20px #ff2ea6, 0 0 30px #ff2ea6;
     }
-    .shoot-btn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: rgba(236, 72, 153, 0.7);
-      border: 2px solid #ff2ea6;
-      box-shadow: 0 0 10px #ff2ea6;
-      touch-action: none;
+    
+    .btn-neon {
+      @apply relative overflow-hidden bg-transparent border-2 text-white font-bold rounded-xl py-4 px-6 transition-all duration-300;
+      box-shadow: 0 0 10px #00f5d4, inset 0 0 10px #00f5d4;
     }
-    @keyframes pulse {
-      0% { opacity: 0.7; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); }
-      100% { opacity: 0.7; transform: scale(1); }
+    
+    .btn-neon::before {
+      content: '';
+      @apply absolute inset-0 bg-gradient-to-r from-neon/20 to-accent/20 opacity-0;
+      transition: opacity 0.3s ease;
     }
-    .pulse {
-      animation: pulse 2s infinite;
+    
+    .btn-neon:hover {
+      box-shadow: 0 0 20px #00f5d4, 0 0 30px #00f5d4, inset 0 0 20px #00f5d4;
     }
+    
+    .btn-neon:hover::before {
+      opacity: 1;
+    }
+    
+    .btn-accent {
+      border-color: #ff2ea6;
+      box-shadow: 0 0 10px #ff2ea6, inset 0 0 10px #ff2ea6;
+    }
+    
+    .btn-accent:hover {
+      box-shadow: 0 0 20px #ff2ea6, 0 0 30px #ff2ea6, inset 0 0 20px #ff2ea6;
+    }
+    
     .hidden {
       display: none !important;
     }
+    
+    /* Joystick Styles */
+    .joystick-container {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(18, 27, 45, 0.6);
+      border: 3px solid #00f5d4;
+      box-shadow: 0 0 15px #00f5d4;
+      touch-action: none;
+      z-index: 100;
+    }
+    
+    .joystick-knob {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff2ea6 0%, #ec4899 100%);
+      box-shadow: 0 0 15px #ff2ea6;
+      transform: translate(-50%, -50%);
+      touch-action: none;
+    }
+    
+    /* Action Button */
+    .action-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff2ea6 0%, #ec4899 100%);
+      border: 3px solid #ff2ea6;
+      box-shadow: 0 0 15px #ff2ea6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      touch-action: none;
+      z-index: 100;
+    }
+    
+    .action-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 25px #ff2ea6, 0 0 35px #ff2ea6;
+    }
+    
+    /* Game UI */
+    .game-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 50;
+    }
+    
+    .score-display {
+      font-size: 28px;
+      font-weight: 800;
+      text-shadow: 0 0 10px #ff2ea6;
+    }
+    
+    .timer-display {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #00f5d4;
+    }
+    
+    .back-btn {
+      background: rgba(239, 68, 68, 0.8);
+      border: 2px solid #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .back-btn:hover {
+      background: rgba(239, 68, 68, 1);
+      box-shadow: 0 0 15px #ef4444;
+    }
+    
+    /* Records Panel */
+    .records-panel {
+      background: rgba(18, 27, 45, 0.7);
+      backdrop-filter: blur(10px);
+      border: 2px solid #00f5d4;
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 24px;
+    }
+    
+    .records-title {
+      color: #00f5d4;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    
+    .records-values {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      color: white;
+    }
   </style>
 </head>
-<body class="text-white overflow-hidden">
-  <div id="app" class="w-full h-screen flex flex-col relative">
+<body>
+  <div id="app" class="w-full h-full relative">
     <!-- Main Menu -->
-    <div id="menu" class="w-full h-full flex flex-col items-center justify-center space-y-8 p-6 text-center">
-      <div class="text-center">
-        <h1 class="text-4xl md:text-5xl font-bold neon-text mb-2">Оксана из Чебоксар</h1>
-        <p class="text-lg text-neon">25 лет · Мастер улиц · Королева дрифта</p>
+    <div id="menu" class="w-full h-full flex flex-col items-center justify-center p-6">
+      <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-black glow-text mb-2 tracking-wide">
+          ОКСАНА
+        </h1>
+        <p class="text-neon text-lg font-semibold">Героиня Чебоксар · 25 лет</p>
+        <div class="w-32 h-1 bg-gradient-to-r from-neon to-accent rounded-full mx-auto mt-4"></div>
       </div>
       
-      <div class="space-y-4 w-full max-w-xs">
-        <button onclick="startGame('shooter')" class="w-full py-4 px-6 bg-accent rounded-xl font-bold text-white neon-border btn-glow transition text-lg">
-          🔫 Оксана в бою
+      <div class="w-full max-w-md space-y-4">
+        <button onclick="startGame('shooter')" class="btn-neon w-full">
+          🔫 ОКСАНА В БОЮ
         </button>
-        <button onclick="startGame('drift')" class="w-full py-4 px-6 bg-neon rounded-xl font-bold text-primary neon-border btn-glow transition text-lg">
-          🏁 Дрифт по Чебоксарам
+        <button onclick="startGame('drift')" class="btn-neon w-full">
+          🏁 ДРИФТ ПО ЧЕБОКСАРАМ
         </button>
-        <button onclick="startGame('racing')" class="w-full py-4 px-6 bg-glow rounded-xl font-bold text-white neon-border btn-glow transition text-lg">
-          🏎️ Гонки с друзьями
+        <button onclick="startGame('racing')" class="btn-neon btn-accent w-full">
+          🏎️ ГОНКИ С ДРУЗЬЯМИ
         </button>
       </div>
 
-      <div id="records" class="mt-8 text-sm text-gray-400 bg-secondary/50 p-4 rounded-lg">
-        <p class="font-mono">ЛУЧШИЕ РЕЗУЛЬТАТЫ</p>
-        <p>🔫 <span id="record-shooter">0</span> | 🏁 <span id="record-drift">0</span> | 🏎️ <span id="record-racing">0</span></p>
+      <div class="records-panel w-full max-w-md">
+        <div class="records-title">ЛИЧНЫЕ РЕКОРДЫ</div>
+        <div class="records-values">
+          🔫 <span id="record-shooter">0</span> &nbsp;|&nbsp; 
+          🏁 <span id="record-drift">0</span> &nbsp;|&nbsp; 
+          🏎️ <span id="record-racing">0</span>
+        </div>
       </div>
       
-      <div class="text-xs text-gray-500 mt-4">
-        Управление: сенсорное или клавиши-стрелки
+      <div class="absolute bottom-6 text-center text-gray-400 text-sm">
+        Используй сенсорное управление или клавиши-стрелки
       </div>
     </div>
 
     <!-- Game Canvas Container -->
     <div id="game-container" class="hidden w-full h-full relative">
       <canvas id="game-canvas"></canvas>
-      <div id="game-ui" class="absolute top-4 left-4 right-4 flex justify-between items-center px-4">
-        <div id="score" class="text-2xl font-bold neon-text">0</div>
-        <div id="timer" class="text-xl text-neon font-mono"></div>
-        <button onclick="exitGame()" class="text-white bg-red-500/80 px-4 py-2 rounded-lg neon-border font-bold">
-          ← Меню
-        </button>
+      <div class="game-header">
+        <div class="score-display" id="score">0</div>
+        <div class="timer-display" id="timer"></div>
+        <button onclick="exitGame()" class="back-btn">← МЕНЮ</button>
       </div>
-      <div id="controls" class="absolute inset-0 pointer-events-none"></div>
+      <div id="touch-controls" class="absolute inset-0 pointer-events-none"></div>
     </div>
   </div>
 
   <script>
-    // Telegram WebApp initialization
-    if (window.Telegram && Telegram.WebApp) {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
-      Telegram.WebApp.setHeaderColor('#0f172a');
-      Telegram.WebApp.setBackgroundColor('#0f172a');
-      Telegram.WebApp.MainButton.setText('Отправить рекорд');
-      Telegram.WebApp.MainButton.hide();
+    // Initialize Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor('#0a0f1d');
+      tg.setBackgroundColor('#0a0f1d');
+      tg.MainButton.setText('Отправить рекорд 🏆');
+      tg.MainButton.hide();
     }
 
-    // Game state management
+    // Game state
     const gameState = {
       currentGame: null,
       score: 0,
@@ -168,157 +299,156 @@
     };
 
     // DOM Elements
-    const menuEl = document.getElementById('menu');
-    const gameContainerEl = document.getElementById('game-container');
-    const canvas = document.getElementById('game-canvas');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const timerEl = document.getElementById('timer');
-    const controlsEl = document.getElementById('controls');
-    const recordElements = {
-      shooter: document.getElementById('record-shooter'),
-      drift: document.getElementById('record-drift'),
-      racing: document.getElementById('record-racing')
+    const elements = {
+      menu: document.getElementById('menu'),
+      gameContainer: document.getElementById('game-container'),
+      canvas: document.getElementById('game-canvas'),
+      ctx: document.getElementById('game-canvas').getContext('2d'),
+      score: document.getElementById('score'),
+      timer: document.getElementById('timer'),
+      touchControls: document.getElementById('touch-controls'),
+      records: {
+        shooter: document.getElementById('record-shooter'),
+        drift: document.getElementById('record-drift'),
+        racing: document.getElementById('record-racing')
+      }
     };
 
     // Update records display
     function updateRecords() {
-      recordElements.shooter.textContent = gameState.records.shooter.toLocaleString();
-      recordElements.drift.textContent = gameState.records.drift.toLocaleString();
-      recordElements.racing.textContent = gameState.records.racing.toLocaleString();
+      elements.records.shooter.textContent = formatScore(gameState.records.shooter);
+      elements.records.drift.textContent = formatScore(gameState.records.drift);
+      elements.records.racing.textContent = formatScore(gameState.records.racing);
     }
+    
+    function formatScore(score) {
+      return score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+    
     updateRecords();
 
-    // Canvas resize handler
+    // Canvas setup
     function resizeCanvas() {
-      const displayWidth = window.innerWidth;
-      const displayHeight = window.innerHeight;
-      canvas.width = displayWidth;
-      canvas.height = displayHeight;
+      elements.canvas.width = window.innerWidth;
+      elements.canvas.height = window.innerHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Input state
+    // Input handling
     const input = {
       left: false,
       right: false,
       up: false,
       down: false,
-      shoot: false,
-      touchX: 0,
-      touchY: 0
+      action: false,
+      lastActionTime: 0
     };
 
-    // Keyboard event handlers
+    // Keyboard events
     window.addEventListener('keydown', (e) => {
       switch(e.key) {
-        case 'ArrowLeft': input.left = true; break;
-        case 'ArrowRight': input.right = true; break;
-        case 'ArrowUp': input.up = true; break;
-        case 'ArrowDown': input.down = true; break;
-        case ' ': input.shoot = true; break;
+        case 'ArrowLeft': case 'a': case 'A': input.left = true; break;
+        case 'ArrowRight': case 'd': case 'D': input.right = true; break;
+        case 'ArrowUp': case 'w': case 'W': input.up = true; break;
+        case 'ArrowDown': case 's': case 'S': input.down = true; break;
+        case ' ': case 'Enter': 
+          if (Date.now() - input.lastActionTime > 100) {
+            input.action = true;
+            input.lastActionTime = Date.now();
+          }
+          break;
       }
     });
 
     window.addEventListener('keyup', (e) => {
       switch(e.key) {
-        case 'ArrowLeft': input.left = false; break;
-        case 'ArrowRight': input.right = false; break;
-        case 'ArrowUp': input.up = false; break;
-        case 'ArrowDown': input.down = false; break;
-        case ' ': input.shoot = false; break;
+        case 'ArrowLeft': case 'a': case 'A': input.left = false; break;
+        case 'ArrowRight': case 'd': case 'D': input.right = false; break;
+        case 'ArrowUp': case 'w': case 'W': input.up = false; break;
+        case 'ArrowDown': case 's': case 'S': input.down = false; break;
+        case ' ': case 'Enter': input.action = false; break;
       }
     });
 
-    // Touch control creation
+    // Create touch controls
     function createTouchControls() {
-      controlsEl.innerHTML = '';
-      controlsEl.classList.remove('pointer-events-none');
+      elements.touchControls.innerHTML = '';
+      elements.touchControls.classList.remove('pointer-events-none');
       
       // Joystick
-      const joystickBase = document.createElement('div');
-      joystickBase.className = 'joystick';
-      const joystickKnob = document.createElement('div');
-      joystickKnob.className = 'joystick-knob';
-      joystickBase.appendChild(joystickKnob);
+      const joystick = document.createElement('div');
+      joystick.className = 'joystick-container';
+      const knob = document.createElement('div');
+      knob.className = 'joystick-knob';
+      joystick.appendChild(knob);
       
-      // Shoot button
-      const shootBtn = document.createElement('div');
-      shootBtn.className = 'shoot-btn pulse';
+      // Action button
+      const actionBtn = document.createElement('div');
+      actionBtn.className = 'action-btn';
+      actionBtn.innerHTML = '🔥';
       
-      controlsEl.appendChild(joystickBase);
-      controlsEl.appendChild(shootBtn);
+      elements.touchControls.appendChild(joystick);
+      elements.touchControls.appendChild(actionBtn);
       
-      // Joystick interaction
-      let isDragging = false;
-      let baseRect = null;
+      // Joystick logic
+      let isJoystickActive = false;
+      let joystickCenter = { x: 80, y: window.innerHeight - 80 };
       
-      function getBaseRect() {
-        return {
-          x: 20,
-          y: canvas.height - 120,
-          width: 100,
-          height: 100
-        };
-      }
-      
-      function updateJoystickPosition(clientX, clientY) {
-        baseRect = baseRect || getBaseRect();
-        const centerX = baseRect.x + baseRect.width / 2;
-        const centerY = baseRect.y + baseRect.height / 2;
+      function updateJoystick(clientX, clientY) {
+        const rect = joystick.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
         const deltaX = clientX - centerX;
         const deltaY = clientY - centerY;
-        const distance = Math.min(40, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+        const distance = Math.min(45, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
         const angle = Math.atan2(deltaY, deltaX);
         const posX = Math.cos(angle) * distance;
         const posY = Math.sin(angle) * distance;
         
-        joystickKnob.style.transform = `translate(${posX}px, ${posY}px)`;
+        knob.style.transform = `translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px))`;
         
-        input.left = posX < -10;
-        input.right = posX > 10;
-        input.up = posY < -10;
-        input.down = posY > 10;
+        // Directional input
+        input.left = posX < -15;
+        input.right = posX > 15;
+        input.up = posY < -15;
+        input.down = posY > 15;
       }
       
-      joystickBase.addEventListener('touchstart', (e) => {
+      joystick.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        isDragging = true;
-        baseRect = getBaseRect();
-        updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
+        isJoystickActive = true;
+        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
       });
       
       window.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
+        if (!isJoystickActive) return;
         e.preventDefault();
-        updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
+        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
       });
       
       window.addEventListener('touchend', () => {
-        isDragging = false;
-        joystickKnob.style.transform = 'translate(0, 0)';
+        isJoystickActive = false;
+        knob.style.transform = 'translate(-50%, -50%)';
         input.left = input.right = input.up = input.down = false;
       });
       
-      // Shoot button interaction
-      let isShooting = false;
-      shootBtn.addEventListener('touchstart', (e) => {
+      // Action button logic
+      let isActionPressed = false;
+      actionBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (isShooting) return;
-        isShooting = true;
-        input.shoot = true;
-        shootBtn.classList.remove('pulse');
-        shootBtn.style.transform = 'scale(0.95)';
-        shootBtn.style.boxShadow = '0 0 20px #ff2ea6';
+        if (isActionPressed) return;
+        isActionPressed = true;
+        input.action = true;
+        actionBtn.style.transform = 'scale(0.92)';
+        actionBtn.style.boxShadow = '0 0 25px #ff2ea6, 0 0 35px #ff2ea6';
       });
       
-      shootBtn.addEventListener('touchend', () => {
-        input.shoot = false;
-        isShooting = false;
-        shootBtn.classList.add('pulse');
-        shootBtn.style.transform = 'scale(1)';
-        shootBtn.style.boxShadow = '0 0 10px #ff2ea6';
+      actionBtn.addEventListener('touchend', () => {
+        input.action = false;
+        isActionPressed = false;
+        actionBtn.style.transform = 'scale(1)';
+        actionBtn.style.boxShadow = '0 0 15px #ff2ea6';
       });
     }
 
@@ -331,679 +461,644 @@
           localStorage.setItem(`oxana_${gameKey}`, gameState.score.toString());
           updateRecords();
           
-          if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.MainButton.setText(`🔥 Новый рекорд: ${gameState.score} в "${gameKey}"`);
-            Telegram.WebApp.MainButton.show();
-            Telegram.WebApp.MainButton.onClick(() => {
-              Telegram.WebApp.sendData(JSON.stringify({ 
+          if (tg) {
+            tg.MainButton.setText(`🏆 НОВЫЙ РЕКОРД: ${formatScore(gameState.score)} в "${gameKey}"`);
+            tg.MainButton.show();
+            tg.MainButton.onClick(() => {
+              tg.sendData(JSON.stringify({ 
                 game: gameKey, 
                 score: gameState.score,
-                name: 'Оксана из Чебоксар'
+                name: 'Оксана',
+                city: 'Чебоксары'
               }));
-              Telegram.WebApp.close();
+              tg.close();
             });
           }
         }
       }
       
-      menuEl.classList.remove('hidden');
-      gameContainerEl.classList.add('hidden');
+      elements.menu.classList.remove('hidden');
+      elements.gameContainer.classList.add('hidden');
       gameState.currentGame = null;
       gameState.score = 0;
-      scoreEl.textContent = '0';
-      timerEl.textContent = '';
-      controlsEl.innerHTML = '';
-      controlsEl.classList.add('pointer-events-none');
+      elements.score.textContent = '0';
+      elements.timer.textContent = '';
+      elements.touchControls.innerHTML = '';
+      elements.touchControls.classList.add('pointer-events-none');
       
-      if (window.Telegram && Telegram.WebApp) {
-        Telegram.WebApp.MainButton.hide();
-      }
+      if (tg) tg.MainButton.hide();
     }
 
     // Start game function
     window.startGame = function(gameName) {
-      menuEl.classList.add('hidden');
-      gameContainerEl.classList.remove('hidden');
+      elements.menu.classList.add('hidden');
+      elements.gameContainer.classList.remove('hidden');
       gameState.currentGame = gameName;
       gameState.score = 0;
-      scoreEl.textContent = '0';
+      elements.score.textContent = '0';
       
       resizeCanvas();
       createTouchControls();
       
       // Reset input
-      input.left = input.right = input.up = input.down = input.shoot = false;
+      Object.keys(input).forEach(key => {
+        if (key !== 'lastActionTime') input[key] = false;
+      });
       
-      // Initialize specific game
-      if (gameName === 'shooter') initShooterGame();
-      else if (gameName === 'drift') initDriftGame();
-      else if (gameName === 'racing') initRacingGame();
+      // Initialize game
+      if (gameName === 'shooter') initShooter();
+      else if (gameName === 'drift') initDrift();
+      else if (gameName === 'racing') initRacing();
     };
 
-    // Game loop management
-    let animationFrameId = null;
-    let lastTimestamp = 0;
+    // Game loop
+    let gameLoopId = null;
+    let lastFrameTime = 0;
     
-    function startGameLoop(updateFunction) {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      lastTimestamp = performance.now();
+    function startGameLoop(updateFn) {
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      lastFrameTime = performance.now();
       
-      const gameLoop = (timestamp) => {
-        const deltaTime = (timestamp - lastTimestamp) / 1000;
-        lastTimestamp = timestamp;
+      const loop = (currentTime) => {
+        const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
+        lastFrameTime = currentTime;
         
         if (gameState.currentGame) {
-          updateFunction(deltaTime);
-          animationFrameId = requestAnimationFrame(gameLoop);
+          updateFn(deltaTime);
+          gameLoopId = requestAnimationFrame(loop);
         }
       };
       
-      animationFrameId = requestAnimationFrame(gameLoop);
+      gameLoopId = requestAnimationFrame(loop);
     }
 
     // === SHOOTER GAME ===
-    let shooterGame = null;
+    let shooter = null;
     
-    function initShooterGame() {
-      shooterGame = {
-        player: {
-          x: canvas.width / 2,
-          y: canvas.height / 2,
-          radius: 18,
-          speed: 250,
-          health: 100,
-          maxHealth: 100,
-          reloadTime: 0,
-          maxReload: 0.25
-        },
+    function initShooter() {
+      shooter = {
+        player: { x: elements.canvas.width / 2, y: elements.canvas.height / 2, radius: 20, speed: 300, health: 100, maxHealth: 100, fireRate: 0.15, lastShot: 0 },
         bullets: [],
         enemies: [],
         particles: [],
-        lastEnemySpawn: 0,
-        enemySpawnInterval: 800,
-        gameOver: false
+        spawnTimer: 0,
+        spawnInterval: 0.8,
+        gameOver: false,
+        backgroundBuildings: generateCityscape(elements.canvas.width)
       };
       
-      startGameLoop(updateShooterGame);
+      startGameLoop(updateShooter);
     }
     
-    function updateShooterGame(deltaTime) {
-      if (shooterGame.gameOver) return;
+    function generateCityscape(width) {
+      const buildings = [];
+      let x = 0;
+      while (x < width + 100) {
+        const height = 60 + Math.random() * 140;
+        const widthB = 25 + Math.random() * 35;
+        buildings.push({ x, width: widthB, height, color: `hsl(${200 + Math.random() * 20}, 30%, ${25 + Math.random() * 10}%)` });
+        x += widthB + 15 + Math.random() * 20;
+      }
+      return buildings;
+    }
+    
+    function updateShooter(deltaTime) {
+      if (shooter.gameOver) return;
       
-      const game = shooterGame;
+      const now = performance.now() / 1000;
       
       // Player movement
-      let moveX = 0, moveY = 0;
-      if (input.left) moveX -= 1;
-      if (input.right) moveX += 1;
-      if (input.up) moveY -= 1;
-      if (input.down) moveY += 1;
+      let dx = 0, dy = 0;
+      if (input.left) dx -= 1;
+      if (input.right) dx += 1;
+      if (input.up) dy -= 1;
+      if (input.down) dy += 1;
       
-      const moveLength = Math.sqrt(moveX * moveX + moveY * moveY);
-      if (moveLength > 0) {
-        moveX /= moveLength;
-        moveY /= moveLength;
-        game.player.x += moveX * game.player.speed * deltaTime;
-        game.player.y += moveY * game.player.speed * deltaTime;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      if (length > 0) {
+        dx /= length; dy /= length;
+        shooter.player.x += dx * shooter.player.speed * deltaTime;
+        shooter.player.y += dy * shooter.player.speed * deltaTime;
       }
       
-      // Boundary constraints
-      game.player.x = Math.max(game.player.radius, Math.min(canvas.width - game.player.radius, game.player.x));
-      game.player.y = Math.max(game.player.radius, Math.min(canvas.height - game.player.radius, game.player.y));
+      // Boundary check
+      shooter.player.x = Math.max(shooter.player.radius, Math.min(elements.canvas.width - shooter.player.radius, shooter.player.x));
+      shooter.player.y = Math.max(shooter.player.radius, Math.min(elements.canvas.height - shooter.player.radius, shooter.player.y));
       
       // Shooting
-      if (input.shoot && game.player.reloadTime <= 0) {
-        const shootDirX = moveX || 0;
-        const shootDirY = moveY || -1;
-        game.bullets.push({
-          x: game.player.x,
-          y: game.player.y,
-          dirX: shootDirX,
-          dirY: shootDirY,
-          speed: 400,
+      if (input.action && now - shooter.player.lastShot > shooter.player.fireRate) {
+        shooter.bullets.push({
+          x: shooter.player.x,
+          y: shooter.player.y,
+          dx: dx || 0,
+          dy: dy || -1,
+          speed: 500,
           radius: 4
         });
-        game.player.reloadTime = game.player.maxReload;
-      }
-      if (game.player.reloadTime > 0) {
-        game.player.reloadTime -= deltaTime;
+        shooter.player.lastShot = now;
       }
       
       // Enemy spawning
-      if (performance.now() - game.lastEnemySpawn > game.enemySpawnInterval) {
+      shooter.spawnTimer += deltaTime;
+      if (shooter.spawnTimer > shooter.spawnInterval) {
         const side = Math.floor(Math.random() * 4);
-        let spawnX, spawnY;
+        let x, y;
         switch(side) {
-          case 0: // top
-            spawnX = Math.random() * canvas.width;
-            spawnY = -30;
-            break;
-          case 1: // right
-            spawnX = canvas.width + 30;
-            spawnY = Math.random() * canvas.height;
-            break;
-          case 2: // bottom
-            spawnX = Math.random() * canvas.width;
-            spawnY = canvas.height + 30;
-            break;
-          case 3: // left
-            spawnX = -30;
-            spawnY = Math.random() * canvas.height;
-            break;
+          case 0: x = Math.random() * elements.canvas.width; y = -30; break;
+          case 1: x = elements.canvas.width + 30; y = Math.random() * elements.canvas.height; break;
+          case 2: x = Math.random() * elements.canvas.width; y = elements.canvas.height + 30; break;
+          case 3: x = -30; y = Math.random() * elements.canvas.height; break;
         }
-        game.enemies.push({
-          x: spawnX,
-          y: spawnY,
-          radius: 15,
-          speed: 80 + Math.random() * 40,
-          health: 1
+        shooter.enemies.push({
+          x, y, radius: 16, speed: 120 + Math.random() * 80, health: 1,
+          color: `hsl(${0 + Math.random() * 20}, 80%, 60%)`
         });
-        game.lastEnemySpawn = performance.now();
-        game.enemySpawnInterval = Math.max(300, game.enemySpawnInterval * 0.98);
+        shooter.spawnTimer = 0;
+        shooter.spawnInterval = Math.max(0.3, shooter.spawnInterval * 0.98);
       }
       
       // Update bullets
-      for (let i = game.bullets.length - 1; i >= 0; i--) {
-        const bullet = game.bullets[i];
-        bullet.x += bullet.dirX * bullet.speed * deltaTime;
-        bullet.y += bullet.dirY * bullet.speed * deltaTime;
+      for (let i = shooter.bullets.length - 1; i >= 0; i--) {
+        const b = shooter.bullets[i];
+        b.x += b.dx * b.speed * deltaTime;
+        b.y += b.dy * b.speed * deltaTime;
         
-        // Remove off-screen bullets
-        if (bullet.x < -50 || bullet.x > canvas.width + 50 || 
-            bullet.y < -50 || bullet.y > canvas.height + 50) {
-          game.bullets.splice(i, 1);
+        if (b.x < -50 || b.x > elements.canvas.width + 50 || b.y < -50 || b.y > elements.canvas.height + 50) {
+          shooter.bullets.splice(i, 1);
           continue;
         }
         
         // Bullet-enemy collision
-        for (let j = game.enemies.length - 1; j >= 0; j--) {
-          const enemy = game.enemies[j];
-          const dx = bullet.x - enemy.x;
-          const dy = bullet.y - enemy.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < bullet.radius + enemy.radius) {
-            // Create hit particles
-            for (let k = 0; k < 8; k++) {
-              game.particles.push({
-                x: enemy.x,
-                y: enemy.y,
-                vx: (Math.random() - 0.5) * 100,
-                vy: (Math.random() - 0.5) * 100,
-                life: 1.0,
-                decay: 2.0
-              });
-            }
-            game.enemies.splice(j, 1);
-            game.bullets.splice(i, 1);
-            gameState.score += 25;
-            scoreEl.textContent = gameState.score.toLocaleString();
+        for (let j = shooter.enemies.length - 1; j >= 0; j--) {
+          const e = shooter.enemies[j];
+          const dist = Math.sqrt((b.x - e.x) ** 2 + (b.y - e.y) ** 2);
+          if (dist < b.radius + e.radius) {
+            createExplosion(e.x, e.y, e.color);
+            shooter.enemies.splice(j, 1);
+            shooter.bullets.splice(i, 1);
+            gameState.score += 35;
+            elements.score.textContent = formatScore(gameState.score);
             break;
           }
         }
       }
       
       // Update enemies
-      for (let i = game.enemies.length - 1; i >= 0; i--) {
-        const enemy = game.enemies[i];
-        const dx = game.player.x - enemy.x;
-        const dy = game.player.y - enemy.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance > 0) {
-          enemy.x += (dx / distance) * enemy.speed * deltaTime;
-          enemy.y += (dy / distance) * enemy.speed * deltaTime;
+      for (let i = shooter.enemies.length - 1; i >= 0; i--) {
+        const e = shooter.enemies[i];
+        const dx = shooter.player.x - e.x;
+        const dy = shooter.player.y - e.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0) {
+          e.x += (dx / dist) * e.speed * deltaTime;
+          e.y += (dy / dist) * e.speed * deltaTime;
         }
         
-        // Enemy-player collision
-        if (distance < game.player.radius + enemy.radius) {
-          game.player.health -= 15;
-          game.enemies.splice(i, 1);
-          // Create collision particles
-          for (let k = 0; k < 12; k++) {
-            game.particles.push({
-              x: game.player.x,
-              y: game.player.y,
-              vx: (Math.random() - 0.5) * 150,
-              vy: (Math.random() - 0.5) * 150,
-              life: 1.0,
-              decay: 3.0,
-              color: '#f87171'
-            });
-          }
-          if (game.player.health <= 0) {
-            game.gameOver = true;
-            setTimeout(() => exitGame(), 1000);
+        // Collision with player
+        if (dist < shooter.player.radius + e.radius) {
+          shooter.player.health -= 12;
+          createExplosion(shooter.player.x, shooter.player.y, '#ff6b6b');
+          shooter.enemies.splice(i, 1);
+          if (shooter.player.health <= 0) {
+            shooter.gameOver = true;
+            setTimeout(exitGame, 1500);
           }
         }
       }
       
       // Update particles
-      for (let i = game.particles.length - 1; i >= 0; i--) {
-        const p = game.particles[i];
+      for (let i = shooter.particles.length - 1; i >= 0; i--) {
+        const p = shooter.particles[i];
         p.x += p.vx * deltaTime;
         p.y += p.vy * deltaTime;
         p.life -= p.decay * deltaTime;
-        if (p.life <= 0) {
-          game.particles.splice(i, 1);
-        }
+        if (p.life <= 0) shooter.particles.splice(i, 1);
       }
       
-      // Render everything
-      renderShooterGame();
+      renderShooter();
     }
     
-    function renderShooterGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Background - stylized Cheboksary
-      ctx.fillStyle = '#1a2233';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Simple cityscape
-      ctx.fillStyle = '#2d3748';
-      const buildingCount = Math.floor(canvas.width / 40);
-      for (let i = 0; i < buildingCount; i++) {
-        const width = 25 + Math.random() * 20;
-        const height = 80 + Math.random() * 120;
-        const x = i * 40 + 10;
-        const y = canvas.height - height;
-        ctx.fillRect(x, y, width, height);
-        
-        // Windows
-        ctx.fillStyle = '#00f5d4';
-        for (let wy = y + 10; wy < y + height; wy += 20) {
-          for (let wx = x + 5; wx < x + width; wx += 12) {
-            if (Math.random() > 0.3) {
-              ctx.fillRect(wx, wy, 6, 10);
-            }
-          }
-        }
-        ctx.fillStyle = '#2d3748';
+    function createExplosion(x, y, color) {
+      for (let i = 0; i < 12; i++) {
+        shooter.particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 200,
+          vy: (Math.random() - 0.5) * 200,
+          life: 1.0,
+          decay: 3.0,
+          color: color || '#00f5d4'
+        });
       }
+    }
+    
+    function renderShooter() {
+      const ctx = elements.ctx;
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      
+      // Background
+      ctx.fillStyle = '#0c1525';
+      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+      
+      // Cityscape
+      shooter.backgroundBuildings.forEach(building => {
+        ctx.fillStyle = building.color;
+        ctx.fillRect(building.x, elements.canvas.height - building.height, building.width, building.height);
+      });
       
       // Particles
-      for (const p of shooterGame.particles) {
-        const alpha = p.life;
-        ctx.fillStyle = p.color || `rgba(236, 72, 153, ${alpha})`;
+      shooter.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
         ctx.fill();
-      }
+        ctx.globalAlpha = 1;
+      });
       
       // Bullets
       ctx.fillStyle = '#00f5d4';
-      for (const bullet of shooterGame.bullets) {
+      shooter.bullets.forEach(b => {
         ctx.beginPath();
-        ctx.arc(bullet.x, bullet.bullet?.y || bullet.y, bullet.radius, 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
         ctx.fill();
-      }
+      });
       
       // Enemies
-      ctx.fillStyle = '#f87171';
-      for (const enemy of shooterGame.enemies) {
+      shooter.enemies.forEach(e => {
+        ctx.fillStyle = e.color;
         ctx.beginPath();
-        ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
         ctx.fill();
-      }
+      });
       
       // Player
-      ctx.fillStyle = '#ec4899';
+      ctx.fillStyle = '#ff2ea6';
       ctx.beginPath();
-      ctx.arc(shooterGame.player.x, shooterGame.player.y, shooterGame.player.radius, 0, Math.PI * 2);
+      ctx.arc(shooter.player.x, shooter.player.y, shooter.player.radius, 0, Math.PI * 2);
       ctx.fill();
       
-      // Player health bar
-      const healthBarWidth = 100;
-      const healthPercent = shooterGame.player.health / shooterGame.player.maxHealth;
+      // Health bar
+      const healthWidth = 120;
+      const healthPercent = shooter.player.health / shooter.player.maxHealth;
       ctx.fillStyle = '#450a0a';
-      ctx.fillRect(shooterGame.player.x - healthBarWidth/2, shooterGame.player.y - 30, healthBarWidth, 8);
-      ctx.fillStyle = healthPercent > 0.5 ? '#10b981' : healthPercent > 0.25 ? '#f59e0b' : '#ef4444';
-      ctx.fillRect(shooterGame.player.x - healthBarWidth/2, shooterGame.player.y - 30, healthBarWidth * healthPercent, 8);
+      ctx.fillRect(shooter.player.x - healthWidth/2, shooter.player.y - 40, healthWidth, 10);
+      ctx.fillStyle = healthPercent > 0.6 ? '#10b981' : healthPercent > 0.3 ? '#f59e0b' : '#ef4444';
+      ctx.fillRect(shooter.player.x - healthWidth/2, shooter.player.y - 40, healthWidth * healthPercent, 10);
     }
 
     // === DRIFT GAME ===
-    let driftGame = null;
+    let drift = null;
     
-    function initDriftGame() {
-      driftGame = {
-        car: {
-          x: canvas.width / 2,
-          y: canvas.height / 2,
-          angle: 0,
-          speed: 0,
-          maxSpeed: 350,
-          acceleration: 400,
-          friction: 0.95
-        },
+    function initDrift() {
+      drift = {
+        car: { x: elements.canvas.width / 2, y: elements.canvas.height / 2, angle: 0, speed: 0, maxSpeed: 400, acceleration: 500, friction: 0.92 },
         driftAngle: 0,
         driftIntensity: 0,
         score: 0,
         timeLeft: 60,
-        lastTimeUpdate: performance.now(),
-        landmarks: [],
+        lastTime: performance.now(),
+        landmarks: [
+          { name: 'ГЭС', x: 120, y: 100, radius: 30, collected: false },
+          { name: 'Мост', x: elements.canvas.width - 120, y: 180, radius: 25, collected: false },
+          { name: 'Пл. Респ.', x: elements.canvas.width / 2, y: elements.canvas.height - 120, radius: 35, collected: false },
+          { name: 'Бульвар', x: 240, y: elements.canvas.height - 180, radius: 28, collected: false }
+        ],
         trail: [],
+        stars: generateStars(150),
         gameOver: false
       };
       
-      // Create landmarks (Cheboksary landmarks)
-      const landmarks = [
-        { name: 'ГЭС', x: 100, y: 100, radius: 25 },
-        { name: 'Мост', x: canvas.width - 100, y: 150, radius: 20 },
-        { name: 'Площадь', x: canvas.width / 2, y: canvas.height - 100, radius: 30 },
-        { name: 'Бульвар', x: 200, y: canvas.height - 150, radius: 22 }
-      ];
-      driftGame.landmarks = landmarks;
-      
-      startGameLoop(updateDriftGame);
+      startGameLoop(updateDrift);
     }
     
-    function updateDriftGame(deltaTime) {
-      if (driftGame.gameOver) return;
+    function generateStars(count) {
+      const stars = [];
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * elements.canvas.width,
+          y: Math.random() * elements.canvas.height,
+          size: 0.5 + Math.random() * 1.5,
+          brightness: 0.5 + Math.random() * 0.5
+        });
+      }
+      return stars;
+    }
+    
+    function updateDrift(deltaTime) {
+      if (drift.gameOver) return;
       
-      const game = driftGame;
-      
-      // Timer update
       const now = performance.now();
-      game.timeLeft -= (now - game.lastTimeUpdate) / 1000;
-      game.lastTimeUpdate = now;
-      timerEl.textContent = Math.max(0, Math.floor(game.timeLeft));
+      drift.timeLeft -= (now - drift.lastTime) / 1000;
+      drift.lastTime = now;
+      elements.timer.textContent = Math.max(0, Math.floor(drift.timeLeft));
       
-      if (game.timeLeft <= 0) {
-        gameState.score = Math.floor(game.score);
-        setTimeout(() => exitGame(), 500);
+      if (drift.timeLeft <= 0) {
+        gameState.score = Math.floor(drift.score);
+        setTimeout(exitGame, 500);
         return;
       }
       
       // Car controls
       if (input.up) {
-        game.car.speed = Math.min(game.car.maxSpeed, game.car.speed + game.car.acceleration * deltaTime);
+        drift.car.speed = Math.min(drift.car.maxSpeed, drift.car.speed + drift.car.acceleration * deltaTime);
       } else if (input.down) {
-        game.car.speed = Math.max(0, game.car.speed - game.car.acceleration * deltaTime);
+        drift.car.speed = Math.max(0, drift.car.speed - drift.car.acceleration * 1.5 * deltaTime);
       } else {
-        game.car.speed *= Math.pow(game.car.friction, deltaTime * 60);
+        drift.car.speed *= Math.pow(drift.car.friction, deltaTime * 60);
       }
       
       let steering = 0;
-      if (input.left) steering = -3;
-      if (input.right) steering = 3;
+      if (input.left) steering = -3.5;
+      if (input.right) steering = 3.5;
       
       // Drift physics
-      const turnSpeed = steering * (game.car.speed / game.car.maxSpeed) * 2;
-      game.car.angle += turnSpeed * deltaTime;
-      game.driftAngle = turnSpeed * deltaTime * 20;
-      game.driftIntensity = Math.min(1, game.driftIntensity + Math.abs(turnSpeed) * deltaTime * 0.8);
-      game.driftIntensity *= 0.97;
+      const turnSpeed = steering * (drift.car.speed / drift.car.maxSpeed) * 2.5;
+      drift.car.angle += turnSpeed * deltaTime;
+      drift.driftAngle = turnSpeed * deltaTime * 25;
+      drift.driftIntensity = Math.min(1, drift.driftIntensity + Math.abs(turnSpeed) * deltaTime * 1.2);
+      drift.driftIntensity *= 0.96;
       
       // Movement
-      game.car.x += Math.sin(game.car.angle) * game.car.speed * deltaTime;
-      game.car.y -= Math.cos(game.car.angle) * game.car.speed * deltaTime;
+      drift.car.x += Math.sin(drift.car.angle) * drift.car.speed * deltaTime;
+      drift.car.y -= Math.cos(drift.car.angle) * drift.car.speed * deltaTime;
       
       // Screen wrapping
-      if (game.car.x < -50) game.car.x = canvas.width + 50;
-      if (game.car.x > canvas.width + 50) game.car.x = -50;
-      if (game.car.y < -50) game.car.y = canvas.height + 50;
-      if (game.car.y > canvas.height + 50) game.car.y = -50;
+      if (drift.car.x < -50) drift.car.x = elements.canvas.width + 50;
+      if (drift.car.x > elements.canvas.width + 50) drift.car.x = -50;
+      if (drift.car.y < -50) drift.car.y = elements.canvas.height + 50;
+      if (drift.car.y > elements.canvas.height + 50) drift.car.y = -50;
       
-      // Add to trail for visual effect
-      if (game.car.speed > 50) {
-        game.trail.push({
-          x: game.car.x - Math.sin(game.car.angle) * 30,
-          y: game.car.y + Math.cos(game.car.angle) * 30,
-          intensity: game.driftIntensity,
-          life: 1.0
+      // Trail effect
+      if (drift.car.speed > 80 && Math.random() > 0.7) {
+        drift.trail.push({
+          x: drift.car.x - Math.sin(drift.car.angle) * 35,
+          y: drift.car.y + Math.cos(drift.car.angle) * 35,
+          intensity: drift.driftIntensity,
+          life: 1.0,
+          angle: drift.car.angle + Math.PI
         });
-        if (game.trail.length > 20) game.trail.shift();
+        if (drift.trail.length > 25) drift.trail.shift();
       }
       
       // Score calculation
-      game.score += game.driftIntensity * game.car.speed * deltaTime * 0.1;
+      drift.score += drift.driftIntensity * drift.car.speed * deltaTime * 0.15;
       
-      // Landmark bonuses
-      for (const landmark of game.landmarks) {
-        const dx = game.car.x - landmark.x;
-        const dy = game.car.y - landmark.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < landmark.radius + 25 && game.car.speed > 100) {
-          game.score += 50;
+      // Landmark collection
+      for (const landmark of drift.landmarks) {
+        if (landmark.collected) continue;
+        const dx = drift.car.x - landmark.x;
+        const dy = drift.car.y - landmark.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < landmark.radius + 30 && drift.car.speed > 150) {
           landmark.collected = true;
-          setTimeout(() => { landmark.collected = false; }, 2000);
+          drift.score += 120;
+          setTimeout(() => { landmark.collected = false; }, 3000);
         }
       }
       
-      // Render
-      renderDriftGame();
+      renderDrift();
     }
     
-    function renderDriftGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function renderDrift() {
+      const ctx = elements.ctx;
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
       
-      // Night sky background
-      ctx.fillStyle = '#0c1427';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Night sky
+      ctx.fillStyle = '#080c18';
+      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
       
       // Stars
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      for (let i = 0; i < 80; i++) {
-        const x = (i * 37) % canvas.width;
-        const y = (i * 73) % canvas.height;
-        ctx.fillRect(x, y, 1.5, 1.5);
-      }
+      drift.stars.forEach(star => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+        ctx.fillRect(star.x, star.y, star.size, star.size);
+      });
       
       // Landmarks
-      for (const landmark of driftGame.landmarks) {
+      drift.landmarks.forEach(landmark => {
         ctx.fillStyle = landmark.collected ? '#10b981' : '#ff2ea6';
         ctx.beginPath();
         ctx.arc(landmark.x, landmark.y, landmark.radius, 0, Math.PI * 2);
         ctx.fill();
         
         ctx.fillStyle = 'white';
-        ctx.font = '12px Orbitron';
+        ctx.font = '14px Orbitron';
         ctx.textAlign = 'center';
-        ctx.fillText(landmark.name, landmark.x, landmark.y + landmark.radius + 20);
-      }
+        ctx.fillText(landmark.name, landmark.x, landmark.y + landmark.radius + 25);
+      });
       
-      // Drift trail
-      for (let i = 0; i < driftGame.trail.length; i++) {
-        const point = driftGame.trail[i];
-        const alpha = point.life * point.intensity;
-        if (alpha > 0) {
+      // Trail
+      for (let i = 0; i < drift.trail.length; i++) {
+        const t = drift.trail[i];
+        const alpha = t.life * t.intensity * (i / drift.trail.length);
+        if (alpha > 0.05) {
           ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.beginPath();
-          ctx.arc(point.x, point.y, 2 + i * 0.3, 0, Math.PI * 2);
+          ctx.arc(t.x, t.y, 2 + i * 0.4, 0, Math.PI * 2);
           ctx.fill();
         }
       }
       
       // Car
       ctx.save();
-      ctx.translate(driftGame.car.x, driftGame.car.y);
-      ctx.rotate(driftGame.car.angle);
+      ctx.translate(drift.car.x, drift.car.y);
+      ctx.rotate(drift.car.angle);
       
-      // Car body
-      const carColor = driftGame.driftIntensity > 0.6 ? '#ec4899' : '#00f5d4';
-      ctx.fillStyle = carColor;
-      ctx.fillRect(-12, -25, 24, 45);
+      // Car body with gradient
+      const gradient = ctx.createLinearGradient(-20, -30, 20, 30);
+      gradient.addColorStop(0, drift.driftIntensity > 0.7 ? '#ff2ea6' : '#00f5d4');
+      gradient.addColorStop(1, drift.driftIntensity > 0.7 ? '#ec4899' : '#00c8a6');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-15, -30, 30, 60);
       
       // Windows
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(-8, -20, 16, 15);
+      ctx.fillStyle = '#0a0f1d';
+      ctx.fillRect(-10, -25, 20, 20);
       
       ctx.restore();
       
-      // Score display
-      gameState.score = Math.floor(driftGame.score);
-      scoreEl.textContent = gameState.score.toLocaleString();
+      gameState.score = Math.floor(drift.score);
+      elements.score.textContent = formatScore(gameState.score);
     }
 
     // === RACING GAME ===
-    let racingGame = null;
+    let racing = null;
     
-    function initRacingGame() {
-      racingGame = {
+    function initRacing() {
+      racing = {
         lanes: 3,
-        laneWidth: canvas.width / 3,
+        laneWidth: elements.canvas.width / 3,
         playerLane: 1,
-        playerY: canvas.height - 120,
-        speed: 220,
+        playerY: elements.canvas.height - 150,
+        speed: 250,
         rivals: [],
         obstacles: [],
         roadOffset: 0,
         score: 0,
         lastObstacle: 0,
-        obstacleInterval: 1500,
-        gameOver: false
+        obstacleInterval: 1200,
+        gameOver: false,
+        cityBuildings: generateCityscape(elements.canvas.width)
       };
       
       // Create rivals
       for (let i = 0; i < 2; i++) {
-        racingGame.rivals.push({
+        racing.rivals.push({
           lane: i === 0 ? 0 : 2,
-          y: -100 - i * 250,
-          speed: 180 + Math.random() * 30,
+          y: -150 - i * 300,
+          speed: 200 + Math.random() * 40,
           color: i === 0 ? '#f59e0b' : '#8b5cf6'
         });
       }
       
-      startGameLoop(updateRacingGame);
+      startGameLoop(updateRacing);
     }
     
-    function updateRacingGame(deltaTime) {
-      if (racingGame.gameOver) return;
-      
-      const game = racingGame;
+    function updateRacing(deltaTime) {
+      if (racing.gameOver) return;
       
       // Lane switching
-      if (input.left && game.playerLane > 0) {
-        game.playerLane--;
+      if (input.left && racing.playerLane > 0) {
+        racing.playerLane = Math.max(0, racing.playerLane - 0.02 / deltaTime);
       }
-      if (input.right && game.playerLane < game.lanes - 1) {
-        game.playerLane++;
+      if (input.right && racing.playerLane < racing.lanes - 1) {
+        racing.playerLane = Math.min(racing.lanes - 1, racing.playerLane + 0.02 / deltaTime);
       }
       
-      // Road scrolling
-      game.roadOffset += game.speed * deltaTime;
+      // Smooth lane interpolation
+      racing.playerLane = Math.max(0, Math.min(racing.lanes - 1, racing.playerLane));
+      
+      // Road movement
+      racing.roadOffset += racing.speed * deltaTime;
       
       // Obstacle spawning
-      if (performance.now() - game.lastObstacle > game.obstacleInterval) {
-        game.obstacles.push({
-          lane: Math.floor(Math.random() * game.lanes),
-          y: -50,
-          width: 30,
-          height: 40,
-          speed: 250 + Math.random() * 50
+      if (performance.now() - racing.lastObstacle > racing.obstacleInterval) {
+        racing.obstacles.push({
+          lane: Math.floor(Math.random() * racing.lanes),
+          y: -80,
+          width: 40,
+          height: 50,
+          speed: 280 + Math.random() * 60
         });
-        game.lastObstacle = performance.now();
-        game.obstacleInterval = Math.max(800, game.obstacleInterval * 0.97);
+        racing.lastObstacle = performance.now();
+        racing.obstacleInterval = Math.max(700, racing.obstacleInterval * 0.96);
       }
       
       // Update rivals
-      for (const rival of game.rivals) {
+      for (const rival of racing.rivals) {
         rival.y += rival.speed * deltaTime;
-        if (rival.y > canvas.height + 100) {
-          rival.y = -100;
-          rival.speed = 180 + Math.random() * 30;
+        if (rival.y > elements.canvas.height + 150) {
+          rival.y = -150;
+          rival.speed = 200 + Math.random() * 40;
         }
       }
       
       // Update obstacles
-      for (let i = game.obstacles.length - 1; i >= 0; i--) {
-        const obs = game.obstacles[i];
+      for (let i = racing.obstacles.length - 1; i >= 0; i--) {
+        const obs = racing.obstacles[i];
         obs.y += obs.speed * deltaTime;
-        if (obs.y > canvas.height + 100) {
-          game.obstacles.splice(i, 1);
-          game.score += 15;
+        if (obs.y > elements.canvas.height + 150) {
+          racing.obstacles.splice(i, 1);
+          racing.score += 20;
         }
       }
       
       // Collision detection
-      const playerX = game.laneWidth * game.playerLane + game.laneWidth / 2;
-      const playerWidth = 35;
-      const playerHeight = 60;
+      const playerX = racing.laneWidth * racing.playerLane + racing.laneWidth / 2;
+      const playerRadius = 22;
       
       // Check rivals
-      for (const rival of game.rivals) {
-        const rivalX = game.laneWidth * rival.lane + game.laneWidth / 2;
+      for (const rival of racing.rivals) {
+        const rivalX = racing.laneWidth * rival.lane + racing.laneWidth / 2;
         const dx = Math.abs(playerX - rivalX);
-        const dy = Math.abs(game.playerY - rival.y);
-        if (dx < playerWidth && dy < playerHeight) {
-          game.gameOver = true;
-          gameState.score = Math.floor(game.score);
-          setTimeout(() => exitGame(), 1000);
+        const dy = Math.abs(racing.playerY - rival.y);
+        if (dx < playerRadius * 1.5 && dy < 55) {
+          racing.gameOver = true;
+          gameState.score = Math.floor(racing.score);
+          setTimeout(exitGame, 1500);
           return;
         }
       }
       
       // Check obstacles
-      for (const obs of game.obstacles) {
-        const obsX = game.laneWidth * obs.lane + game.laneWidth / 2;
+      for (const obs of racing.obstacles) {
+        const obsX = racing.laneWidth * obs.lane + racing.laneWidth / 2;
         const dx = Math.abs(playerX - obsX);
-        const dy = Math.abs(game.playerY - obs.y);
-        if (dx < (playerWidth + obs.width) / 2 && dy < (playerHeight + obs.height) / 2) {
-          game.gameOver = true;
-          gameState.score = Math.floor(game.score);
-          setTimeout(() => exitGame(), 1000);
+        const dy = Math.abs(racing.playerY - obs.y);
+        if (dx < (playerRadius + obs.width/2) && dy < (30 + obs.height/2)) {
+          racing.gameOver = true;
+          gameState.score = Math.floor(racing.score);
+          setTimeout(exitGame, 1500);
           return;
         }
       }
       
-      // Render
-      renderRacingGame();
+      renderRacing();
     }
     
-    function renderRacingGame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function renderRacing() {
+      const ctx = elements.ctx;
+      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+      
+      // Background city
+      ctx.fillStyle = '#0c1525';
+      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+      
+      racing.cityBuildings.forEach(building => {
+        ctx.fillStyle = building.color;
+        ctx.fillRect(building.x, elements.canvas.height - building.height - 200, building.width, building.height);
+      });
       
       // Road
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#121b2d';
+      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
       
-      // Road markings
+      // Lane markings
       ctx.strokeStyle = '#00f5d4';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([30, 25]);
-      for (let i = 1; i < racingGame.lanes; i++) {
-        const x = racingGame.laneWidth * i;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([40, 30]);
+      for (let i = 1; i < racing.lanes; i++) {
+        const x = racing.laneWidth * i;
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, elements.canvas.height);
         ctx.stroke();
       }
       ctx.setLineDash([]);
       
-      // Animated road lines
-      const lineCount = Math.ceil(canvas.height / 50) + 2;
+      // Moving road lines
+      const lineSpacing = 60;
+      const lineCount = Math.ceil(elements.canvas.height / lineSpacing) + 2;
       for (let i = 0; i < lineCount; i++) {
-        const y = (racingGame.roadOffset + i * 50) % (canvas.height + 50) - 50;
-        if (y > -20 && y < canvas.height + 20) {
+        const y = (racing.roadOffset + i * lineSpacing) % (elements.canvas.height + lineSpacing) - lineSpacing;
+        if (y > -30 && y < elements.canvas.height + 30) {
           ctx.fillStyle = '#00f5d4';
-          ctx.fillRect(racingGame.laneWidth - 5, y, 10, 20);
-          ctx.fillRect(racingGame.laneWidth * 2 - 5, y, 10, 20);
+          ctx.fillRect(racing.laneWidth - 6, y, 12, 30);
+          ctx.fillRect(racing.laneWidth * 2 - 6, y, 12, 30);
         }
       }
       
       // Player car
-      ctx.fillStyle = '#ec4899';
-      const playerX = racingGame.laneWidth * racingGame.playerLane + racingGame.laneWidth / 2;
-      ctx.fillRect(playerX - 17, racingGame.playerY - 30, 35, 60);
+      const playerX = racing.laneWidth * racing.playerLane + racing.laneWidth / 2;
+      ctx.fillStyle = '#ff2ea6';
+      ctx.fillRect(playerX - 18, racing.playerY - 25, 36, 50);
       
       // Rivals
-      for (const rival of racingGame.rivals) {
-        const rivalX = racingGame.laneWidth * rival.lane + racingGame.laneWidth / 2;
+      racing.rivals.forEach(rival => {
+        const rivalX = racing.laneWidth * rival.lane + racing.laneWidth / 2;
         ctx.fillStyle = rival.color;
-        ctx.fillRect(rivalX - 17, rival.y - 30, 35, 60);
-      }
+        ctx.fillRect(rivalX - 18, rival.y - 25, 36, 50);
+      });
       
       // Obstacles
-      ctx.fillStyle = '#f87171';
-      for (const obs of racingGame.obstacles) {
-        const obsX = racingGame.laneWidth * obs.lane + racingGame.laneWidth / 2;
+      ctx.fillStyle = '#ef4444';
+      racing.obstacles.forEach(obs => {
+        const obsX = racing.laneWidth * obs.lane + racing.laneWidth / 2;
         ctx.fillRect(obsX - obs.width/2, obs.y - obs.height/2, obs.width, obs.height);
-      }
+      });
       
-      // Score
-      gameState.score = Math.floor(racingGame.score);
-      scoreEl.textContent = gameState.score.toLocaleString();
+      gameState.score = Math.floor(racing.score);
+      elements.score.textContent = formatScore(gameState.score);
     }
   </script>
 </body>
