@@ -7,32 +7,29 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-dark: #0a0e21;
-      --neon-pink: #ff00ff;
-      --neon-green: #00ff88;
-      --text-white: #ffffff;
-      --card-bg: #14182b;
-      --accent-blue: #3a506b;
+      --bg: #0a0e21;
+      --pink: #ff00ff;
+      --green: #00ff88;
+      --card: #14182b;
+      --text: #ffffff;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f36 100%);
-      color: var(--text-white);
-      overflow-x: hidden;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a1f36 100%);
+      color: var(--text);
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      position: relative;
-      touch-action: manipulation;
+      overflow: hidden;
       user-select: none;
     }
 
@@ -43,174 +40,139 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
 
-    .neon-text {
-      text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
-      color: var(--neon-pink);
+    .neon {
+      text-shadow: 0 0 10px var(--pink), 0 0 20px var(--pink);
+      color: var(--pink);
     }
 
-    .glow-green {
-      text-shadow: 0 0 10px var(--neon-green);
-      color: var(--neon-green);
+    .glow {
+      text-shadow: 0 0 10px var(--green);
+      color: var(--green);
     }
 
     #loading {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-dark);
+      inset: 0;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 1000;
-      transition: opacity 0.5s ease-out;
     }
 
     .spinner {
       width: 60px;
       height: 60px;
-      border: 4px solid rgba(255, 0, 255, 0.3);
-      border-top: 4px solid var(--neon-pink);
+      border: 4px solid #ff00ff33;
+      border-top: 4px solid var(--pink);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin-bottom: 20px;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    #main-screen {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 15px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+      to { transform: rotate(360deg); }
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
-      padding: 10px;
+      padding: 12px;
+      margin: 12px;
       background: rgba(20, 24, 43, 0.8);
       border-radius: 16px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 0, 255, 0.4);
+      border: 1px solid #ff00ff44;
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background: linear-gradient(45deg, var(--neon-pink), var(--neon-green));
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: linear-gradient(45deg, var(--pink), var(--green));
+      display: grid;
+      place-items: center;
       font-weight: bold;
       font-size: 18px;
-      box-shadow: 0 0 10px var(--neon-pink);
+      box-shadow: 0 0 12px var(--pink);
     }
 
     .stats {
       display: flex;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .stat-item {
-      background: var(--card-bg);
-      padding: 6px 10px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 50px;
+    .stat {
+      text-align: center;
       font-size: 12px;
-      border: 1px solid rgba(0, 255, 136, 0.4);
     }
 
     .stat-value {
-      font-size: 14px;
+      font-size: 15px;
       font-weight: bold;
-      color: var(--neon-green);
+      color: var(--green);
     }
 
-    .oksana-container {
+    .character {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 15px 0;
+      padding: 20px 0;
     }
 
-    .oksana-sprite {
-      width: 240px;
-      height: 280px;
+    .oksana {
+      width: 250px;
+      height: 290px;
       animation: float 3s ease-in-out infinite;
       cursor: pointer;
-      position: relative;
     }
 
-    .oksana-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.5));
-      transition: transform 0.3s ease;
-    }
-
-    .oksana-image:hover {
+    .oksana:hover {
       transform: scale(1.05);
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
     }
 
-    .dialog-box {
-      background: var(--card-bg);
-      padding: 18px;
+    .dialog {
+      background: var(--card);
+      padding: 20px;
+      margin: 0 12px 16px;
       border-radius: 18px;
-      margin: 15px 0;
-      position: relative;
-      border-left: 4px solid var(--neon-pink);
-      box-shadow: 0 6px 25px rgba(255, 0, 255, 0.2);
+      border-left: 4px solid var(--pink);
+      box-shadow: 0 6px 25px #ff00ff22;
     }
 
-    .dialog-text {
+    .text {
       font-size: 16px;
       line-height: 1.6;
-      margin-bottom: 15px;
       text-align: center;
+      margin-bottom: 18px;
     }
 
-    .memes-gallery {
+    .memes {
       display: flex;
-      gap: 12px;
-      margin: 15px 0;
+      gap: 14px;
       overflow-x: auto;
-      padding: 10px 0;
+      padding: 8px 0;
     }
 
-    .meme-item {
-      min-width: 80px;
-      height: 80px;
-      background: rgba(255, 0, 255, 0.1);
-      border: 2px solid var(--neon-pink);
+    .meme {
+      min-width: 85px;
+      height: 85px;
+      background: #ff00ff11;
+      border: 2px solid var(--pink);
       border-radius: 14px;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       font-size: 11px;
       text-align: center;
       padding: 8px;
@@ -218,15 +180,15 @@
       transition: all 0.3s;
     }
 
-    .meme-item:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 15px var(--neon-pink);
+    .meme:hover {
+      transform: scale(1.12);
+      box-shadow: 0 0 18px var(--pink);
     }
 
     .actions {
       display: flex;
-      gap: 12px;
-      margin-top: 20px;
+      gap: 14px;
+      padding: 0 12px 20px;
     }
 
     .btn {
@@ -238,44 +200,46 @@
       font-size: 16px;
       cursor: pointer;
       transition: all 0.3s;
-      text-align: center;
     }
 
     .btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(255, 0, 255, 0.5);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px #ff00ff55;
     }
 
-    .btn-primary {
-      background: linear-gradient(45deg, var(--neon-pink), #ff33ff);
+    .primary {
+      background: linear-gradient(45deg, var(--pink), #ff33ff);
       color: white;
     }
 
-    .btn-secondary {
-      background: var(--card-bg);
-      color: var(--neon-green);
-      border: 2px solid var(--neon-green);
+    .secondary {
+      background: var(--card);
+      color: var(--green);
+      border: 2px solid var(--green);
     }
 
     .notification {
       position: fixed;
-      top: 70px;
+      top: 75px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--neon-green);
+      background: var(--green);
       color: #000;
-      padding: 14px 28px;
+      padding: 16px 30px;
       border-radius: 18px;
-      z-index: 1000;
+      font-weight: 700;
       opacity: 0;
       transition: opacity 0.3s;
-      box-shadow: 0 0 25px var(--neon-green);
-      font-weight: 700;
+      box-shadow: 0 0 25px var(--green);
       pointer-events: none;
     }
 
-    .notification.show {
+    .show {
       opacity: 1;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
@@ -283,135 +247,120 @@
   <div id="app">
     <div id="loading">
       <div class="spinner"></div>
-      <div class="neon-text" style="font-size: 24px; margin-top: 20px;">Загрузка Оксаны...</div>
+      <div class="neon" style="font-size: 24px; margin-top: 16px;">Загрузка Оксаны...</div>
     </div>
 
-    <div id="main-screen">
+    <div id="main">
       <div class="header">
         <div class="avatar">О</div>
         <div class="stats">
-          <div class="stat-item">
+          <div class="stat">
             <div class="stat-value" id="coins">100</div>
-            <div style="font-size: 10px; opacity: 0.7;">Монеты</div>
+            <div>Монеты</div>
           </div>
-          <div class="stat-item">
+          <div class="stat">
             <div class="stat-value" id="level">1</div>
-            <div style="font-size: 10px; opacity: 0.7;">Уровень</div>
+            <div>Уровень</div>
           </div>
-          <div class="stat-item">
+          <div class="stat">
             <div class="stat-value" id="day">1</div>
-            <div style="font-size: 10px; opacity: 0.7;">День</div>
+            <div>День</div>
           </div>
         </div>
       </div>
 
-      <div class="oksana-container">
-        <div class="oksana-sprite">
-          <img src="https://placehold.co/240x280/ff66cc/ffffff?text=Оксана" alt="Оксана" class="oksana-image">
-        </div>
+      <div class="character">
+        <img src="https://placehold.co/250x290/ff66cc/ffffff?text=Оксана" 
+             alt="Оксана" class="oksana">
       </div>
 
-      <div class="dialog-box">
-        <div class="dialog-text" id="dialog-text">
+      <div class="dialog">
+        <div class="text" id="dialog">
           Привет! Я Оксана из Чебоксар! 🎤<br><br>
           Добро пожаловать в мой мир гонок, мемов и приключений! 
           Сегодня День 1 нашей 30-дневной кампании! 🏎️
         </div>
-        <div class="memes-gallery">
-          <div class="meme-item">"I'm ready"</div>
-          <div class="meme-item">"This is fine"</div>
-          <div class="meme-item">"When you see"</div>
-          <div class="meme-item">"Nope"</div>
-          <div class="meme-item">"Okay"</div>
+        <div class="memes">
+          <div class="meme">"I'm ready"</div>
+          <div class="meme">"This is fine"</div>
+          <div class="meme">"When you see"</div>
+          <div class="meme">"Nope"</div>
+          <div class="meme">"Okay"</div>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn btn-primary" id="daily-mission">Ежедневная миссия 🎯</button>
-        <button class="btn btn-secondary" id="garage">Моя тачка 🚗</button>
+        <button class="btn primary" id="mission">Ежедневная миссия 🎯</button>
+        <button class="btn secondary" id="garage">Моя тачка 🚗</button>
       </div>
     </div>
 
-    <div class="notification" id="notification"></div>
+    <div class="notification" id="notif"></div>
   </div>
 
   <script>
     const Telegram = window.Telegram || { WebApp: { ready: () => {}, expand: () => {} } };
 
-    const gameState = {
+    const state = {
       day: 1,
       coins: 100,
-      level: 1,
-      lastClaimed: 0
+      level: 1
     };
 
-    const elements = {
+    const el = {
       loading: document.getElementById('loading'),
-      mainScreen: document.getElementById('main-screen'),
-      dialogText: document.getElementById('dialog-text'),
+      main: document.getElementById('main'),
+      dialog: document.getElementById('dialog'),
       coins: document.getElementById('coins'),
       level: document.getElementById('level'),
       day: document.getElementById('day'),
-      dailyMission: document.getElementById('daily-mission'),
+      mission: document.getElementById('mission'),
       garage: document.getElementById('garage'),
-      notification: document.getElementById('notification')
+      notif: document.getElementById('notif')
     };
 
-    function initApp() {
+    function init() {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
       
       setTimeout(() => {
-        elements.loading.style.opacity = '0';
-        setTimeout(() => {
-          elements.loading.style.display = 'none';
-          elements.mainScreen.style.opacity = '1';
-          elements.mainScreen.style.transform = 'translateY(0)';
-        }, 500);
-      }, 1200);
+        el.loading.classList.add('hidden');
+        el.main.style.opacity = '1';
+        el.main.style.transform = 'translateY(0)';
+      }, 1000);
 
-      updateUI();
-      setupEventListeners();
+      update();
+      el.mission.onclick = dailyMission;
+      el.garage.onclick = () => notify('🚗 В разработке для GitHub!');
     }
 
-    function updateUI() {
-      elements.coins.textContent = gameState.coins;
-      elements.level.textContent = gameState.level;
-      elements.day.textContent = gameState.day;
+    function update() {
+      el.coins.textContent = state.coins;
+      el.level.textContent = state.level;
+      el.day.textContent = state.day;
     }
 
-    function setupEventListeners() {
-      elements.dailyMission.addEventListener('click', handleDailyMission);
-      elements.garage.addEventListener('click', handleGarage);
-    }
-
-    function handleDailyMission() {
-      const reward = 50 + (gameState.day * 5);
-      gameState.coins += reward;
-      gameState.level = Math.min(gameState.level + 1, 30);
-      gameState.day = Math.min(gameState.day + 1, 30);
+    function dailyMission() {
+      const reward = 50 + (state.day * 5);
+      state.coins += reward;
+      state.level = Math.min(state.level + 1, 30);
+      state.day = Math.min(state.day + 1, 30);
       
-      updateUI();
-      showNotification(`🎯 Миссия выполнена!\n+${reward} монет!`);
+      update();
+      notify(`🎯 Миссия Дня ${state.day - 1} выполнена!\n+${reward} монет!`);
       
-      elements.dialogText.innerHTML = `Отличная работа! 🎉<br><br>Ты выполнил миссию Дня ${gameState.day - 1}!<br>Получено ${reward} монет!<br><br>Завтра будет новое задание!`;
+      el.dialog.innerHTML = `Отличная работа! 🎉<br><br>Ты выполнил миссию Дня ${state.day - 1}!<br>Получено ${reward} монет!<br><br>Завтра будет новое задание!`;
     }
 
-    function handleGarage() {
-      showNotification('🚗 Твоя тачка в гараже!\nВ разработке для GitHub версии!');
+    function notify(msg) {
+      el.notif.textContent = msg;
+      el.notif.className = 'notification show';
+      setTimeout(() => el.notif.className = 'notification', 2500);
     }
 
-    function showNotification(message) {
-      elements.notification.innerHTML = message;
-      elements.notification.className = 'notification show';
-      
-      setTimeout(() => {
-        elements.notification.className = 'notification';
-      }, 2500);
-    }
-
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
+
 
