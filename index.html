@@ -1,470 +1,586 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Oksana's Story - Visual Novel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyanimated-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        .scene-content {
-            height: calc(100vh - 180px);
-        }
-        .choice-btn {
-            transition: all 0.2s ease;
-        }
-        .choice-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        .choice-btn:active {
-            transform: translateY(0);
-        }
-        .bg-theme {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-        }
-        .text-theme {
-            color: #1e40af;
-        }
-        .btn-theme {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-        }
-        .btn-romance {
-            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
-        }
-        .btn-detective {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-        }
-        .btn-mystery {
-            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-        }
-        .character-portrait {
-            width: 120px;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 12px;
-            border: 3px solid white;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-        .scene-text {
-            line-height: 1.6;
-            font-size: 1.1rem;
-        }
-        .back-button {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Оксана: Гонки, Мемы и Миссии</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0e21;
+      --neon-pink: #ff00ff;
+      --neon-green: #00ff88;
+      --text-white: #ffffff;
+      --card-bg: #14182b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-white);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 500px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Неоновые эффекты */
+    .neon-border {
+      box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px rgba(255, 0, 255, 0.3);
+      border: 2px solid var(--neon-pink);
+    }
+
+    .neon-text {
+      text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+      color: var(--neon-pink);
+    }
+
+    .glow-green {
+      text-shadow: 0 0 10px var(--neon-green);
+      color: var(--neon-green);
+    }
+
+    /* Экран загрузки */
+    #loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 0, 255, 0.3);
+      border-top: 4px solid var(--neon-pink);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Главный экран */
+    #main-screen {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, var(--neon-pink), var(--neon-green));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+    }
+
+    .stat-item {
+      background: var(--card-bg);
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--neon-green);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .oksana-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+
+    .oksana-sprite {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 60px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .dialog-box {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 20px;
+      margin: 20px 0;
+      position: relative;
+      border-left: 4px solid var(--neon-pink);
+    }
+
+    .dialog-box::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid var(--card-bg);
+    }
+
+    .dialog-text {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .memes-gallery {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+      overflow-x: auto;
+      padding: 10px 0;
+    }
+
+    .meme-item {
+      min-width: 80px;
+      height: 80px;
+      background: rgba(255, 0, 255, 0.1);
+      border: 2px solid var(--neon-pink);
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      text-align: center;
+      padding: 5px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-radius: 15px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--neon-pink);
+    }
+
+    .btn-primary {
+      background: linear-gradient(45deg, var(--neon-pink), #ff66ff);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--neon-green);
+      border: 2px solid var(--neon-green);
+    }
+
+    /* Мини-игра Пазл */
+    #puzzle-screen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      padding: 20px;
+    }
+
+    .puzzle-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .puzzle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin: 20px 0;
+      flex: 1;
+    }
+
+    .puzzle-piece {
+      background: var(--card-bg);
+      border: 2px solid var(--neon-pink);
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .puzzle-piece:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px var(--neon-pink);
+    }
+
+    .puzzle-piece.correct {
+      background: var(--neon-green);
+      color: black;
+    }
+
+    /* Анимации */
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Стили для Telegram */
+    .tg-theme-bg {
+      background: var(--bg-dark) !important;
+    }
+
+    .tg-theme-text {
+      color: var(--text-white) !important;
+    }
+  </style>
 </head>
-<body class="font-sans bg-theme" x-data="visualNovel()">
-    <div class="min-h-screen flex flex-col" :class="{'dark:bg-gray-900': theme === 'dark', 'bg-theme': theme === 'light'}">
-        <!-- Header -->
-        <header class="p-4 flex items-center justify-between" :class="{'bg-gray-800 text-white': theme === 'dark', 'bg-blue-50 text-theme': theme === 'light'}">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">O</div>
-                <h1 class="text-xl font-bold">Oksana's Story</h1>
-            </div>
-            <div class="text-sm" x-show="currentScene !== 'menu'">
-                <button @click="goBack" class="back-button px-3 py-1.5 rounded-lg font-medium">← Back</button>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            <!-- Main Menu -->
-            <div x-show="currentScene === 'menu'" class="flex-1 flex flex-col items-center justify-center p-6 animated-fade-in">
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold mb-4 text-theme">Choose Your Adventure</h2>
-                    <p class="text-lg text-gray-600 max-w-md">Oksana's story has many paths. What will you choose?</p>
-                </div>
-                
-                <div class="grid grid-cols-1 gap-4 w-full max-w-md">
-                    <button @click="startStory('romance')" class="choice-btn btn-romance text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg">
-                        Romance Path
-                    </button>
-                    <button @click="startStory('detective')" class="choice-btn btn-detective text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg">
-                        Detective Path
-                    </button>
-                    <button @click="startStory('mystery')" class="choice-btn btn-mystery text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg">
-                        Mystery Path
-                    </button>
-                </div>
-            </div>
-
-            <!-- Story Scenes -->
-            <div x-show="currentScene !== 'menu'" class="flex-1 flex flex-col p-4 animated-fade-in">
-                <!-- Character Portrait -->
-                <div class="flex justify-center mb-6">
-                    <img :src="currentStoryData.portrait" :alt="currentStoryData.character" class="character-portrait">
-                </div>
-                
-                <!-- Scene Content -->
-                <div class="scene-content flex flex-col justify-between">
-                    <div class="scene-text mb-6" :class="{'text-white': theme === 'dark', 'text-gray-800': theme === 'light'}" x-html="currentStoryData.text"></div>
-                    
-                    <!-- Choices -->
-                    <div class="space-y-3">
-                        <template x-for="(choice, index) in currentStoryData.choices" :key="index">
-                            <button 
-                                @click="makeChoice(index)" 
-                                class="choice-btn w-full py-3.5 px-4 rounded-xl font-medium text-white shadow-md"
-                                :class="getButtonClass(currentStoryType)"
-                            >
-                                <span x-text="choice.text"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ending Screen -->
-            <div x-show="isEnding" class="flex-1 flex flex-col items-center justify-center p-6 animated-fade-in">
-                <div class="text-center max-w-md">
-                    <h2 class="text-2xl font-bold mb-4 text-theme">The End</h2>
-                    <p class="scene-text mb-8" x-text="endingText"></p>
-                    <button @click="resetGame" class="choice-btn btn-theme text-white py-3 px-6 rounded-xl font-semibold shadow-lg">
-                        Play Again
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="p-3 text-center text-sm" :class="{'text-gray-400': theme === 'dark', 'text-gray-500': theme === 'light'}">
-            Oksana's Visual Novel • Made with ❤️ for Telegram
-        </footer>
+<body>
+  <div id="app">
+    <!-- Экран загрузки -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="neon-text">Загрузка Оксаны...</div>
     </div>
 
-    <script>
-        function visualNovel() {
-            return {
-                // Game state
-                currentScene: 'menu',
-                currentStoryType: '',
-                storyProgress: {},
-                isEnding: false,
-                endingText: '',
-                theme: 'light',
+    <!-- Главный экран -->
+    <div id="main-screen">
+      <div class="header">
+        <div class="avatar">О</div>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="coins">100</div>
+            <div class="stat-label">Монеты</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="level">1</div>
+            <div class="stat-label">Уровень</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="day">1</div>
+            <div class="stat-label">День</div>
+          </div>
+        </div>
+      </div>
 
-                // Initialize game
-                init() {
-                    // Initialize Telegram WebApp
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        const tg = Telegram.WebApp;
-                        tg.ready();
-                        tg.expand();
-                        tg.MainButton.hide();
-                        
-                        // Set theme based on Telegram
-                        this.theme = tg.colorScheme;
-                        
-                        // Handle back button
-                        tg.BackButton.onClick(() => {
-                            this.goBack();
-                        });
-                    }
-                    
-                    // Load saved progress
-                    this.loadProgress();
-                },
+      <div class="oksana-container">
+        <div class="oksana-sprite">👩‍🎤</div>
+      </div>
 
-                // Load progress from localStorage
-                loadProgress() {
-                    try {
-                        const saved = localStorage.getItem('oksanaStoryProgress');
-                        if (saved) {
-                            this.storyProgress = JSON.parse(saved);
-                        }
-                    } catch (e) {
-                        console.warn('Failed to load progress:', e);
-                    }
-                },
+      <div class="dialog-box">
+        <div class="dialog-text" id="dialog-text">
+          Привет! Я Оксана из Чебоксар! Готов помочь мне собрать пазл из моего фото?
+          Это первый шаг к нашему приключению!
+        </div>
+        <div class="memes-gallery">
+          <div class="meme-item">"I'm ready"</div>
+          <div class="meme-item">"This is fine"</div>
+          <div class="meme-item">"When you see"</div>
+        </div>
+      </div>
 
-                // Save progress to localStorage
-                saveProgress() {
-                    try {
-                        localStorage.setItem('oksanaStoryProgress', JSON.stringify(this.storyProgress));
-                    } catch (e) {
-                        console.warn('Failed to save progress:', e);
-                    }
-                },
+      <div class="actions">
+        <button class="btn btn-primary" id="start-puzzle">Собрать пазл</button>
+        <button class="btn btn-secondary" id="view-leaderboard">Лидеры</button>
+      </div>
+    </div>
 
-                // Get button class based on story type
-                getButtonClass(storyType) {
-                    switch(storyType) {
-                        case 'romance': return 'btn-romance';
-                        case 'detective': return 'btn-detective';
-                        case 'mystery': return 'btn-mystery';
-                        default: return 'btn-theme';
-                    }
-                },
+    <!-- Экран мини-игры Пазл -->
+    <div id="puzzle-screen">
+      <div class="puzzle-header">
+        <h2 class="neon-text">День 1: Собери пазл!</h2>
+        <p>Расставь части в правильном порядке</p>
+      </div>
+      
+      <div class="puzzle-grid" id="puzzle-grid">
+        <!-- Пазл будет генерироваться здесь -->
+      </div>
 
-                // Start a new story
-                startStory(storyType) {
-                    this.currentStoryType = storyType;
-                    this.currentScene = '1';
-                    this.storyProgress[storyType] = { scene: '1', choices: [] };
-                    this.saveProgress();
-                    
-                    // Show Telegram back button
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        Telegram.WebApp.BackButton.show();
-                    }
-                },
+      <div class="actions">
+        <button class="btn btn-secondary" id="back-to-main">Назад</button>
+        <button class="btn btn-primary" id="check-puzzle">Проверить</button>
+      </div>
+    </div>
+  </div>
 
-                // Handle choice selection
-                makeChoice(choiceIndex) {
-                    const currentData = this.getSceneData(this.currentScene);
-                    const choice = currentData.choices[choiceIndex];
-                    
-                    // Save choice
-                    this.storyProgress[this.currentStoryType].choices.push({
-                        scene: this.currentScene,
-                        choice: choiceIndex
-                    });
-                    
-                    // Handle ending
-                    if (choice.ending) {
-                        this.isEnding = true;
-                        this.endingText = choice.endingText;
-                        this.saveProgress();
-                        
-                        // Hide back button on ending
-                        if (window.Telegram && window.Telegram.WebApp) {
-                            Telegram.WebApp.BackButton.hide();
-                        }
-                        return;
-                    }
-                    
-                    // Move to next scene
-                    this.currentScene = choice.nextScene;
-                    this.storyProgress[this.currentStoryType].scene = this.currentScene;
-                    this.saveProgress();
-                },
-
-                // Go back to previous scene
-                goBack() {
-                    if (this.currentScene === '1') {
-                        this.currentScene = 'menu';
-                        this.currentStoryType = '';
-                        if (window.Telegram && window.Telegram.WebApp) {
-                            Telegram.WebApp.BackButton.hide();
-                        }
-                        return;
-                    }
-                    
-                    // In a real implementation, you'd track the path and go back
-                    // For simplicity, we'll just go to the menu
-                    this.currentScene = 'menu';
-                    this.currentStoryType = '';
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        Telegram.WebApp.BackButton.hide();
-                    }
-                },
-
-                // Reset game
-                resetGame() {
-                    this.currentScene = 'menu';
-                    this.currentStoryType = '';
-                    this.isEnding = false;
-                    this.endingText = '';
-                    this.storyProgress = {};
-                    localStorage.removeItem('oksanaStoryProgress');
-                    
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        Telegram.WebApp.BackButton.hide();
-                    }
-                },
-
-                // Get current story data
-                get currentStoryData() {
-                    return this.getSceneData(this.currentScene);
-                },
-
-                // Get scene data based on current story type and scene
-                getSceneData(sceneId) {
-                    const stories = {
-                        romance: {
-                            '1': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/ff6b9d/ffffff?text=Oksana+Romance',
-                                text: "It's a beautiful spring afternoon in our small town. I'm walking through the park with my camera, hoping to capture the perfect shot of cherry blossoms. Suddenly, I notice someone familiar sitting on a bench...",
-                                choices: [
-                                    { text: "Approach him - it's Alex, my childhood friend", nextScene: '2' },
-                                    { text: "Keep walking - I don't want to disturb him", nextScene: '3' }
-                                ]
-                            },
-                            '2': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/ff6b9d/ffffff?text=Oksana+Romance',
-                                text: '"Oksana! Fancy meeting you here!' Alex says with a warm smile. He's holding a sketchbook. 'I've been drawing the cherry blossoms. Would you like to see?'",
-                                choices: [
-                                    { text: "Yes, show me your sketches", nextScene: '4' },
-                                    { text: "Actually, I was hoping to take some photos with you", ending: true, endingText: "Alex blushes and agrees. You spend the afternoon together, and this marks the beginning of a beautiful romance. Sometimes, taking a chance leads to the perfect shot - and the perfect relationship." }
-                                ]
-                            },
-                            '3': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/ff6b9d/ffffff?text=Oksana+Romance',
-                                text: "I keep walking, but I can't stop thinking about Alex. Maybe I should have said hello. As I turn back, I see him packing up his things...",
-                                choices: [
-                                    { text: "Run back and catch him before he leaves", nextScene: '5' },
-                                    { text: "Continue walking - some moments are better left as memories", ending: true, endingText: "You capture a beautiful photo of the cherry blossoms, but it feels empty without Alex in it. Sometimes the perfect shot requires courage you didn't know you had." }
-                                ]
-                            },
-                            '4': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/ff6b9d/ffffff?text=Oksana+Romance',
-                                text: "His sketches are incredible! 'You've always been talented,' I say. Alex looks up and our eyes meet. There's a comfortable silence between us.",
-                                choices: [
-                                    { text: "Ask him if he wants to go for coffee", ending: true, endingText: "Alex agrees enthusiastically. Over coffee, you discover he's been taking photography classes too. Your shared passion blossoms into something more, and you both help each other grow as artists." },
-                                    { text: "Thank him and leave - I need to finish my photo session", ending: true, endingText: "You say goodbye and continue your photography. Later, you find a small sketch of you tucked in your camera bag. Alex must have slipped it in when you weren't looking. A bittersweet reminder of what could have been." }
-                                ]
-                            },
-                            '5': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/ff6b9d/ffffff?text=Oksana+Romance',
-                                text: "I catch up to Alex just as he's about to leave. 'Wait!' I call out. He turns around, surprised but happy to see me.",
-                                choices: [
-                                    { text: "Invite him to help me with my photography project", ending: true, endingText: "Alex agrees, and you spend the next few weeks collaborating on a photography project about your hometown. Through this creative partnership, your friendship deepens into something more meaningful." },
-                                    { text: "Apologize for not saying hello earlier", ending: true, endingText: "Alex smiles and says he was hoping you'd come back. You have an honest conversation about how life has kept you both busy, and you promise to stay in touch. Sometimes second chances are even sweeter than first ones." }
-                                ]
-                            }
-                        },
-                        detective: {
-                            '1': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "Something strange is happening in our town. Photos from the annual festival have gone missing from the community center, including some of my best shots. The police aren't taking it seriously, but I know these photos matter to people.",
-                                choices: [
-                                    { text: "Investigate the community center myself", nextScene: '2' },
-                                    { text: "Ask my friend Mark, who works at the newspaper, for help", nextScene: '3' }
-                                ]
-                            },
-                            '2': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "I sneak into the community center after hours. The place is eerily quiet. In the darkroom, I notice something glinting under the developing table...",
-                                choices: [
-                                    { text: "Pick up the glinting object - it might be a clue", nextScene: '4' },
-                                    { text: "Leave immediately - this feels dangerous", ending: true, endingText: "You decide it's too risky and leave. The photos are never recovered, but you learn an important lesson about knowing your limits. Sometimes the truth isn't worth the danger." }
-                                ]
-                            },
-                            '3': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "Mark agrees to help. 'I've heard rumors about a disgruntled former employee,' he says. 'Let's dig deeper.' We start by interviewing people who were at the festival.",
-                                choices: [
-                                    { text: "Focus on the festival organizers", nextScene: '5' },
-                                    { text: "Talk to vendors who had booths at the event", nextScene: '6' }
-                                ]
-                            },
-                            '4': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "It's a small key with a unique symbol. This doesn't belong to the community center. Suddenly, I hear footsteps approaching!",
-                                choices: [
-                                    { text: "Hide and see who's coming", ending: true, endingText: "You hide and discover the mayor's assistant stealing evidence. With the key as proof, you expose a corruption scandal that rocks the town. Your photography skills help document everything, making you a local hero." },
-                                    { text: "Confront the person immediately", ending: true, endingText: "You confront the intruder and recognize Mrs. Peterson, the community center director! She explains she took the photos to protect someone. Your investigation reveals a touching story of sacrifice, and the photos are returned with everyone's gratitude." }
-                                ]
-                            },
-                            '5': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "The organizers are defensive. 'Everything was secure,' they insist. But one organizer, Sarah, seems nervous. She keeps glancing at her watch.",
-                                choices: [
-                                    { text: "Ask Sarah directly about her behavior", ending: true, endingText: "Sarah breaks down and confesses. She took the photos because her brother was in them, and he's in witness protection. Your understanding and discretion help resolve the situation without exposing anyone to danger." },
-                                    { text: "Check the security footage from that night", ending: true, endingText: "The footage shows someone tampering with the lock. You recognize the janitor, who admits he was paid to create a distraction. Following this lead, you uncover an elaborate insurance fraud scheme. Your detective work saves the community center from financial ruin." }
-                                ]
-                            },
-                            '6': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/8b5cf6/ffffff?text=Oksana+Detective',
-                                text: "The vendors remember a suspicious person near the photo display. 'Wore a hoodie, kept to the shadows,' says the ice cream vendor. Mark and I decide to stake out the area tonight.",
-                                choices: [
-                                    { text: "Set up hidden cameras to catch the thief", ending: true, endingText: "Your plan works! The cameras capture the thief red-handed. It's the new art teacher who wanted to steal students' work for a personal exhibition. Your evidence leads to their arrest and the photos' safe return." },
-                                    { text: "Confront the thief directly when they appear", ending: true, endingText: "You catch the thief, but they're just a teenager trying to impress someone. Instead of calling the police, you help them understand the value of art and community. They return the photos and volunteer to help restore damaged ones. Sometimes justice means giving someone a second chance." }
-                                ]
-                            }
-                        },
-                        mystery: {
-                            '1': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "Late at night, I'm developing photos from the old cemetery when I notice something impossible. In every photo, there's a shadowy figure that wasn't there when I took the pictures. My hands tremble as I examine the negatives...",
-                                choices: [
-                                    { text: "Return to the cemetery to investigate", nextScene: '2' },
-                                    { text: "Show the photos to Professor Ivanov, the history teacher", nextScene: '3' }
-                                ]
-                            },
-                            '2': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "The cemetery is shrouded in mist. I feel watched. Suddenly, my camera starts taking pictures by itself! The display shows a date: October 17, 1923.",
-                                choices: [
-                                    { text: "Follow the camera's direction - it seems to be leading somewhere", nextScene: '4' },
-                                    { text: "Run away - this is too terrifying", ending: true, endingText: "You flee the cemetery and never develop those photos again. But sometimes, in your dreams, you see the shadowy figure, and you wonder what secrets you left buried in the past." }
-                                ]
-                            },
-                            '3': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "Professor Ivanov's eyes widen. 'October 17, 1923... that's the night the old library burned down. Many lives were lost.' He shows me an old journal with a symbol matching the one in my photos.",
-                                choices: [
-                                    { text: "Search for the library's foundation in the town square", nextScene: '5' },
-                                    { text: "Visit the town's historical society for more information", nextScene: '6' }
-                                ]
-                            },
-                            '4': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "My camera leads me to a weathered gravestone with the same symbol. The inscription is worn, but I can make out 'Eliza'. As I touch the stone, visions flood my mind...",
-                                choices: [
-                                    { text: "Embrace the visions and see what they reveal", ending: true, endingText: "You learn Eliza was a photographer like you, who died in the library fire trying to save her work. Your connection helps her spirit find peace, and in return, she gifts you with extraordinary photographic intuition. Your photos now capture not just moments, but souls." },
-                                    { text: "Break the connection and leave the cemetery", ending: true, endingText: "You break the connection and leave, but the experience changes you. Your photography takes on a new depth, capturing emotions and stories you never noticed before. Sometimes the greatest mysteries are the ones that transform us from within." }
-                                ]
-                            },
-                            '5': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "Beneath the town square, I find hidden cellar doors. Inside, preserved perfectly, is Eliza's lost photography studio from 1923. Her camera sits on a table, still loaded with film.",
-                                choices: [
-                                    { text: "Use Eliza's camera to take a photo", ending: true, endingText: "Through the lens of Eliza's camera, you see the world as she did. The photo you take bridges past and present, revealing that Eliza's spirit has been guiding you to preserve the town's history through your art. Your photography becomes a legacy that spans generations." },
-                                    { text: "Carefully document the studio and contact the historical society", ending: true, endingText: "Your discovery becomes a major historical find. The studio is preserved as a museum, and Eliza's work is finally recognized. Your photos of the discovery win national acclaim, proving that sometimes the past holds the key to our future success." }
-                                ]
-                            },
-                            '6': {
-                                character: 'Oksana',
-                                portrait: 'https://placehold.co/600x900/0d9488/ffffff?text=Oksana+Mystery',
-                                text: "The historical society has records of Eliza, a talented photographer who perished in the library fire. They mention she was working on a series about 'time echoes' - moments that repeat across generations.",
-                                choices: [
-                                    { text: "Recreate Eliza's last known photo locations", ending: true, endingText: "By standing where Eliza stood, you capture the same scenes 100 years later. Your photo series 'Echoes of Time' becomes a sensation, showing how the town has changed while revealing uncanny parallels between past and present. Your work helps the community connect with its roots." },
-                                    { text: "Use your photos to create a memorial exhibition for Eliza", ending: true, endingText: "Your exhibition honors Eliza's memory and showcases your own work alongside her recovered photos. The emotional response from the town is overwhelming. You realize your photography has the power to heal historical wounds and bring communities together across time." }
-                                ]
-                            }
-                        }
-                    };
-                    
-                    return stories[this.currentStoryType][sceneId] || {
-                        character: 'Oksana',
-                        portrait: 'https://placehold.co/600x900/3b82f6/ffffff?text=Oksana',
-                        text: "An unexpected turn in the story...",
-                        choices: [{ text: "Return to menu", nextScene: 'menu' }]
-                    };
-                }
-            };
+  <script>
+    // Имитация Telegram WebApp
+    const Telegram = window.Telegram || {
+      WebApp: {
+        initData: null,
+        initDataUnsafe: { user: { id: 123456789, first_name: "Игрок" } },
+        ready: () => {},
+        expand: () => {},
+        MainButton: {
+          setText: () => {},
+          show: () => {}
         }
-    </script>
+      }
+    };
+
+    // Игровое состояние
+    const gameState = {
+      currentScreen: 'main',
+      day: 1,
+      coins: 100,
+      level: 1,
+      completedPuzzles: [],
+      collectedMemes: ['im_ready', 'this_is_fine', 'when_you_see']
+    };
+
+    // DOM элементы
+    const elements = {
+      loading: document.getElementById('loading'),
+      mainScreen: document.getElementById('main-screen'),
+      puzzleScreen: document.getElementById('puzzle-screen'),
+      dialogText: document.getElementById('dialog-text'),
+      coins: document.getElementById('coins'),
+      level: document.getElementById('level'),
+      day: document.getElementById('day'),
+      startPuzzle: document.getElementById('start-puzzle'),
+      viewLeaderboard: document.getElementById('view-leaderboard'),
+      backToMain: document.getElementById('back-to-main'),
+      checkPuzzle: document.getElementById('check-puzzle'),
+      puzzleGrid: document.getElementById('puzzle-grid')
+    };
+
+    // Инициализация приложения
+    function initApp() {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      
+      // Имитация загрузки
+      setTimeout(() => {
+        elements.loading.style.opacity = '0';
+        setTimeout(() => {
+          elements.loading.style.display = 'none';
+          elements.mainScreen.style.opacity = '1';
+          elements.mainScreen.style.transform = 'translateY(0)';
+        }, 500);
+      }, 2000);
+
+      // Обновление UI
+      updateUI();
+
+      // Обработчики событий
+      elements.startPuzzle.addEventListener('click', showPuzzleScreen);
+      elements.backToMain.addEventListener('click', showMainScreen);
+      elements.checkPuzzle.addEventListener('click', checkPuzzle);
+      elements.viewLeaderboard.addEventListener('click', showLeaderboard);
+    }
+
+    // Обновление UI
+    function updateUI() {
+      elements.coins.textContent = gameState.coins;
+      elements.level.textContent = gameState.level;
+      elements.day.textContent = gameState.day;
+    }
+
+    // Показать главный экран
+    function showMainScreen() {
+      elements.puzzleScreen.style.display = 'none';
+      elements.mainScreen.style.display = 'flex';
+      gameState.currentScreen = 'main';
+    }
+
+    // Показать экран пазла
+    function showPuzzleScreen() {
+      elements.mainScreen.style.display = 'none';
+      elements.puzzleScreen.style.display = 'flex';
+      gameState.currentScreen = 'puzzle';
+      generatePuzzle();
+    }
+
+    // Генерация пазла
+    function generatePuzzle() {
+      elements.puzzleGrid.innerHTML = '';
+      const pieces = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const shuffled = [...pieces].sort(() => Math.random() - 0.5);
+      
+      shuffled.forEach((num, index) => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.textContent = num;
+        piece.dataset.correctPosition = num - 1;
+        piece.dataset.currentPosition = index;
+        piece.addEventListener('click', () => swapPieces(piece));
+        elements.puzzleGrid.appendChild(piece);
+      });
+    }
+
+    // Обмен пазлами
+    let selectedPiece = null;
+    function swapPieces(clickedPiece) {
+      if (!selectedPiece) {
+        selectedPiece = clickedPiece;
+        clickedPiece.style.backgroundColor = 'var(--neon-green)';
+        clickedPiece.style.color = 'black';
+        return;
+      }
+
+      if (selectedPiece === clickedPiece) {
+        selectedPiece.style.backgroundColor = '';
+        selectedPiece.style.color = '';
+        selectedPiece = null;
+        return;
+      }
+
+      // Обмен местами
+      const tempPos = selectedPiece.dataset.currentPosition;
+      selectedPiece.dataset.currentPosition = clickedPiece.dataset.currentPosition;
+      clickedPiece.dataset.currentPosition = tempPos;
+
+      // Обмен в DOM
+      const parent = elements.puzzleGrid;
+      const selectedIndex = Array.from(parent.children).indexOf(selectedPiece);
+      const clickedIndex = Array.from(parent.children).indexOf(clickedPiece);
+      
+      const temp = parent.children[selectedIndex].outerHTML;
+      parent.children[selectedIndex].outerHTML = parent.children[clickedIndex].outerHTML;
+      parent.children[clickedIndex].outerHTML = temp;
+
+      // Переприсваиваем обработчики
+      generatePuzzle();
+
+      selectedPiece = null;
+    }
+
+    // Проверка пазла
+    function checkPuzzle() {
+      const pieces = document.querySelectorAll('.puzzle-piece');
+      let isCorrect = true;
+      
+      pieces.forEach((piece, index) => {
+        if (parseInt(piece.dataset.correctPosition) !== index) {
+          isCorrect = false;
+        }
+      });
+
+      if (isCorrect) {
+        // Пазл решен
+        gameState.coins += 50;
+        gameState.completedPuzzles.push(gameState.day);
+        updateUI();
+        
+        elements.dialogText.textContent = 'Отлично! Ты собрал пазл! Получай 50 монет и доступ к гонкам!';
+        showMainScreen();
+        
+        // Показать анимацию успеха
+        showSuccessAnimation();
+      } else {
+        alert('Еще не все правильно! Попробуй еще раз!');
+      }
+    }
+
+    // Анимация успеха
+    function showSuccessAnimation() {
+      const success = document.createElement('div');
+      success.innerHTML = '🎉 УРА! ПАЗЛ СОБРАН! 🎉';
+      success.style.position = 'fixed';
+      success.style.top = '50%';
+      success.style.left = '50%';
+      success.style.transform = 'translate(-50%, -50%)';
+      success.style.backgroundColor = 'var(--neon-green)';
+      success.style.color = 'black';
+      success.style.padding = '20px';
+      success.style.borderRadius = '20px';
+      success.style.fontSize = '24px';
+      success.style.zIndex = '1000';
+      success.style.animation = 'fadeIn 0.5s, fadeOut 0.5s 2s';
+      
+      document.body.appendChild(success);
+      setTimeout(() => {
+        document.body.removeChild(success);
+      }, 2500);
+    }
+
+    // Показать таблицу лидеров
+    function showLeaderboard() {
+      alert('Таблица лидеров:\n1. Оксана - 1000 очков\n2. Игрок - 100 очков\n3. Друг Оксаны - 50 очков');
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
 </body>
 </html>
 
