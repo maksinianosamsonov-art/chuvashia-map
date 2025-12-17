@@ -1,366 +1,741 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Оксана: Гонки, Мемы и Миссии</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Оксана: Героиня Чебоксар</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0f172a',
+            secondary: '#1e293b',
+            accent: '#ec4899',
+            neon: '#00f5d4',
+            glow: '#ff2ea6',
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    :root {
-      --bg: #0a0e21;
-      --pink: #ff00ff;
-      --green: #00ff88;
-      --card: #14182b;
-      --text: #ffffff;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
     body {
-      background: linear-gradient(135deg, var(--bg) 0%, #1a1f36 100%);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: 'Orbitron', sans-serif;
+      background: #0f172a;
       overflow: hidden;
-      user-select: none;
     }
-
-    #app {
-      width: 100%;
-      max-width: 500px;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+    .neon-text {
+      text-shadow: 0 0 10px #ec4899, 0 0 20px #ec4899, 0 0 30px #ec4899;
     }
-
-    .neon {
-      text-shadow: 0 0 10px var(--pink), 0 0 20px var(--pink);
-      color: var(--pink);
+    .neon-border {
+      box-shadow: 0 0 10px #00f5d4, inset 0 0 10px #00f5d4;
     }
-
-    .glow {
-      text-shadow: 0 0 10px var(--green);
-      color: var(--green);
+    .btn-glow:hover {
+      box-shadow: 0 0 15px #ff2ea6;
     }
-
-    #loading {
+    canvas {
+      display: block;
+      background: #0c1427;
+    }
+    .joystick {
       position: absolute;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid #ff00ff33;
-      border-top: 4px solid var(--pink);
+      bottom: 20px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 2px solid #00f5d4;
+      box-shadow: 0 0 10px #00f5d4;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      margin: 12px;
-      background: rgba(20, 24, 43, 0.8);
-      border-radius: 16px;
-      backdrop-filter: blur(10px);
-      border: 1px solid #ff00ff44;
-    }
-
-    .avatar {
-      width: 42px;
-      height: 42px;
+    .joystick-knob {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      background: linear-gradient(45deg, var(--pink), var(--green));
-      display: grid;
-      place-items: center;
-      font-weight: bold;
-      font-size: 18px;
-      box-shadow: 0 0 12px var(--pink);
+      background: #ec4899;
+      box-shadow: 0 0 10px #ec4899;
     }
-
-    .stats {
-      display: flex;
-      gap: 14px;
+    .shoot-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(236, 72, 153, 0.7);
+      border: 2px solid #ff2ea6;
+      box-shadow: 0 0 10px #ff2ea6;
     }
-
-    .stat {
-      text-align: center;
-      font-size: 12px;
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
     }
-
-    .stat-value {
-      font-size: 15px;
-      font-weight: bold;
-      color: var(--green);
-    }
-
-    .character {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px 0;
-    }
-
-    .oksana {
-      width: 250px;
-      height: 290px;
-      animation: float 3s ease-in-out infinite;
-      cursor: pointer;
-    }
-
-    .oksana:hover {
-      transform: scale(1.05);
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-
-    .dialog {
-      background: var(--card);
-      padding: 20px;
-      margin: 0 12px 16px;
-      border-radius: 18px;
-      border-left: 4px solid var(--pink);
-      box-shadow: 0 6px 25px #ff00ff22;
-    }
-
-    .text {
-      font-size: 16px;
-      line-height: 1.6;
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .memes {
-      display: flex;
-      gap: 14px;
-      overflow-x: auto;
-      padding: 8px 0;
-    }
-
-    .meme {
-      min-width: 85px;
-      height: 85px;
-      background: #ff00ff11;
-      border: 2px solid var(--pink);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
-      padding: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .meme:hover {
-      transform: scale(1.12);
-      box-shadow: 0 0 18px var(--pink);
-    }
-
-    .actions {
-      display: flex;
-      gap: 14px;
-      padding: 0 12px 20px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 16px;
-      border: none;
-      border-radius: 16px;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px #ff00ff55;
-    }
-
-    .primary {
-      background: linear-gradient(45deg, var(--pink), #ff33ff);
-      color: white;
-    }
-
-    .secondary {
-      background: var(--card);
-      color: var(--green);
-      border: 2px solid var(--green);
-    }
-
-    .notification {
-      position: fixed;
-      top: 75px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--green);
-      color: #000;
-      padding: 16px 30px;
-      border-radius: 18px;
-      font-weight: 700;
-      opacity: 0;
-      transition: opacity 0.3s;
-      box-shadow: 0 0 25px var(--green);
-      pointer-events: none;
-    }
-
-    .show {
-      opacity: 1;
-    }
-
-    .hidden {
-      display: none;
+    .pulse {
+      animation: pulse 1.5s infinite;
     }
   </style>
 </head>
-<body>
-  <div id="app">
-    <div id="loading">
-      <div class="spinner"></div>
-      <div class="neon" style="font-size: 24px; margin-top: 16px;">Загрузка Оксаны...</div>
-    </div>
-
-    <div id="main">
-      <div class="header">
-        <div class="avatar">О</div>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-value" id="coins">100</div>
-            <div>Монеты</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value" id="level">1</div>
-            <div>Уровень</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value" id="day">1</div>
-            <div>День</div>
-          </div>
-        </div>
+<body class="text-white overflow-hidden">
+  <div id="app" class="w-full h-screen flex flex-col items-center justify-center relative">
+    <!-- Main Menu -->
+    <div id="menu" class="w-full h-full flex flex-col items-center justify-center space-y-8 p-6 text-center">
+      <h1 class="text-4xl neon-text font-bold">Оксана из Чебоксар</h1>
+      <p class="text-lg text-neon">Героиня улиц, дрифт и скорости!</p>
+      
+      <div class="space-y-4 w-full max-w-xs">
+        <button onclick="startGame('shooter')" class="w-full py-3 px-6 bg-accent rounded-lg font-bold text-white neon-border btn-glow transition">
+          🔫 Оксана в бою
+        </button>
+        <button onclick="startGame('drift')" class="w-full py-3 px-6 bg-neon rounded-lg font-bold text-primary neon-border btn-glow transition">
+          🏁 Дрифт по Чебоксарам
+        </button>
+        <button onclick="startGame('racing')" class="w-full py-3 px-6 bg-glow rounded-lg font-bold text-white neon-border btn-glow transition">
+          🏎️ Гонки с друзьями
+        </button>
       </div>
 
-      <div class="character">
-        <img src="https://placehold.co/250x290/ff66cc/ffffff?text=Оксана" 
-             alt="Оксана" class="oksana">
-      </div>
-
-      <div class="dialog">
-        <div class="text" id="dialog">
-          Привет! Я Оксана из Чебоксар! 🎤<br><br>
-          Добро пожаловать в мой мир гонок, мемов и приключений! 
-          Сегодня День 1 нашей 30-дневной кампании! 🏎️
-        </div>
-        <div class="memes">
-          <div class="meme">"I'm ready"</div>
-          <div class="meme">"This is fine"</div>
-          <div class="meme">"When you see"</div>
-          <div class="meme">"Nope"</div>
-          <div class="meme">"Okay"</div>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn primary" id="mission">Ежедневная миссия 🎯</button>
-        <button class="btn secondary" id="garage">Моя тачка 🚗</button>
+      <div id="records" class="mt-8 text-sm text-gray-400">
+        <p>Рекорды: <span id="record-shooter">0</span> | <span id="record-drift">0</span> | <span id="record-racing">0</span></p>
       </div>
     </div>
 
-    <div class="notification" id="notif"></div>
+    <!-- Game Canvas Container -->
+    <div id="game-container" class="hidden w-full h-full relative">
+      <canvas id="game-canvas" class="w-full h-full"></canvas>
+      <div id="game-ui" class="absolute top-4 left-4 right-4 flex justify-between items-center">
+        <div id="score" class="text-2xl font-bold neon-text">0</div>
+        <div id="timer" class="text-xl"></div>
+        <button onclick="exitGame()" class="text-white bg-red-500 px-3 py-1 rounded neon-border">← Назад</button>
+      </div>
+      <!-- Touch Controls (conditionally shown) -->
+      <div id="controls" class="absolute inset-0 pointer-events-none"></div>
+    </div>
   </div>
 
-  <script>
-    const Telegram = window.Telegram || { WebApp: { ready: () => {}, expand: () => {} } };
+  <script type="module">
+    // Telegram WebApp Init
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    Telegram.WebApp.MainButton.setText('Отправить результат');
+    Telegram.WebApp.MainButton.hide();
 
-    const state = {
-      day: 1,
-      coins: 100,
-      level: 1
+    // Game state
+    const gameState = {
+      currentGame: null,
+      score: 0,
+      records: {
+        shooter: parseInt(localStorage.getItem('oxana_shooter') || '0'),
+        drift: parseInt(localStorage.getItem('oxana_drift') || '0'),
+        racing: parseInt(localStorage.getItem('oxana_racing') || '0')
+      }
     };
 
-    const el = {
-      loading: document.getElementById('loading'),
-      main: document.getElementById('main'),
-      dialog: document.getElementById('dialog'),
-      coins: document.getElementById('coins'),
-      level: document.getElementById('level'),
-      day: document.getElementById('day'),
-      mission: document.getElementById('mission'),
-      garage: document.getElementById('garage'),
-      notif: document.getElementById('notif')
+    // DOM Elements
+    const menuEl = document.getElementById('menu');
+    const gameContainerEl = document.getElementById('game-container');
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const controlsEl = document.getElementById('controls');
+    const recordShooterEl = document.getElementById('record-shooter');
+    const recordDriftEl = document.getElementById('record-drift');
+    const recordRacingEl = document.getElementById('record-racing');
+
+    // Update records display
+    function updateRecords() {
+      recordShooterEl.textContent = gameState.records.shooter;
+      recordDriftEl.textContent = gameState.records.drift;
+      recordRacingEl.textContent = gameState.records.racing;
+    }
+    updateRecords();
+
+    // Resize canvas
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 80; // account for UI
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Input state
+    const input = {
+      left: false,
+      right: false,
+      up: false,
+      down: false,
+      shoot: false,
+      touch: { x: 0, y: 0, active: false }
     };
 
-    function init() {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') input.left = true;
+      if (e.key === 'ArrowRight') input.right = true;
+      if (e.key === 'ArrowUp') input.up = true;
+      if (e.key === 'ArrowDown') input.down = true;
+      if (e.key === ' ') input.shoot = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft') input.left = false;
+      if (e.key === 'ArrowRight') input.right = false;
+      if (e.key === 'ArrowUp') input.up = false;
+      if (e.key === 'ArrowDown') input.down = false;
+      if (e.key === ' ') input.shoot = false;
+    });
+
+    // Touch controls
+    let joystickBase = null;
+    let joystickKnob = null;
+    let shootBtn = null;
+
+    function createTouchControls() {
+      controlsEl.innerHTML = '';
+      controlsEl.classList.remove('pointer-events-none');
       
-      setTimeout(() => {
-        el.loading.classList.add('hidden');
-        el.main.style.opacity = '1';
-        el.main.style.transform = 'translateY(0)';
-      }, 1000);
-
-      update();
-      el.mission.onclick = dailyMission;
-      el.garage.onclick = () => notify('🚗 В разработке для GitHub!');
-    }
-
-    function update() {
-      el.coins.textContent = state.coins;
-      el.level.textContent = state.level;
-      el.day.textContent = state.day;
-    }
-
-    function dailyMission() {
-      const reward = 50 + (state.day * 5);
-      state.coins += reward;
-      state.level = Math.min(state.level + 1, 30);
-      state.day = Math.min(state.day + 1, 30);
+      joystickBase = document.createElement('div');
+      joystickBase.className = 'joystick';
+      joystickKnob = document.createElement('div');
+      joystickKnob.className = 'joystick-knob';
+      joystickBase.appendChild(joystickKnob);
       
-      update();
-      notify(`🎯 Миссия Дня ${state.day - 1} выполнена!\n+${reward} монет!`);
+      shootBtn = document.createElement('div');
+      shootBtn.className = 'shoot-btn pulse';
       
-      el.dialog.innerHTML = `Отличная работа! 🎉<br><br>Ты выполнил миссию Дня ${state.day - 1}!<br>Получено ${reward} монет!<br><br>Завтра будет новое задание!`;
+      controlsEl.appendChild(joystickBase);
+      controlsEl.appendChild(shootBtn);
+      
+      // Joystick logic
+      let isDragging = false;
+      const baseRect = { x: 20, y: canvas.height - 120, width: 100, height: 100 };
+      
+      function updateJoystick(clientX, clientY) {
+        const rect = joystickBase.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = clientX - centerX;
+        const deltaY = clientY - centerY;
+        const distance = Math.min(40, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+        const angle = Math.atan2(deltaY, deltaX);
+        const posX = Math.cos(angle) * distance;
+        const posY = Math.sin(angle) * distance;
+        joystickKnob.style.transform = `translate(${posX}px, ${posY}px)`;
+        
+        input.left = posX < -10;
+        input.right = posX > 10;
+        input.up = posY < -10;
+        input.down = posY > 10;
+      }
+      
+      joystickBase.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+      });
+      
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+      });
+      
+      window.addEventListener('touchend', () => {
+        isDragging = false;
+        joystickKnob.style.transform = 'translate(0, 0)';
+        input.left = input.right = input.up = input.down = false;
+      });
+      
+      // Shoot button
+      shootBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        input.shoot = true;
+        shootBtn.classList.remove('pulse');
+        shootBtn.style.boxShadow = '0 0 20px #ff2ea6';
+      });
+      
+      shootBtn.addEventListener('touchend', () => {
+        input.shoot = false;
+        shootBtn.classList.add('pulse');
+        shootBtn.style.boxShadow = '0 0 10px #ff2ea6';
+      });
     }
 
-    function notify(msg) {
-      el.notif.textContent = msg;
-      el.notif.className = 'notification show';
-      setTimeout(() => el.notif.className = 'notification', 2500);
+    // Game exit
+    function exitGame() {
+      if (gameState.currentGame) {
+        // Save score if it's a new record
+        const gameKey = gameState.currentGame;
+        if (gameState.score > gameState.records[gameKey]) {
+          gameState.records[gameKey] = gameState.score;
+          localStorage.setItem(`oxana_${gameKey}`, gameState.score.toString());
+          updateRecords();
+          
+          // Show Telegram button to send data
+          Telegram.WebApp.MainButton.setText(`Рекорд: ${gameState.score} в "${gameKey}"`);
+          Telegram.WebApp.MainButton.show();
+          Telegram.WebApp.MainButton.onClick(() => {
+            Telegram.WebApp.sendData(JSON.stringify({ game: gameKey, score: gameState.score }));
+            Telegram.WebApp.close();
+          });
+        }
+      }
+      
+      menuEl.classList.remove('hidden');
+      gameContainerEl.classList.add('hidden');
+      gameState.currentGame = null;
+      gameState.score = 0;
+      scoreEl.textContent = '0';
+      timerEl.textContent = '';
+      controlsEl.innerHTML = '';
+      controlsEl.classList.add('pointer-events-none');
+      Telegram.WebApp.MainButton.hide();
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    // Start game
+    window.startGame = function(gameName) {
+      menuEl.classList.add('hidden');
+      gameContainerEl.classList.remove('hidden');
+      gameState.currentGame = gameName;
+      gameState.score = 0;
+      scoreEl.textContent = '0';
+      
+      resizeCanvas();
+      createTouchControls();
+      
+      // Initialize specific game
+      if (gameName === 'shooter') initShooter();
+      else if (gameName === 'drift') initDrift();
+      else if (gameName === 'racing') initRacing();
+    };
+
+    // Common game loop
+    let gameLoop;
+    let lastTime = 0;
+    
+    function startGameLoop(updateFn) {
+      if (gameLoop) cancelAnimationFrame(gameLoop);
+      lastTime = performance.now();
+      
+      const loop = (time) => {
+        const dt = (time - lastTime) / 1000;
+        lastTime = time;
+        
+        if (gameState.currentGame) {
+          updateFn(dt);
+          gameLoop = requestAnimationFrame(loop);
+        }
+      };
+      gameLoop = requestAnimationFrame(loop);
+    }
+
+    // === MINI-GAME 1: SHOOTER ===
+    let shooterState;
+    function initShooter() {
+      shooterState = {
+        player: { x: canvas.width / 2, y: canvas.height / 2, radius: 15, speed: 200, health: 100, reload: 0 },
+        bullets: [],
+        enemies: [],
+        lastEnemySpawn: 0,
+        gameOver: false
+      };
+      
+      startGameLoop(updateShooter);
+    }
+    
+    function updateShooter(dt) {
+      const s = shooterState;
+      if (s.gameOver) return;
+      
+      // Player movement
+      let dx = 0, dy = 0;
+      if (input.left) dx -= 1;
+      if (input.right) dx += 1;
+      if (input.up) dy -= 1;
+      if (input.down) dy += 1;
+      
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len > 0) {
+        dx /= len; dy /= len;
+        s.player.x += dx * s.player.speed * dt;
+        s.player.y += dy * s.player.speed * dt;
+      }
+      
+      // Keep player in bounds
+      s.player.x = Math.max(s.player.radius, Math.min(canvas.width - s.player.radius, s.player.x));
+      s.player.y = Math.max(s.player.radius, Math.min(canvas.height - s.player.radius, s.player.y));
+      
+      // Shooting
+      if (input.shoot && s.player.reload <= 0) {
+        s.bullets.push({
+          x: s.player.x,
+          y: s.player.y,
+          dx: dx || 0,
+          dy: dy || -1,
+          speed: 300
+        });
+        s.player.reload = 0.2; // seconds
+      }
+      if (s.player.reload > 0) s.player.reload -= dt;
+      
+      // Spawn enemies
+      if (performance.now() - s.lastEnemySpawn > 1000) {
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        if (side === 0) { x = Math.random() * canvas.width; y = -20; }
+        else if (side === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
+        else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
+        else { x = -20; y = Math.random() * canvas.height; }
+        s.enemies.push({ x, y, radius: 12, speed: 80, health: 1 });
+        s.lastEnemySpawn = performance.now();
+      }
+      
+      // Update bullets
+      for (let i = s.bullets.length - 1; i >= 0; i--) {
+        const b = s.bullets[i];
+        b.x += b.dx * b.speed * dt;
+        b.y += b.dy * b.speed * dt;
+        
+        // Remove off-screen bullets
+        if (b.x < -10 || b.x > canvas.width + 10 || b.y < -10 || b.y > canvas.height + 10) {
+          s.bullets.splice(i, 1);
+          continue;
+        }
+        
+        // Bullet-enemy collision
+        for (let j = s.enemies.length - 1; j >= 0; j--) {
+          const e = s.enemies[j];
+          const dx = b.x - e.x;
+          const dy = b.y - e.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < b.radius + e.radius) {
+            s.enemies.splice(j, 1);
+            s.bullets.splice(i, 1);
+            gameState.score += 10;
+            scoreEl.textContent = gameState.score;
+            break;
+          }
+        }
+      }
+      
+      // Update enemies
+      for (let i = s.enemies.length - 1; i >= 0; i--) {
+        const e = s.enemies[i];
+        const dx = s.player.x - e.x;
+        const dy = s.player.y - e.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0) {
+          e.x += (dx / dist) * e.speed * dt;
+          e.y += (dy / dist) * e.speed * dt;
+        }
+        
+        // Enemy-player collision
+        if (dist < s.player.radius + e.radius) {
+          s.player.health -= 10;
+          s.enemies.splice(i, 1);
+          if (s.player.health <= 0) {
+            s.gameOver = true;
+            exitGame();
+            return;
+          }
+        }
+      }
+      
+      // Render
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Background (simplified Chебокsary)
+      ctx.fillStyle = '#1a2233';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#2d3748';
+      // Fake buildings
+      for (let i = 0; i < 10; i++) {
+        const w = 30 + Math.random() * 40;
+        const h = 50 + Math.random() * 100;
+        ctx.fillRect(i * 80 + 20, canvas.height - h, w, h);
+      }
+      
+      // Player
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.arc(s.player.x, s.player.y, s.player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Bullets
+      ctx.fillStyle = '#00f5d4';
+      for (const b of s.bullets) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Enemies
+      ctx.fillStyle = '#f87171';
+      for (const e of s.enemies) {
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // UI
+      ctx.fillStyle = 'white';
+      ctx.font = '16px Orbitron';
+      ctx.fillText(`HP: ${s.player.health}`, 10, 30);
+    }
+
+    // === MINI-GAME 2: DRIFT ===
+    let driftState;
+    function initDrift() {
+      driftState = {
+        car: { x: canvas.width / 2, y: canvas.height / 2, angle: 0, speed: 0, maxSpeed: 300 },
+        driftFactor: 0,
+        score: 0,
+        timeLeft: 60,
+        lastTime: performance.now(),
+        obstacles: [],
+        gameOver: false
+      };
+      
+      // Create some obstacles (landmarks)
+      for (let i = 0; i < 5; i++) {
+        driftState.obstacles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: 20 + Math.random() * 30,
+          passed: false
+        });
+      }
+      
+      startGameLoop(updateDrift);
+    }
+    
+    function updateDrift(dt) {
+      const s = driftState;
+      if (s.gameOver) return;
+      
+      // Timer
+      const now = performance.now();
+      s.timeLeft -= (now - s.lastTime) / 1000;
+      s.lastTime = now;
+      timerEl.textContent = Math.max(0, Math.floor(s.timeLeft));
+      if (s.timeLeft <= 0) {
+        gameState.score = Math.floor(s.score);
+        exitGame();
+        return;
+      }
+      
+      // Controls
+      if (input.up) s.car.speed = Math.min(s.car.maxSpeed, s.car.speed + 200 * dt);
+      else if (input.down) s.car.speed = Math.max(0, s.car.speed - 200 * dt);
+      else s.car.speed *= 0.95;
+      
+      let turn = 0;
+      if (input.left) turn = -2;
+      if (input.right) turn = 2;
+      
+      // Drift physics
+      s.car.angle += turn * (s.car.speed / s.car.maxSpeed) * dt;
+      const driftAmount = Math.abs(turn) * (s.car.speed / s.car.maxSpeed) * 0.5;
+      s.driftFactor = Math.min(1, s.driftFactor + driftAmount * dt);
+      s.driftFactor *= 0.98;
+      
+      // Movement
+      s.car.x += Math.sin(s.car.angle) * s.car.speed * dt;
+      s.car.y -= Math.cos(s.car.angle) * s.car.speed * dt;
+      
+      // Keep in bounds (wrap around)
+      if (s.car.x < -20) s.car.x = canvas.width + 20;
+      if (s.car.x > canvas.width + 20) s.car.x = -20;
+      if (s.car.y < -20) s.car.y = canvas.height + 20;
+      if (s.car.y > canvas.height + 20) s.car.y = -20;
+      
+      // Score from drift
+      s.score += s.driftFactor * s.car.speed * dt;
+      
+      // Landmark bonuses
+      for (const obs of s.obstacles) {
+        if (obs.passed) continue;
+        const dx = s.car.x - obs.x;
+        const dy = s.car.y - obs.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < obs.radius + 20) {
+          obs.passed = true;
+          s.score += 100;
+        }
+      }
+      
+      // Render
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Night city background
+      ctx.fillStyle = '#0c1427';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Stars
+      ctx.fillStyle = 'white';
+      for (let i = 0; i < 100; i++) {
+        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
+      }
+      // Landmarks
+      ctx.fillStyle = '#ff2ea6';
+      for (const obs of s.obstacles) {
+        if (!obs.passed) {
+          ctx.beginPath();
+          ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      // Car with drift smoke
+      ctx.save();
+      ctx.translate(s.car.x, s.car.y);
+      ctx.rotate(s.car.angle);
+      
+      // Drift smoke
+      if (s.driftFactor > 0.3) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.driftFactor})`;
+        ctx.fillRect(-25, 20, 50, 10 + s.driftFactor * 20);
+      }
+      
+      // Car body
+      ctx.fillStyle = s.driftFactor > 0.5 ? '#ec4899' : '#00f5d4';
+      ctx.fillRect(-15, -25, 30, 50);
+      ctx.restore();
+      
+      // Score
+      gameState.score = Math.floor(s.score);
+      scoreEl.textContent = gameState.score;
+    }
+
+    // === MINI-GAME 3: RACING ===
+    let racingState;
+    function initRacing() {
+      racingState = {
+        playerLane: 1, // 0, 1, 2
+        playerY: canvas.height - 100,
+        speed: 200,
+        obstacles: [],
+        rivals: [],
+        time: 0,
+        score: 0,
+        gameOver: false
+      };
+      
+      // Create rivals
+      for (let i = 0; i < 2; i++) {
+        racingState.rivals.push({
+          lane: i === 0 ? 0 : 2,
+          y: -100 - i * 300,
+          speed: 180 + Math.random() * 40
+        });
+      }
+      
+      startGameLoop(updateRacing);
+    }
+    
+    function updateRacing(dt) {
+      const s = racingState;
+      if (s.gameOver) return;
+      
+      s.time += dt;
+      
+      // Lane switching
+      if (input.left && s.playerLane > 0) s.playerLane--;
+      if (input.right && s.playerLane < 2) s.playerLane++;
+      
+      // Obstacle spawning
+      if (s.time > 2 && s.obstacles.length < 5) {
+        s.obstacles.push({
+          lane: Math.floor(Math.random() * 3),
+          y: -50,
+          speed: 250
+        });
+        s.time = 0;
+      }
+      
+      // Update rivals
+      for (const r of s.rivals) {
+        r.y += r.speed * dt;
+        if (r.y > canvas.height + 50) {
+          r.y = -100;
+          r.speed = 180 + Math.random() * 40;
+        }
+      }
+      
+      // Update obstacles
+      for (let i = s.obstacles.length - 1; i >= 0; i--) {
+        const obs = s.obstacles[i];
+        obs.y += obs.speed * dt;
+        if (obs.y > canvas.height + 50) {
+          s.obstacles.splice(i, 1);
+          s.score += 10;
+        }
+      }
+      
+      // Collision detection
+      const playerX = 50 + s.playerLane * 100;
+      for (const obs of s.obstacles) {
+        const obsX = 50 + obs.lane * 100;
+        if (Math.abs(playerX - obsX) < 40 && Math.abs(s.playerY - obs.y) < 40) {
+          s.gameOver = true;
+          gameState.score = Math.floor(s.score);
+          exitGame();
+          return;
+        }
+      }
+      
+      // Render
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Road
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Lane markings
+      ctx.strokeStyle = '#00f5d4';
+      ctx.setLineDash([20, 20]);
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.moveTo(50 + i * 100, 0);
+        ctx.lineTo(50 + i * 100, canvas.height);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      
+      // Player car
+      ctx.fillStyle = '#ec4899';
+      ctx.fillRect(playerX - 15, s.playerY - 25, 30, 50);
+      
+      // Rivals
+      ctx.fillStyle = '#f87171';
+      for (const r of s.rivals) {
+        const x = 50 + r.lane * 100;
+        ctx.fillRect(x - 15, r.y - 25, 30, 50);
+      }
+      
+      // Obstacles (cones)
+      ctx.fillStyle = '#f59e0b';
+      for (const obs of s.obstacles) {
+        const x = 50 + obs.lane * 100;
+        ctx.beginPath();
+        ctx.moveTo(x, obs.y - 20);
+        ctx.lineTo(x - 10, obs.y + 10);
+        ctx.lineTo(x + 10, obs.y + 10);
+        ctx.closePath();
+        ctx.fill();
+      }
+      
+      gameState.score = Math.floor(s.score);
+      scoreEl.textContent = gameState.score;
+    }
   </script>
 </body>
 </html>
-
 
