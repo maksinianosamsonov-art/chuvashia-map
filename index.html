@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Мир Снов Оксаны</title>
+    <title>Приключения Оксаны</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -11,27 +11,18 @@
 
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #0f172a;
+            background-color: #0f172a; /* Default, will be changed by JS */
             overflow: hidden;
-            touch-action: none; /* Предотвращает зум и скролл на мобильных */
+            touch-action: none;
+            transition: background-color 1s ease;
         }
 
-        /* Анимация фона */
-        .stars {
-            background: black url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/1231630/stars.png) repeat;
-            position: absolute;
-            top: 0; bottom: 0; left: 0; right: 0;
-            display: block;
-            z-index: 0;
-        }
-
-        /* UI Элементы */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
@@ -44,97 +35,158 @@
 
         .hidden { display: none !important; }
         
-        /* Анимация персонажа в UI */
         .avatar-pulse {
             animation: pulse-glow 2s infinite;
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
         }
 
-        /* Текст диалога */
         .typing-text::after {
             content: '|';
             animation: blink 1s infinite;
         }
         @keyframes blink { 50% { opacity: 0; } }
+
+        /* Стили для фото персонажа */
+        .character-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
     </style>
 </head>
-<body class="text-white h-screen w-screen flex flex-col items-center justify-center relative">
-
-    <!-- Задний фон -->
-    <div class="stars opacity-50"></div>
+<body class="text-white h-screen w-screen flex flex-col items-center justify-center relative transition-colors duration-1000">
 
     <!-- UI: Главное меню -->
     <div id="start-screen" class="glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute transition-all duration-500">
-        <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-500 to-violet-500 mb-4 p-1 avatar-pulse relative overflow-hidden">
-             <!-- Здесь схематичное изображение Оксаны, можно заменить на <img> -->
-             <svg viewBox="0 0 100 100" class="w-full h-full bg-slate-900 rounded-full">
-                <circle cx="50" cy="40" r="25" fill="#fce7f3" /> <!-- Лицо -->
-                <path d="M20,40 Q50,5 80,40" fill="none" stroke="#3b0764" stroke-width="8" /> <!-- Волосы -->
-                <path d="M20,40 L20,90 Q50,110 80,90 L80,40" fill="#3b0764" /> <!-- Волосы сзади -->
-                <circle cx="40" cy="40" r="3" fill="#000" /> <!-- Глаз -->
-                <circle cx="60" cy="40" r="3" fill="#000" /> <!-- Глаз -->
-                <path d="M45,55 Q50,60 55,55" fill="none" stroke="#000" stroke-width="2" /> <!-- Улыбка -->
-             </svg>
+        <div class="w-28 h-28 rounded-full border-4 border-white/30 mb-4 avatar-pulse relative overflow-hidden bg-black">
+             <!-- 
+                ВАЖНО: Чтобы использовать твоё фото, замени src ниже на "image_d88765.jpg" 
+                и положи файл рядом с html файлом.
+             -->
+             <img id="ui-avatar" src="https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c" alt="Оксана" class="character-img">
         </div>
-        <h1 class="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-400">Оксана</h1>
-        <h2 class="text-xl mb-4 font-bold text-gray-200">В Мире Снов</h2>
-        <p class="text-center text-sm text-gray-300 mb-6 leading-relaxed">
-            Помоги Оксане собрать звезды и убежать от кошмаров, чтобы проснуться.
+        <h1 id="game-title" class="text-4xl font-black mb-2 text-center text-white drop-shadow-md">Оксана</h1>
+        <h2 id="scenario-title" class="text-xl mb-4 font-bold text-gray-200 text-center">...</h2>
+        <p id="scenario-desc" class="text-center text-sm text-gray-100 mb-6 leading-relaxed font-semibold shadow-black drop-shadow-sm">
+            Загрузка сюжета...
         </p>
-        <button onclick="startGame()" class="w-full bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
-            Начать путешествие
+        <button onclick="startGame()" class="w-full bg-white text-slate-900 font-bold py-4 px-6 rounded-2xl shadow-xl transform transition active:scale-95 text-lg hover:bg-gray-100">
+            НАЧАТЬ ИГРУ
         </button>
     </div>
 
     <!-- UI: Диалог -->
-    <div id="dialog-box" class="hidden glass-panel absolute bottom-8 w-[90%] p-4 z-20 flex items-start gap-4 animate-bounce-in">
-        <div class="w-12 h-12 rounded-full bg-pink-500 flex-shrink-0 overflow-hidden border-2 border-white">
-             <svg viewBox="0 0 100 100" class="w-full h-full bg-slate-800">
-                <circle cx="50" cy="40" r="25" fill="#fce7f3" />
-                <path d="M20,40 Q50,5 80,40" fill="none" stroke="#3b0764" stroke-width="8" />
-             </svg>
+    <div id="dialog-box" class="hidden glass-panel absolute bottom-12 w-[90%] p-5 z-20 flex items-start gap-4 animate-bounce-in">
+        <div class="w-14 h-14 rounded-full bg-white/20 flex-shrink-0 overflow-hidden border-2 border-white">
+             <img id="dialog-avatar" src="" class="character-img">
         </div>
         <div class="flex-1">
-            <h3 class="text-pink-400 font-bold text-xs uppercase mb-1">Оксана</h3>
-            <p id="dialog-text" class="text-sm leading-snug typing-text"></p>
-            <p class="text-xs text-gray-400 mt-2 text-right">Нажми, чтобы продолжить...</p>
+            <h3 class="text-white font-bold text-xs uppercase mb-1 opacity-80">Оксана говорит:</h3>
+            <p id="dialog-text" class="text-base font-bold leading-snug typing-text shadow-black drop-shadow-md"></p>
+            <p class="text-xs text-white/60 mt-2 text-right">Нажми, чтобы продолжить...</p>
         </div>
     </div>
 
-    <!-- UI: Счет и Жизни -->
-    <div id="hud" class="hidden absolute top-4 left-0 w-full px-4 flex justify-between z-10 pointer-events-none">
-        <div class="glass-panel px-3 py-1 flex items-center gap-2">
-            <span class="text-yellow-400 text-xl">★</span>
-            <span id="score" class="font-bold text-lg">0</span>
+    <!-- UI: HUD -->
+    <div id="hud" class="hidden absolute top-safe left-0 w-full p-4 flex justify-between z-10 pointer-events-none mt-2">
+        <div class="glass-panel px-4 py-2 flex items-center gap-2">
+            <span class="text-yellow-300 text-2xl drop-shadow-md">★</span>
+            <span id="score" class="font-black text-xl">0</span>
         </div>
-        <div class="glass-panel px-3 py-1">
-            <span class="text-xs text-gray-300">РЕКОРД: <span id="highscore">0</span></span>
+        <div class="glass-panel px-4 py-2">
+            <span class="text-xs font-bold opacity-80">РЕКОРД: <span id="highscore">0</span></span>
         </div>
     </div>
 
     <!-- UI: Game Over -->
     <div id="game-over" class="hidden glass-panel p-8 flex flex-col items-center justify-center max-w-sm w-[90%] z-20 absolute">
-        <h2 class="text-3xl font-black mb-2 text-red-400">Ой!</h2>
-        <p class="text-center text-gray-300 mb-6">Кошмар догнал тебя.<br>Собрано звезд: <span id="final-score" class="text-yellow-400 font-bold">0</span></p>
-        <button onclick="resetGame()" class="w-full bg-white text-slate-900 font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
-            Попробовать снова
+        <h2 class="text-4xl font-black mb-2 text-red-100 drop-shadow-md">Ой!</h2>
+        <p class="text-center text-white mb-6 text-lg">
+            Приключение прервалось.<br>
+            <span class="text-sm opacity-75">Твой результат:</span> <span id="final-score" class="text-yellow-300 font-bold text-2xl">0</span>
+        </p>
+        <button onclick="location.reload()" class="w-full bg-white text-slate-900 font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95">
+            Попробовать другой сюжет
         </button>
     </div>
 
     <canvas id="gameCanvas" class="game-canvas"></canvas>
 
     <script>
-        // --- Telegram Integration ---
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand();
         tg.ready();
+
+        // --- КОНФИГУРАЦИЯ ИГРОКА (ФОТО) ---
+        // Замени ссылку ниже на 'image_d88765.jpg' если файл лежит рядом
+        const PLAYER_IMAGE_SRC = "https://api.dicebear.com/9.x/avataaars/svg?seed=Oksana&eyebrows=defaultNatural&hair=longHair&hairColor=2c1b18&skinColor=f8d25c"; 
         
-        // --- Game Setup ---
+        // --- СЦЕНАРИИ ИГРЫ ---
+        const scenarios = [
+            {
+                id: 'dream',
+                title: 'Мир Снов',
+                desc: 'Оксана попала в странный сон. Собирай звезды памяти, чтобы проснуться!',
+                bgColor: '#0f172a', // Темно-синий
+                groundColor: '#1e293b',
+                obstacleColor: '#ef4444', // Красный
+                starColor: '#fbbf24',
+                dialogs: [
+                    "Ого, где это я? Все такое странное...",
+                    "Я помню этот путь... нужно бежать быстрее!",
+                    "Кошмары становятся ближе, страшно!",
+                    "Я вижу свет в конце тоннеля!"
+                ]
+            },
+            {
+                id: 'forest',
+                title: 'Волшебный Лес',
+                desc: 'Заколдованный лес полон магии. Собирай светлячков и избегай злых пней!',
+                bgColor: '#14532d', // Темно-зеленый
+                groundColor: '#365314',
+                obstacleColor: '#581c87', // Фиолетовый
+                starColor: '#bef264', // Лайм
+                dialogs: [
+                    "Какой красивый лес, но тут опасно.",
+                    "Светлячки показывают мне дорогу.",
+                    "Деревья шепчутся... нужно спешить.",
+                    "Я почти выбралась из чащи!"
+                ]
+            },
+            {
+                id: 'candy',
+                title: 'Сладкое Королевство',
+                desc: 'Все сделано из сладостей! Собирай леденцы, но не врежься в желейных монстров.',
+                bgColor: '#831843', // Розовый/Малиновый
+                groundColor: '#9d174d',
+                obstacleColor: '#1e1b4b', // Темно-синий
+                starColor: '#f472b6', // Розовый светлый
+                dialogs: [
+                    "Ммм, тут пахнет ванилью!",
+                    "Так много конфет, но нельзя останавливаться.",
+                    "Желейные блоки очень липкие!",
+                    "Сахарная лихорадка! Бегу быстрее!"
+                ]
+            }
+        ];
+
+        // Выбор случайного сценария
+        const currentScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+
+        // Применяем тему к UI
+        document.body.style.backgroundColor = currentScenario.bgColor;
+        document.getElementById('scenario-title').innerText = currentScenario.title;
+        document.getElementById('scenario-desc').innerText = currentScenario.desc;
+        document.getElementById('ui-avatar').src = PLAYER_IMAGE_SRC;
+        document.getElementById('dialog-avatar').src = PLAYER_IMAGE_SRC;
+
+        // --- ИГРОВОЙ ДВИЖОК ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -148,88 +200,46 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- Game State ---
+        // Загрузка спрайта игрока
+        const playerSprite = new Image();
+        playerSprite.src = PLAYER_IMAGE_SRC;
+
+        // Переменные состояния
         let gameActive = false;
         let score = 0;
-        let highScore = localStorage.getItem('oksana_game_hs') || 0;
+        let highScore = localStorage.getItem('oksana_hs_v2') || 0;
         document.getElementById('highscore').innerText = highScore;
         let frame = 0;
-        let gameSpeed = 5;
-        let difficultyMultiplier = 1;
-
-        // --- Story Data ---
-        const storyLines = [
-            "Где я? Это похоже на сон...",
-            "Нужно собирать эти звезды, чтобы осветить путь!",
-            "Эти красные блоки выглядят опасно...",
-            "Я чувствую, что становлюсь быстрее!"
-        ];
-        let storyIndex = 0;
-
-        // --- Assets (Drawing Functions) ---
-        // Рисуем Оксану (упрощенно для Canvas)
-        const drawPlayer = (x, y, w, h, isJumping) => {
-            ctx.save();
-            ctx.translate(x + w/2, y + h/2);
-            // Прыжок - небольшой наклон
-            if(isJumping) ctx.rotate(-0.2); 
-            else ctx.rotate(Math.sin(frame * 0.1) * 0.05); // Бег - покачивание
-
-            // Тело
-            ctx.fillStyle = '#ec4899'; // Розовый
-            ctx.fillRect(-w/2, -h/2 + 10, w, h-10);
-            
-            // Голова
-            ctx.fillStyle = '#fce7f3'; // Светлая кожа
-            ctx.beginPath();
-            ctx.arc(0, -h/2 + 5, w/1.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Волосы
-            ctx.fillStyle = '#3b0764'; // Темные волосы
-            ctx.beginPath();
-            ctx.arc(0, -h/2 + 5, w/1.6, Math.PI, Math.PI * 2);
-            ctx.fill();
-            
-            // Глаза
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(-5, -h/2 + 5, 2, 0, Math.PI * 2);
-            ctx.arc(5, -h/2 + 5, 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-            
-            // Эффект следа (Trail)
-            if (frame % 5 === 0) {
-                particles.push(new Particle(x, y + h, 'rgba(236, 72, 153, 0.5)'));
-            }
-        };
-
-        // --- Classes ---
+        let gameSpeed = 6; // Чуть быстрее старт
+        
+        // Классы
         class Player {
             constructor() {
-                this.w = 40;
-                this.h = 60;
-                this.x = 50;
-                this.y = height - 150; // Ground level
+                this.size = 50; // Размер персонажа
+                this.x = 40;
+                this.y = height - 150;
                 this.dy = 0;
-                this.jumpPower = -15;
-                this.gravity = 0.8;
+                this.jumpPower = -17; // Сильнее прыжок
+                this.gravity = 0.9;
                 this.isJumping = false;
                 this.groundY = height - 100;
+                this.rotation = 0;
             }
 
             update() {
-                // Gravity
+                // Физика
                 this.dy += this.gravity;
                 this.y += this.dy;
 
-                // Ground collision
-                if (this.y + this.h > this.groundY) {
-                    this.y = this.groundY - this.h;
+                // Пол
+                if (this.y + this.size > this.groundY) {
+                    this.y = this.groundY - this.size;
                     this.dy = 0;
                     this.isJumping = false;
+                    this.rotation = 0;
+                } else {
+                    // Вращение в прыжке для динамики
+                    this.rotation += 0.1;
                 }
             }
 
@@ -237,23 +247,53 @@
                 if (!this.isJumping) {
                     this.dy = this.jumpPower;
                     this.isJumping = true;
-                    // Haptic feedback for Telegram
-                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
                 }
             }
 
             draw() {
-                drawPlayer(this.x, this.y, this.w, this.h, this.isJumping);
+                ctx.save();
+                // Центр вращения - центр персонажа
+                ctx.translate(this.x + this.size/2, this.y + this.size/2);
+                
+                // Если бежит - покачиваемся, если прыгает - вращаем немного
+                if(this.isJumping) {
+                    // ctx.rotate(this.rotation); // Можно включить для сальто
+                    ctx.rotate(-0.2); // Просто наклон
+                } else {
+                    ctx.rotate(Math.sin(frame * 0.15) * 0.1);
+                }
+
+                // Рисуем круглое фото (маска)
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size/2, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+                
+                // Рисуем само изображение
+                if (playerSprite.complete) {
+                    ctx.drawImage(playerSprite, -this.size/2, -this.size/2, this.size, this.size);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                }
+
+                // Обводка
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.restore();
             }
         }
 
         class Obstacle {
             constructor() {
-                this.w = 30 + Math.random() * 20;
-                this.h = 30 + Math.random() * 30;
+                this.w = 40 + Math.random() * 20;
+                this.h = 40 + Math.random() * 40;
                 this.x = width;
                 this.y = (height - 100) - this.h;
-                this.color = '#ef4444'; // Red danger
+                this.color = currentScenario.obstacleColor;
                 this.markedForDeletion = false;
             }
 
@@ -264,33 +304,44 @@
 
             draw() {
                 ctx.fillStyle = this.color;
-                ctx.shadowBlur = 10;
+                // Небольшое свечение
+                ctx.shadowBlur = 15;
                 ctx.shadowColor = this.color;
-                ctx.fillRect(this.x, this.y, this.w, this.h);
+                
+                // Рисуем с закругленными краями
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.w, this.h, 8);
+                ctx.fill();
+                
                 ctx.shadowBlur = 0;
             }
         }
 
         class Star {
             constructor() {
-                this.size = 15;
+                this.size = 12; // Радиус
                 this.x = width;
-                this.y = (height - 100) - 40 - Math.random() * 100; // Random height
+                this.y = (height - 100) - 50 - Math.random() * 120; // Разная высота
                 this.markedForDeletion = false;
                 this.angle = 0;
             }
 
             update() {
                 this.x -= gameSpeed;
-                this.angle += 0.1;
-                if (this.x + this.size < 0) this.markedForDeletion = true;
+                this.angle += 0.05;
+                if (this.x < -50) this.markedForDeletion = true;
             }
 
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                ctx.fillStyle = '#fbbf24';
+                
+                ctx.fillStyle = currentScenario.starColor;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = currentScenario.starColor;
+
+                // Рисуем звезду
                 ctx.beginPath();
                 for(let i = 0; i < 5; i++){
                     ctx.lineTo(Math.cos((18 + i * 72) * 0.0174533) * this.size, 
@@ -300,80 +351,52 @@
                 }
                 ctx.closePath();
                 ctx.fill();
+                
                 ctx.restore();
+                ctx.shadowBlur = 0;
             }
         }
 
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.size = Math.random() * 5 + 2;
-                this.speedY = Math.random() * 1 - 0.5;
-                this.speedX = -gameSpeed;
-                this.color = color;
-                this.life = 1;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.life -= 0.05;
-            }
-            draw() {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        // --- Logic Variables ---
+        // Объекты
         let player = new Player();
         let obstacles = [];
         let stars = [];
-        let particles = [];
         let obstacleTimer = 0;
         let starTimer = 0;
 
-        // --- Input Handling ---
+        // Управление
         const handleInput = () => {
-            if (gameActive) {
-                // Если диалог открыт, закрываем его
-                const dialog = document.getElementById('dialog-box');
-                if (!dialog.classList.contains('hidden')) {
-                    closeDialog();
-                    return;
-                }
-                player.jump();
+            const dialog = document.getElementById('dialog-box');
+            if (!dialog.classList.contains('hidden')) {
+                closeDialog();
+                return;
             }
+            if (gameActive) player.jump();
         };
 
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') handleInput();
         });
         window.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent double firing
+            e.preventDefault(); 
             handleInput();
         }, {passive: false});
         window.addEventListener('mousedown', handleInput);
 
-        // --- Dialog System ---
+        // Логика Диалогов
         function showDialog(text) {
-            gameActive = false; // Pause game logic, but loop continues for rendering
+            gameActive = false; 
             const dialog = document.getElementById('dialog-box');
             const textEl = document.getElementById('dialog-text');
             dialog.classList.remove('hidden');
             
-            // Typewriter effect
             textEl.innerHTML = '';
             let i = 0;
             const type = () => {
                 if (i < text.length) {
                     textEl.innerHTML += text.charAt(i);
                     i++;
-                    setTimeout(type, 30);
+                    setTimeout(type, 25);
                 }
             };
             type();
@@ -382,39 +405,24 @@
         function closeDialog() {
             document.getElementById('dialog-box').classList.add('hidden');
             gameActive = true;
-            // Увеличиваем сложность после диалога
-            gameSpeed += 0.5;
+            gameSpeed += 0.8; // Ускоряемся после диалога
         }
-
-        // --- Core Functions ---
 
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('game-over').classList.add('hidden');
             
-            resetVars();
-            gameActive = true;
-            
-            // Show intro dialog immediately
-            setTimeout(() => showDialog(storyLines[0]), 500);
-            
-            animate();
-        }
-
-        function resetVars() {
             player = new Player();
             obstacles = [];
             stars = [];
-            particles = [];
             score = 0;
-            gameSpeed = 5;
+            gameSpeed = 6;
             document.getElementById('score').innerText = '0';
-            frame = 0;
-        }
-
-        function resetGame() {
-            startGame();
+            
+            gameActive = true;
+            setTimeout(() => showDialog(currentScenario.dialogs[0]), 300);
+            animate();
         }
 
         function gameOver() {
@@ -423,108 +431,91 @@
             
             if (score > highScore) {
                 highScore = score;
-                localStorage.setItem('oksana_game_hs', highScore);
+                localStorage.setItem('oksana_hs_v2', highScore);
                 document.getElementById('highscore').innerText = highScore;
             }
-            
             document.getElementById('final-score').innerText = score;
             document.getElementById('game-over').classList.remove('hidden');
             document.getElementById('hud').classList.add('hidden');
         }
 
-        function checkCollisions() {
-            // Obstacles
-            obstacles.forEach(obs => {
-                if (
-                    player.x < obs.x + obs.w &&
-                    player.x + player.w > obs.x &&
-                    player.y < obs.y + obs.h &&
-                    player.y + player.h > obs.y
-                ) {
-                    gameOver();
-                }
-            });
-
-            // Stars
-            stars.forEach(star => {
-                if (!star.markedForDeletion &&
-                    player.x < star.x + star.size &&
-                    player.x + player.w > star.x &&
-                    player.y < star.y + star.size &&
-                    player.y + player.h > star.y
-                ) {
-                    star.markedForDeletion = true;
-                    score += 10;
-                    document.getElementById('score').innerText = score;
-                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                    
-                    // Trigger particles
-                    for(let k=0; k<5; k++) particles.push(new Particle(star.x, star.y, '#fbbf24'));
-
-                    // Story Triggers based on score
-                    if (score === 50) showDialog(storyLines[1]);
-                    if (score === 150) showDialog(storyLines[2]);
-                    if (score === 300) showDialog(storyLines[3]);
-                }
-            });
-        }
-
-        // --- Main Loop ---
         function animate() {
-            if (!document.getElementById('game-over').classList.contains('hidden')) return; // Stop if game over
+            if (!gameActive && document.getElementById('dialog-box').classList.contains('hidden')) return; 
 
             ctx.clearRect(0, 0, width, height);
 
-            // Draw Floor
-            ctx.fillStyle = '#1e293b';
+            // Отрисовка фона (земля)
+            ctx.fillStyle = currentScenario.groundColor;
             ctx.fillRect(0, height - 100, width, 100);
-            ctx.fillStyle = '#334155'; // Ground detail
-            ctx.fillRect(0, height - 95, width, 2);
+            
+            // Декоративная линия земли
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(0, height - 100, width, 4);
 
             if (gameActive) {
                 frame++;
-                
-                // Spawn Obstacles
-                if (obstacleTimer > 150 - (gameSpeed * 2) + Math.random() * 50) {
+
+                // Генерация препятствий
+                if (obstacleTimer > 120 - (gameSpeed * 1.5) + Math.random() * 60) {
                     obstacles.push(new Obstacle());
                     obstacleTimer = 0;
-                } else {
-                    obstacleTimer++;
-                }
+                } else obstacleTimer++;
 
-                // Spawn Stars
-                if (starTimer > 100 + Math.random() * 100) {
+                // Генерация звезд
+                if (starTimer > 60 + Math.random() * 50) {
                     stars.push(new Star());
                     starTimer = 0;
-                } else {
-                    starTimer++;
-                }
+                } else starTimer++;
 
                 player.update();
-                
-                // Update Objects
-                [...obstacles, ...stars, ...particles].forEach(obj => obj.update());
-                
-                // Cleanup
+                [...obstacles, ...stars].forEach(o => o.update());
+
+                // Удаление старых объектов
                 obstacles = obstacles.filter(o => !o.markedForDeletion);
                 stars = stars.filter(s => !s.markedForDeletion);
-                particles = particles.filter(p => p.life > 0);
-                
-                checkCollisions();
+
+                // Коллизии
+                obstacles.forEach(obs => {
+                    // Простая AABB коллизия с отступом (hitbox меньше спрайта)
+                    if (
+                        player.x + 10 < obs.x + obs.w &&
+                        player.x + player.size - 10 > obs.x &&
+                        player.y + 10 < obs.y + obs.h &&
+                        player.y + player.size > obs.y
+                    ) {
+                        gameOver();
+                    }
+                });
+
+                stars.forEach(star => {
+                    if (!star.markedForDeletion &&
+                        player.x < star.x + star.size &&
+                        player.x + player.size > star.x &&
+                        player.y < star.y + star.size &&
+                        player.y + player.size > star.y
+                    ) {
+                        star.markedForDeletion = true;
+                        score += 10;
+                        document.getElementById('score').innerText = score;
+                        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+                        // Триггеры сюжета
+                        if (score === 50) showDialog(currentScenario.dialogs[1]);
+                        if (score === 150) showDialog(currentScenario.dialogs[2]);
+                        if (score === 300) showDialog(currentScenario.dialogs[3]);
+                    }
+                });
             }
 
-            // Draw Everything
+            // Отрисовка
             stars.forEach(s => s.draw());
             obstacles.forEach(o => o.draw());
             player.draw();
-            particles.forEach(p => p.draw());
 
-            requestAnimationFrame(animate);
+            if(gameActive || !document.getElementById('dialog-box').classList.contains('hidden')) {
+                requestAnimationFrame(animate);
+            }
         }
-
-        // First resize to set ground correct
-        resize();
-        
     </script>
 </body>
 </html>
