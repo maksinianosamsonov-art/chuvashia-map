@@ -1,9 +1,8 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Оксана: Гонки, Мемы и Миссии</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -48,7 +47,6 @@
       overflow: hidden;
     }
 
-    /* Неоновые эффекты */
     .neon-border {
       box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px rgba(255, 0, 255, 0.3);
       border: 2px solid var(--neon-pink);
@@ -64,17 +62,6 @@
       color: var(--neon-green);
     }
 
-    .glow-blue {
-      text-shadow: 0 0 10px var(--accent-blue);
-      color: var(--accent-blue);
-    }
-
-    .glow-yellow {
-      text-shadow: 0 0 10px var(--glow-yellow);
-      color: var(--glow-yellow);
-    }
-
-    /* Экран загрузки */
     #loading {
       position: absolute;
       top: 0;
@@ -117,7 +104,6 @@
       100% { opacity: 1; }
     }
 
-    /* Главный экран */
     #main-screen {
       display: flex;
       flex-direction: column;
@@ -322,7 +308,6 @@
       border: 2px solid var(--accent-blue);
     }
 
-    /* Мини-игра Пазл */
     #puzzle-screen {
       display: none;
       flex-direction: column;
@@ -389,7 +374,6 @@
       font-weight: bold;
     }
 
-    /* Таблица лидеров */
     #leaderboard-screen {
       display: none;
       flex-direction: column;
@@ -456,7 +440,6 @@
       color: var(--neon-pink);
     }
 
-    /* Системные уведомления */
     .notification {
       position: fixed;
       top: 60px;
@@ -476,3308 +459,345 @@
     .notification.show {
       opacity: 1;
     }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Экран загрузки -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text neon-text">Загрузка Оксаны...</div>
+    </div>
 
-    /* Звуковые кнопки */
-    .sound-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
-      background: rgba(20, 24, 43, 0.7);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      z-index: 100;
-      transition: all 0.2s;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
-    }
+    <!-- Главный экран -->
+    <div id="main-screen">
+      <div class="header">
+        <div class="avatar">О</div>
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-value" id="coins">100</div>
+            <div class="stat-label">Монеты</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="level">1</div>
+            <div class="stat-label">Уровень</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="day">1</div>
+            <div class="stat-label">День</div>
+          </div>
+        </div>
+      </div>
 
-    .sound-btn:hover {
-      transform: scale(1.1);
-      background: rgba(255, 0, 255, 0.2);
-    }
+      <div class="oksana-container">
+        <div class="oksana-sprite">
+          <img src="https://placehold.co/250x300/ff66cc/ffffff?text=Оксана" alt="Оксана" class="oksana-image">
+        </div>
+      </div>
 
-    /* Кнопка возврата */
-    .back-btn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 40px;
-      height: 40px;
-      background: rgba(20, 24, 43, 0.7);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      z-index: 100;
-      transition: all 0.2s;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
-    }
+      <div class="dialog-box">
+        <div class="dialog-text" id="dialog-text">
+          Привет! Я Оксана из Чебоксар! 🎤<br><br>
+          Сегодня День 1 нашего приключения! Помоги мне собрать пазл из моего фото, 
+          и я открою тебе доступ к своим гонкам! 🏎️
+        </div>
+        <div class="memes-gallery">
+          <div class="meme-item meme-effect">"I'm ready"</div>
+          <div class="meme-item meme-effect">"This is fine"</div>
+          <div class="meme-item meme-effect">"When you see"</div>
+        </div>
+      </div>
 
-    .back-btn:hover {
-      transform: scale(1.1);
-      background: rgba(255, 0, 255, 0.2);
-    }
+      <div class="actions">
+        <button class="btn btn-primary" id="start-puzzle">Собрать пазл 🧩</button>
+        <button class="btn btn-secondary" id="view-leaderboard">🏆 Лидеры</button>
+      </div>
+    </div>
 
-    /* Анимации */
-    .fade-in {
-      animation: fadeIn 0.5s ease-out;
-    }
+    <!-- Экран мини-игры Пазл -->
+    <div id="puzzle-screen">
+      <div class="puzzle-header">
+        <h2 class="neon-text">День 1: Собери пазл!</h2>
+        <p>Расставь части в правильном порядке</p>
+      </div>
+      
+      <div class="puzzle-grid" id="puzzle-grid">
+        <!-- Пазл будет генерироваться здесь -->
+      </div>
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+      <div class="puzzle-progress" id="puzzle-progress">Правильно: 0/9</div>
 
-    .appear {
-      animation: appear 0.5s ease-out;
-    }
+      <div class="actions">
+        <button class="btn btn-tertiary" id="back-to-main">Назад</button>
+        <button class="btn btn-primary" id="check-puzzle">Проверить ✅</button>
+      </div>
+    </div>
 
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    <!-- Экран таблицы лидеров -->
+    <div id="leaderboard-screen">
+      <div class="leaderboard-header">
+        <h2 class="neon-text">🏆 Таблица Лидеров</h2>
+        <p>Лучшие игроки Чебоксар</p>
+      </div>
+      
+      <div class="leaderboard-list" id="leaderboard-list">
+        <div class="leaderboard-item">
+          <span class="rank">#1</span>
+          <span class="player-name">Оксана 🎤</span>
+          <span class="score">1000</span>
+        </div>
+        <div class="leaderboard-item">
+          <span class="rank">#2</span>
+          <span class="player-name">Ты</span>
+          <span class="score">100</span>
+        </div>
+        <div class="leaderboard-item">
+          <span class="rank">#3</span>
+          <span class="player-name">Друг Оксаны</span>
+          <span class="score">50</span>
+        </div>
+        <div class="leaderboard-item">
+          <span class="rank">#4</span>
+          <span class="player-name">Гонщик Чебоксар</span>
+          <span class="score">25</span>
+        </div>
+        <div class="leaderboard-item">
+          <span class="rank">#5</span>
+          <span class="player-name">Мемный Мастер</span>
+          <span class="score">10</span>
+        </div>
+      </div>
 
-    .screen-transition {
-      animation: screenTransition 0.5s ease-out;
-    }
+      <div class="actions">
+        <button class="btn btn-primary" id="back-from-leaderboard">Назад</button>
+      </div>
+    </div>
 
-    @keyframes screenTransition {
-      from { opacity: 0; transform: translateX(30px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
+    <!-- Системное уведомление -->
+    <div class="notification" id="notification">Пазл собран! +50 монет!</div>
+  </div>
 
-    .puzzle-piece-animate {
-      animation: puzzleAnimate 0.3s ease-out;
-    }
-
-    @keyframes puzzleAnimate {
-      from { transform: scale(0.9); }
-      to { transform: scale(1); }
-    }
-
-    .victory-animation {
-      animation: victory 1s ease-in-out;
-    }
-
-    @keyframes victory {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .level-up {
-      animation: levelUp 1s ease-in-out;
-    }
-
-    @keyframes levelUp {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .day-change {
-      animation: dayChange 1s ease-in-out;
-    }
-
-    @keyframes dayChange {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .story-animation {
-      animation: storyAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyAnimate {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    .emotion-happy {
-      animation: happy 1s ease-in-out;
-    }
-
-    @keyframes happy {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    .emotion-surprised {
-      animation: surprised 1s ease-in-out;
-    }
-
-    @keyframes surprised {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-
-    .emotion-angry {
-      animation: angry 1s ease-in-out;
-    }
-
-    @keyframes angry {
-      0% { transform: scale(1); }
-      50% { transform: scale(0.9); }
-      100% { transform: scale(1); }
-    }
-
-    .emotion-tired {
-      animation: tired 1s ease-in-out;
-    }
-
-    @keyframes tired {
-      0% { transform: scale(1); }
-      50% { transform: scale(0.95); }
-      100% { transform: scale(1); }
-    }
-
-    .click-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 0, 255, 0.3);
-      transform: scale(0);
-      animation: clickEffect 0.5s forwards;
-      pointer-events: none;
-    }
-
-    @keyframes clickEffect {
-      to {
-        transform: scale(2);
-        opacity: 0;
+  <script>
+    // Имитация Telegram WebApp
+    const Telegram = window.Telegram || {
+      WebApp: {
+        initData: null,
+        initDataUnsafe: { user: { id: 123456789, first_name: "Игрок" } },
+        ready: () => {},
+        expand: () => {},
+        MainButton: {
+          setText: () => {},
+          show: () => {}
+        }
       }
+    };
+
+    // Игровое состояние
+    const gameState = {
+      currentScreen: 'main',
+      day: 1,
+      coins: 100,
+      level: 1,
+      completedPuzzles: [],
+      collectedMemes: ['im_ready', 'this_is_fine', 'when_you_see'],
+      correctPieces: 0
+    };
+
+    // DOM элементы
+    const elements = {
+      loading: document.getElementById('loading'),
+      mainScreen: document.getElementById('main-screen'),
+      puzzleScreen: document.getElementById('puzzle-screen'),
+      leaderboardScreen: document.getElementById('leaderboard-screen'),
+      dialogText: document.getElementById('dialog-text'),
+      coins: document.getElementById('coins'),
+      level: document.getElementById('level'),
+      day: document.getElementById('day'),
+      startPuzzle: document.getElementById('start-puzzle'),
+      viewLeaderboard: document.getElementById('view-leaderboard'),
+      backToMain: document.getElementById('back-to-main'),
+      checkPuzzle: document.getElementById('check-puzzle'),
+      puzzleGrid: document.getElementById('puzzle-grid'),
+      puzzleProgress: document.getElementById('puzzle-progress'),
+      backFromLeaderboard: document.getElementById('back-from-leaderboard'),
+      notification: document.getElementById('notification'),
+      leaderboardList: document.getElementById('leaderboard-list')
+    };
+
+    // Инициализация приложения
+    function initApp() {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      
+      // Имитация загрузки
+      setTimeout(() => {
+        elements.loading.style.opacity = '0';
+        setTimeout(() => {
+          elements.loading.style.display = 'none';
+          elements.mainScreen.style.opacity = '1';
+          elements.mainScreen.style.transform = 'translateY(0)';
+        }, 500);
+      }, 2000);
+
+      // Обновление UI
+      updateUI();
+
+      // Обработчики событий
+      elements.startPuzzle.addEventListener('click', showPuzzleScreen);
+      elements.backToMain.addEventListener('click', showMainScreen);
+      elements.checkPuzzle.addEventListener('click', checkPuzzle);
+      elements.viewLeaderboard.addEventListener('click', showLeaderboardScreen);
+      elements.backFromLeaderboard.addEventListener('click', showMainScreen);
     }
 
-    /* Адаптивность */
-    @media (max-width: 400px) {
-      .oksana-sprite {
-        width: 200px;
-        height: 250px;
+    // Обновление UI
+    function updateUI() {
+      elements.coins.textContent = gameState.coins;
+      elements.level.textContent = gameState.level;
+      elements.day.textContent = gameState.day;
+    }
+
+    // Показать главный экран
+    function showMainScreen() {
+      elements.puzzleScreen.style.display = 'none';
+      elements.leaderboardScreen.style.display = 'none';
+      elements.mainScreen.style.display = 'flex';
+      gameState.currentScreen = 'main';
+    }
+
+    // Показать экран пазла
+    function showPuzzleScreen() {
+      elements.mainScreen.style.display = 'none';
+      elements.puzzleScreen.style.display = 'flex';
+      gameState.currentScreen = 'puzzle';
+      generatePuzzle();
+    }
+
+    // Показать таблицу лидеров
+    function showLeaderboardScreen() {
+      elements.mainScreen.style.display = 'none';
+      elements.leaderboardScreen.style.display = 'flex';
+      gameState.currentScreen = 'leaderboard';
+    }
+
+    // Генерация пазла
+    function generatePuzzle() {
+      elements.puzzleGrid.innerHTML = '';
+      const pieces = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+      const shuffled = [...pieces].sort(() => Math.random() - 0.5);
+      gameState.correctPieces = 0;
+      updatePuzzleProgress();
+      
+      shuffled.forEach((num, index) => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.textContent = num;
+        piece.dataset.correctPosition = num - 1;
+        piece.dataset.currentPosition = index;
+        piece.addEventListener('click', () => togglePieceSelection(piece));
+        elements.puzzleGrid.appendChild(piece);
+      });
+    }
+
+    // Состояние выбора пазлов
+    let selectedPiece = null;
+
+    // Выбор/отмена выбора пазла
+    function togglePieceSelection(piece) {
+      if (selectedPiece === piece) {
+        piece.classList.remove('selected');
+        selectedPiece = null;
+        return;
       }
       
-      .stat-item {
-        min-width: 40px;
-        font-size: 10px;
+      if (selectedPiece) {
+        swapPieces(selectedPiece, piece);
+        selectedPiece.classList.remove('selected');
+        selectedPiece = null;
+      } else {
+        piece.classList.add('selected');
+        selectedPiece = piece;
       }
+    }
+
+    // Обмен пазлами
+    function swapPieces(piece1, piece2) {
+      const tempPos = piece1.dataset.currentPosition;
+      piece1.dataset.currentPosition = piece2.dataset.currentPosition;
+      piece2.dataset.currentPosition = tempPos;
+
+      const parent = elements.puzzleGrid;
+      const piece1Index = Array.from(parent.children).indexOf(piece1);
+      const piece2Index = Array.from(parent.children).indexOf(piece2);
       
-      .stat-value {
-        font-size: 12px;
+      parent.insertBefore(piece2, piece1);
+      if (piece1Index < piece2Index) {
+        parent.insertBefore(piece1, parent.children[piece2Index]);
+      } else {
+        parent.insertBefore(piece1, parent.children[piece2Index + 1]);
       }
+
+      piece1.removeEventListener('click', () => togglePieceSelection(piece1));
+      piece2.removeEventListener('click', () => togglePieceSelection(piece2));
+      piece1.addEventListener('click', () => togglePieceSelection(piece1));
+      piece2.addEventListener('click', () => togglePieceSelection(piece2));
+
+      updateCorrectPieces();
+    }
+
+    // Обновление количества правильных пазлов
+    function updateCorrectPieces() {
+      const pieces = document.querySelectorAll('.puzzle-piece');
+      let correctCount = 0;
       
-      .puzzle-header h2 {
-        font-size: 18px;
+      pieces.forEach((piece, index) => {
+        if (parseInt(piece.dataset.correctPosition) === index) {
+          piece.classList.add('correct');
+          correctCount++;
+        } else {
+          piece.classList.remove('correct');
+        }
+      });
+      
+      gameState.correctPieces = correctCount;
+      updatePuzzleProgress();
+    }
+
+    // Обновление прогресса пазла
+    function updatePuzzleProgress() {
+      elements.puzzleProgress.textContent = `Правильно: ${gameState.correctPieces}/9`;
+    }
+
+    // Проверка пазла
+    function checkPuzzle() {
+      if (gameState.correctPieces === 9) {
+        gameState.coins += 50;
+        gameState.completedPuzzles.push(gameState.day);
+        updateUI();
+        
+        showNotification('🎉 УРА! ПАЗЛ СОБРАН! 🎉<br>+50 монет!');
+        setTimeout(() => {
+          showMainScreen();
+          elements.dialogText.innerHTML = 'Отличная работа! 🎉<br><br>Ты собрал пазл и получил 50 монет!<br>Теперь у тебя есть доступ к моим гонкам! 🏎️<br><br>Завтра будет новое задание!';
+        }, 2000);
+      } else {
+        showNotification('Еще не все правильно! Попробуй еще раз!');
       }
     }
 
-    /* День 1 специальные стили */
-    .day1-title {
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 10px;
-      color: var(--neon-pink);
-    }
-
-    .day1-subtitle {
-      font-size: 14px;
-      text-align: center;
-      margin-bottom: 15px;
-      opacity: 0.8;
-    }
-
-    /* Мем-эффекты */
-    .meme-effect {
-      animation: memePulse 1s infinite;
-    }
-
-    @keyframes memePulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    /* Прогресс бар */
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 0, 255, 0.1);
-      border-radius: 3px;
-      margin: 10px 0;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--neon-green);
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-
-    /* Анимация Оксаны */
-    .oksana-idle {
-      animation: idle 3s infinite;
-    }
-
-    @keyframes idle {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-5px); }
-      100% { transform: translateY(0px); }
-    }
-
-    .oksana-excited {
-      animation: excited 1s ease-in-out;
-    }
-
-    @keyframes excited {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-
-    /* Анимация появления */
-    .appear {
-      animation: appear 0.5s ease-out;
-    }
-
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Анимация исчезновения */
-    .disappear {
-      animation: disappear 0.5s ease-out;
-    }
-
-    @keyframes disappear {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(-20px); }
-    }
-
-    /* Анимация перехода */
-    .transition-animation {
-      animation: transitionAnimate 0.5s ease-in-out;
-    }
-
-    @keyframes transitionAnimate {
-      0% { opacity: 0; transform: translateX(-100px); }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-
-    /* Анимация загрузки */
-    .load-animation {
-      animation: loadAnimate 1s ease-in-out;
-    }
-
-    @keyframes loadAnimate {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Анимация завершения */
-    .complete-animation {
-      animation: completeAnimate 1s ease-in-out;
-    }
-
-    @keyframes completeAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация начала */
-    .start-animation {
-      animation: startAnimate 1s ease-in-out;
-    }
-
-    @keyframes startAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация конца */
-    .end-animation {
-      animation: endAnimate 1s ease-in-out;
-    }
-
-    @keyframes endAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация паузы */
-    .pause-animation {
-      animation: pauseAnimate 1s ease-in-out;
-    }
-
-    @keyframes pauseAnimate {
-      0% { transform: scale(1); }
-      50% { transform: scale(0.9); }
-      100% { transform: scale(1); }
-    }
-
-    /* Анимация продолжения */
-    .continue-animation {
-      animation: continueAnimate 1s ease-in-out;
-    }
-
-    @keyframes continueAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация победы */
-    .win-animation {
-      animation: winAnimate 1s ease-in-out;
-    }
-
-    @keyframes winAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация поражения */
-    .lose-animation {
-      animation: loseAnimate 1s ease-in-out;
-    }
-
-    @keyframes loseAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация бонуса */
-    .bonus-animation {
-      animation: bonusAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация события */
-    .event-animation {
-      animation: eventAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщения */
-    .message-animation {
-      animation: messageAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация чата */
-    .chat-animation {
-      animation: chatAnimate 1s ease-in-out;
-    }
-
-    @keyframes chatAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация рейтинга */
-    .rating-animation {
-      animation: ratingAnimate 1s ease-in-out;
-    }
-
-    @keyframes ratingAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация коллекции */
-    .collection-animation {
-      animation: collectionAnimate 1s ease-in-out;
-    }
-
-    @keyframes collectionAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация кастомизации */
-    .customization-animation {
-      animation: customizationAnimate 1s ease-in-out;
-    }
-
-    @keyframes customizationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижения */
-    .achievement-animation {
-      animation: achievementAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ежедневного бонуса */
-    .daily-bonus-animation {
-      animation: dailyBonusAnimate 1s ease-in-out;
-    }
-
-    @keyframes dailyBonusAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидки */
-    .discount-animation {
-      animation: discountAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акции */
-    .promotion-animation {
-      animation: promotionAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специального события */
-    .special-event-animation {
-      animation: specialEventAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймера */
-    .timer-animation {
-      animation: timerAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчика */
-    .counter-animation {
-      animation: counterAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймера обратного отсчета */
-    .countdown-animation {
-      animation: countdownAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймера ожидания */
-    .wait-animation {
-      animation: waitAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-animation {
-      animation: dataLoadingAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-animation {
-      animation: dataSaveAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибки */
-    .error-animation {
-      animation: errorAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успеха */
-    .success-animation {
-      animation: successAnimate 1s ease-in-out;
-    }
-
-    @keyframes successAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждения */
-    .warning-animation {
-      animation: warningAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-animation {
-      animation: infoAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопроса */
-    .question-animation {
-      animation: questionAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответа */
-    .answer-animation {
-      animation: answerAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выбора */
-    .select-animation {
-      animation: selectAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждения */
-    .confirm-animation {
-      animation: confirmAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмены */
-    .cancel-animation {
-      animation: cancelAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация перехода к следующему дню */
-    .next-day-animation {
-      animation: nextDayAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-animation {
-      animation: storyCompleteAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-animation {
-      animation: newContentAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновления */
-    .update-animation {
-      animation: updateAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-animation {
-      animation: newsAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация уведомлений */
-    .notification-animation {
-      animation: notificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes notificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация вопросов */
-    .question-notification-animation {
-      animation: questionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes questionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ответов */
-    .answer-notification-animation {
-      animation: answerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes answerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация выборов */
-    .select-notification-animation {
-      animation: selectNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes selectNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация подтверждений */
-    .confirm-notification-animation {
-      animation: confirmNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes confirmNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация отмен */
-    .cancel-notification-animation {
-      animation: cancelNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes cancelNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация переходов к следующему дню */
-    .next-day-notification-animation {
-      animation: nextDayNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes nextDayNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация завершения сюжета */
-    .story-complete-notification-animation {
-      animation: storyCompleteNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes storyCompleteNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация открытия нового контента */
-    .new-content-notification-animation {
-      animation: newContentNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newContentNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация обновлений */
-    .update-notification-animation {
-      animation: updateNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes updateNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация новостей */
-    .news-notification-animation {
-      animation: newsNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes newsNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сообщений */
-    .message-notification-animation {
-      animation: messageNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes messageNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация событий */
-    .event-notification-animation {
-      animation: eventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes eventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация достижений */
-    .achievement-notification-animation {
-      animation: achievementNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes achievementNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация бонусов */
-    .bonus-notification-animation {
-      animation: bonusNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes bonusNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация скидок */
-    .discount-notification-animation {
-      animation: discountNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes discountNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация акций */
-    .promotion-notification-animation {
-      animation: promotionNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes promotionNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация специальных событий */
-    .special-event-notification-animation {
-      animation: specialEventNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes specialEventNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров */
-    .timer-notification-animation {
-      animation: timerNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes timerNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация счетчиков */
-    .counter-notification-animation {
-      animation: counterNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes counterNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров обратного отсчета */
-    .countdown-notification-animation {
-      animation: countdownNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes countdownNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация таймеров ожидания */
-    .wait-notification-animation {
-      animation: waitNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes waitNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация загрузки данных */
-    .data-loading-notification-animation {
-      animation: dataLoadingNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataLoadingNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация сохранения данных */
-    .data-save-notification-animation {
-      animation: dataSaveNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes dataSaveNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация ошибок */
-    .error-notification-animation {
-      animation: errorNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes errorNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(0.9); opacity: 1; }
-      100% { transform: scale(0.8); opacity: 0; }
-    }
-
-    /* Анимация успехов */
-    .success-notification-animation {
-      animation: successNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes successNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация предупреждений */
-    .warning-notification-animation {
-      animation: warningNotificationAnimate 1s ease-in-out;
-    }
-
-    @keyframes warningNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Анимация информации */
-    .info-notification-animation {
-      animation: infoNotificationAnimate 1s ease-in-out;
-    }
+    // Показать уведомление
+    function showNotification(message, type = 'success') {
+      elements.notification.innerHTML = message;
+      elements.notification.className = 'notification show';
+      
+      setTimeout(() => {
+        elements.notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
 
-    @keyframes infoNotificationAnimate {
-      0% { transform: scale(0.8); opacity: 0; }
-      50% { transform: scale(1.2); opacity: 1;
