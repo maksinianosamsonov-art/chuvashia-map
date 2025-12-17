@@ -20,12 +20,12 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: var(--bg-dark);
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f36 100%);
       color: var(--text-white);
       overflow-x: hidden;
       height: 100vh;
@@ -45,11 +45,6 @@
       flex-direction: column;
       position: relative;
       overflow: hidden;
-    }
-
-    .neon-border {
-      box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px rgba(255, 0, 255, 0.3);
-      border: 2px solid var(--neon-pink);
     }
 
     .neon-text {
@@ -92,18 +87,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    .loading-text {
-      font-size: 24px;
-      margin-top: 20px;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
-
     #main-screen {
       display: flex;
       flex-direction: column;
@@ -112,7 +95,6 @@
       opacity: 0;
       transform: translateY(20px);
       transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-      position: relative;
     }
 
     .header {
@@ -121,10 +103,10 @@
       align-items: center;
       margin-bottom: 15px;
       padding: 10px;
-      background: rgba(20, 24, 43, 0.5);
+      background: rgba(20, 24, 43, 0.7);
       border-radius: 15px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.1);
+      border: 1px solid rgba(255, 0, 255, 0.3);
     }
 
     .avatar {
@@ -137,12 +119,12 @@
       align-items: center;
       font-weight: bold;
       font-size: 18px;
-      box-shadow: 0 0 5px var(--neon-pink);
+      box-shadow: 0 0 8px var(--neon-pink);
     }
 
     .stats {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .stat-item {
@@ -154,7 +136,7 @@
       align-items: center;
       min-width: 50px;
       font-size: 12px;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
     }
 
     .stat-value {
@@ -163,66 +145,47 @@
       color: var(--neon-green);
     }
 
-    .stat-label {
-      font-size: 10px;
-      opacity: 0.7;
-    }
-
     .oksana-container {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
       margin: 15px 0;
-      position: relative;
     }
 
     .oksana-sprite {
-      width: 250px;
-      height: 300px;
-      position: relative;
+      width: 240px;
+      height: 280px;
       animation: float 3s ease-in-out infinite;
       cursor: pointer;
+      position: relative;
     }
 
     .oksana-image {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 0 10px var(--neon-pink));
+      filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.4));
       transition: transform 0.3s ease;
     }
 
     .oksana-image:hover {
-      transform: scale(1.05);
+      transform: scale(1.03);
     }
 
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+      50% { transform: translateY(-8px); }
     }
 
     .dialog-box {
       background: var(--card-bg);
-      padding: 15px;
-      border-radius: 15px;
+      padding: 16px;
+      border-radius: 16px;
       margin: 15px 0;
       position: relative;
       border-left: 4px solid var(--neon-pink);
-      box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);
-      transition: all 0.3s ease;
-    }
-
-    .dialog-box::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: 20px;
-      width: 0;
-      height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-bottom: 10px solid var(--card-bg);
+      box-shadow: 0 4px 20px rgba(255, 0, 255, 0.15);
     }
 
     .dialog-text {
@@ -230,69 +193,63 @@
       line-height: 1.5;
       margin-bottom: 15px;
       text-align: center;
-      transition: all 0.3s ease;
     }
 
     .memes-gallery {
       display: flex;
-      gap: 8px;
-      margin: 10px 0;
+      gap: 10px;
+      margin: 12px 0;
       overflow-x: auto;
       padding: 8px 0;
-      scrollbar-width: thin;
-      scrollbar-color: var(--neon-pink) var(--card-bg);
-      transition: all 0.3s ease;
     }
 
     .meme-item {
-      min-width: 70px;
-      height: 70px;
-      background: rgba(255, 0, 255, 0.1);
+      min-width: 75px;
+      height: 75px;
+      background: rgba(255, 0, 255, 0.08);
       border: 2px solid var(--neon-pink);
-      border-radius: 10px;
+      border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 10px;
+      font-size: 11px;
       text-align: center;
-      padding: 5px;
+      padding: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
     }
 
     .meme-item:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 10px var(--neon-pink);
+      transform: scale(1.08);
+      box-shadow: 0 0 12px var(--neon-pink);
     }
 
     .actions {
       display: flex;
-      gap: 8px;
-      margin-top: 15px;
-      transition: all 0.3s ease;
+      gap: 10px;
+      margin-top: 18px;
     }
 
     .btn {
       flex: 1;
-      padding: 12px;
+      padding: 14px;
       border: none;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 14px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 15px;
       cursor: pointer;
       transition: all 0.2s;
       text-align: center;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
+      font-weight: bold;
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 15px var(--neon-pink);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(255, 0, 255, 0.4);
     }
 
     .btn-primary {
-      background: linear-gradient(45deg, var(--neon-pink), #ff66ff);
+      background: linear-gradient(45deg, var(--neon-pink), #ff33ff);
       color: white;
     }
 
@@ -302,334 +259,121 @@
       border: 2px solid var(--neon-green);
     }
 
-    .btn-tertiary {
-      background: var(--card-bg);
-      color: var(--accent-blue);
-      border: 2px solid var(--accent-blue);
-    }
-
-    #puzzle-screen {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-      padding: 15px;
-      position: relative;
-      background: linear-gradient(135deg, #0a0e21 0%, #14182b 100%);
-    }
-
-    .puzzle-header {
-      text-align: center;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: rgba(20, 24, 43, 0.5);
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.1);
-    }
-
-    .puzzle-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
-      margin: 15px 0;
-      flex: 1;
-      perspective: 1000px;
-    }
-
-    .puzzle-piece {
-      background: var(--card-bg);
-      border: 2px solid var(--neon-pink);
-      border-radius: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      overflow: hidden;
-      transform-style: preserve-3d;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
-    }
-
-    .puzzle-piece:hover {
-      transform: scale(1.05) rotateY(10deg);
-      box-shadow: 0 0 10px var(--neon-pink);
-    }
-
-    .puzzle-piece.correct {
-      background: var(--neon-green);
-      color: black;
-    }
-
-    .puzzle-piece.selected {
-      border-color: var(--neon-green);
-      box-shadow: 0 0 10px var(--neon-green);
-    }
-
-    .puzzle-progress {
-      text-align: center;
-      margin: 10px 0;
-      font-size: 14px;
-      color: var(--neon-green);
-      font-weight: bold;
-    }
-
-    #leaderboard-screen {
-      display: none;
-      flex-direction: column;
-      height: 100%;
-      padding: 15px;
-      position: relative;
-      background: linear-gradient(135deg, #0a0e21 0%, #14182b 100%);
-    }
-
-    .leaderboard-header {
-      text-align: center;
-      margin-bottom: 15px;
-      padding: 10px;
-      background: rgba(20, 24, 43, 0.5);
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.1);
-    }
-
-    .leaderboard-list {
-      flex: 1;
-      overflow-y: auto;
-      margin: 15px 0;
-      padding: 10px;
-      background: var(--card-bg);
-      border-radius: 15px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--neon-pink) var(--card-bg);
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.1);
-    }
-
-    .leaderboard-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      margin: 5px 0;
-      background: rgba(255, 0, 255, 0.05);
-      border-radius: 10px;
-      border-left: 3px solid var(--neon-pink);
-      transition: all 0.2s;
-      box-shadow: 0 0 5px rgba(255, 0, 255, 0.1);
-    }
-
-    .leaderboard-item:hover {
-      transform: translateX(5px);
-      background: rgba(255, 0, 255, 0.1);
-    }
-
-    .rank {
-      font-weight: bold;
-      color: var(--neon-green);
-    }
-
-    .player-name {
-      flex: 1;
-      margin: 0 10px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .score {
-      font-weight: bold;
-      color: var(--neon-pink);
-    }
-
     .notification {
       position: fixed;
-      top: 60px;
+      top: 65px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--neon-green);
-      color: black;
-      padding: 10px 20px;
-      border-radius: 15px;
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 16px;
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.3s;
-      box-shadow: 0 0 15px var(--neon-green);
+      box-shadow: 0 0 20px var(--neon-green);
+      font-weight: 600;
       pointer-events: none;
     }
 
     .notification.show {
       opacity: 1;
     }
+
+    .screen-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .screen-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="app">
-    <!-- Экран загрузки -->
     <div id="loading">
       <div class="spinner"></div>
-      <div class="loading-text neon-text">Загрузка Оксаны...</div>
+      <div class="neon-text" style="font-size: 22px; margin-top: 20px;">Загрузка Оксаны...</div>
     </div>
 
-    <!-- Главный экран -->
     <div id="main-screen">
       <div class="header">
         <div class="avatar">О</div>
         <div class="stats">
           <div class="stat-item">
             <div class="stat-value" id="coins">100</div>
-            <div class="stat-label">Монеты</div>
+            <div style="font-size: 10px; opacity: 0.7;">Монеты</div>
           </div>
           <div class="stat-item">
             <div class="stat-value" id="level">1</div>
-            <div class="stat-label">Уровень</div>
+            <div style="font-size: 10px; opacity: 0.7;">Уровень</div>
           </div>
           <div class="stat-item">
             <div class="stat-value" id="day">1</div>
-            <div class="stat-label">День</div>
+            <div style="font-size: 10px; opacity: 0.7;">День</div>
           </div>
         </div>
       </div>
 
       <div class="oksana-container">
         <div class="oksana-sprite">
-          <img src="https://placehold.co/250x300/ff66cc/ffffff?text=Оксана" alt="Оксана" class="oksana-image">
+          <img src="https://placehold.co/240x280/ff66cc/ffffff?text=Оксана+Чебоксары" alt="Оксана" class="oksana-image">
         </div>
       </div>
 
       <div class="dialog-box">
         <div class="dialog-text" id="dialog-text">
           Привет! Я Оксана из Чебоксар! 🎤<br><br>
-          Сегодня День 1 нашего приключения! Помоги мне собрать пазл из моего фото, 
-          и я открою тебе доступ к своим гонкам! 🏎️
+          Добро пожаловать в мой мир гонок, мемов и приключений! 
+          Сегодня День 1 нашей 30-дневной кампании! 🏎️
         </div>
         <div class="memes-gallery">
-          <div class="meme-item meme-effect">"I'm ready"</div>
-          <div class="meme-item meme-effect">"This is fine"</div>
-          <div class="meme-item meme-effect">"When you see"</div>
+          <div class="meme-item">"I'm ready"</div>
+          <div class="meme-item">"This is fine"</div>
+          <div class="meme-item">"When you see"</div>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn btn-primary" id="start-puzzle">Собрать пазл 🧩</button>
+        <button class="btn btn-primary" id="start-mission">Начать миссию 🚀</button>
         <button class="btn btn-secondary" id="view-leaderboard">🏆 Лидеры</button>
       </div>
     </div>
 
-    <!-- Экран мини-игры Пазл -->
-    <div id="puzzle-screen">
-      <div class="puzzle-header">
-        <h2 class="neon-text">День 1: Собери пазл!</h2>
-        <p>Расставь части в правильном порядке</p>
-      </div>
-      
-      <div class="puzzle-grid" id="puzzle-grid">
-        <!-- Пазл будет генерироваться здесь -->
-      </div>
-
-      <div class="puzzle-progress" id="puzzle-progress">Правильно: 0/9</div>
-
-      <div class="actions">
-        <button class="btn btn-tertiary" id="back-to-main">Назад</button>
-        <button class="btn btn-primary" id="check-puzzle">Проверить ✅</button>
-      </div>
-    </div>
-
-    <!-- Экран таблицы лидеров -->
-    <div id="leaderboard-screen">
-      <div class="leaderboard-header">
-        <h2 class="neon-text">🏆 Таблица Лидеров</h2>
-        <p>Лучшие игроки Чебоксар</p>
-      </div>
-      
-      <div class="leaderboard-list" id="leaderboard-list">
-        <div class="leaderboard-item">
-          <span class="rank">#1</span>
-          <span class="player-name">Оксана 🎤</span>
-          <span class="score">1000</span>
-        </div>
-        <div class="leaderboard-item">
-          <span class="rank">#2</span>
-          <span class="player-name">Ты</span>
-          <span class="score">100</span>
-        </div>
-        <div class="leaderboard-item">
-          <span class="rank">#3</span>
-          <span class="player-name">Друг Оксаны</span>
-          <span class="score">50</span>
-        </div>
-        <div class="leaderboard-item">
-          <span class="rank">#4</span>
-          <span class="player-name">Гонщик Чебоксар</span>
-          <span class="score">25</span>
-        </div>
-        <div class="leaderboard-item">
-          <span class="rank">#5</span>
-          <span class="player-name">Мемный Мастер</span>
-          <span class="score">10</span>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-primary" id="back-from-leaderboard">Назад</button>
-      </div>
-    </div>
-
-    <!-- Системное уведомление -->
-    <div class="notification" id="notification">Пазл собран! +50 монет!</div>
+    <div class="notification" id="notification"></div>
   </div>
 
   <script>
-    // Имитация Telegram WebApp
-    const Telegram = window.Telegram || {
-      WebApp: {
-        initData: null,
-        initDataUnsafe: { user: { id: 123456789, first_name: "Игрок" } },
-        ready: () => {},
-        expand: () => {},
-        MainButton: {
-          setText: () => {},
-          show: () => {}
-        }
-      }
-    };
+    const Telegram = window.Telegram || { WebApp: { ready: () => {}, expand: () => {} } };
 
-    // Игровое состояние
     const gameState = {
       currentScreen: 'main',
       day: 1,
       coins: 100,
-      level: 1,
-      completedPuzzles: [],
-      collectedMemes: ['im_ready', 'this_is_fine', 'when_you_see'],
-      correctPieces: 0
+      level: 1
     };
 
-    // DOM элементы
     const elements = {
       loading: document.getElementById('loading'),
       mainScreen: document.getElementById('main-screen'),
-      puzzleScreen: document.getElementById('puzzle-screen'),
-      leaderboardScreen: document.getElementById('leaderboard-screen'),
       dialogText: document.getElementById('dialog-text'),
       coins: document.getElementById('coins'),
       level: document.getElementById('level'),
       day: document.getElementById('day'),
-      startPuzzle: document.getElementById('start-puzzle'),
+      startMission: document.getElementById('start-mission'),
       viewLeaderboard: document.getElementById('view-leaderboard'),
-      backToMain: document.getElementById('back-to-main'),
-      checkPuzzle: document.getElementById('check-puzzle'),
-      puzzleGrid: document.getElementById('puzzle-grid'),
-      puzzleProgress: document.getElementById('puzzle-progress'),
-      backFromLeaderboard: document.getElementById('back-from-leaderboard'),
-      notification: document.getElementById('notification'),
-      leaderboardList: document.getElementById('leaderboard-list')
+      notification: document.getElementById('notification')
     };
 
-    // Инициализация приложения
     function initApp() {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
       
-      // Имитация загрузки
       setTimeout(() => {
         elements.loading.style.opacity = '0';
         setTimeout(() => {
@@ -637,165 +381,45 @@
           elements.mainScreen.style.opacity = '1';
           elements.mainScreen.style.transform = 'translateY(0)';
         }, 500);
-      }, 2000);
+      }, 1500);
 
-      // Обновление UI
       updateUI();
-
-      // Обработчики событий
-      elements.startPuzzle.addEventListener('click', showPuzzleScreen);
-      elements.backToMain.addEventListener('click', showMainScreen);
-      elements.checkPuzzle.addEventListener('click', checkPuzzle);
-      elements.viewLeaderboard.addEventListener('click', showLeaderboardScreen);
-      elements.backFromLeaderboard.addEventListener('click', showMainScreen);
+      setupEventListeners();
     }
 
-    // Обновление UI
     function updateUI() {
       elements.coins.textContent = gameState.coins;
       elements.level.textContent = gameState.level;
       elements.day.textContent = gameState.day;
     }
 
-    // Показать главный экран
-    function showMainScreen() {
-      elements.puzzleScreen.style.display = 'none';
-      elements.leaderboardScreen.style.display = 'none';
-      elements.mainScreen.style.display = 'flex';
-      gameState.currentScreen = 'main';
+    function setupEventListeners() {
+      elements.startMission.addEventListener('click', startMission);
+      elements.viewLeaderboard.addEventListener('click', showLeaderboard);
     }
 
-    // Показать экран пазла
-    function showPuzzleScreen() {
-      elements.mainScreen.style.display = 'none';
-      elements.puzzleScreen.style.display = 'flex';
-      gameState.currentScreen = 'puzzle';
-      generatePuzzle();
-    }
-
-    // Показать таблицу лидеров
-    function showLeaderboardScreen() {
-      elements.mainScreen.style.display = 'none';
-      elements.leaderboardScreen.style.display = 'flex';
-      gameState.currentScreen = 'leaderboard';
-    }
-
-    // Генерация пазла
-    function generatePuzzle() {
-      elements.puzzleGrid.innerHTML = '';
-      const pieces = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-      const shuffled = [...pieces].sort(() => Math.random() - 0.5);
-      gameState.correctPieces = 0;
-      updatePuzzleProgress();
+    function startMission() {
+      gameState.coins += 25;
+      gameState.level = 2;
+      updateUI();
       
-      shuffled.forEach((num, index) => {
-        const piece = document.createElement('div');
-        piece.className = 'puzzle-piece';
-        piece.textContent = num;
-        piece.dataset.correctPosition = num - 1;
-        piece.dataset.currentPosition = index;
-        piece.addEventListener('click', () => togglePieceSelection(piece));
-        elements.puzzleGrid.appendChild(piece);
-      });
+      showNotification('🏁 Миссия начата!\n+25 монет!');
+      elements.dialogText.innerHTML = 'Отлично! 🎉<br><br>Ты начал первую миссию!<br>Сегодня мы будем исследовать Чебоксары и искать мемные артефакты!<br><br>Завтра будет новое приключение!';
     }
 
-    // Состояние выбора пазлов
-    let selectedPiece = null;
-
-    // Выбор/отмена выбора пазла
-    function togglePieceSelection(piece) {
-      if (selectedPiece === piece) {
-        piece.classList.remove('selected');
-        selectedPiece = null;
-        return;
-      }
-      
-      if (selectedPiece) {
-        swapPieces(selectedPiece, piece);
-        selectedPiece.classList.remove('selected');
-        selectedPiece = null;
-      } else {
-        piece.classList.add('selected');
-        selectedPiece = piece;
-      }
+    function showLeaderboard() {
+      showNotification('🏆 Таблица лидеров\nВ разработке для GitHub!');
     }
 
-    // Обмен пазлами
-    function swapPieces(piece1, piece2) {
-      const tempPos = piece1.dataset.currentPosition;
-      piece1.dataset.currentPosition = piece2.dataset.currentPosition;
-      piece2.dataset.currentPosition = tempPos;
-
-      const parent = elements.puzzleGrid;
-      const piece1Index = Array.from(parent.children).indexOf(piece1);
-      const piece2Index = Array.from(parent.children).indexOf(piece2);
-      
-      parent.insertBefore(piece2, piece1);
-      if (piece1Index < piece2Index) {
-        parent.insertBefore(piece1, parent.children[piece2Index]);
-      } else {
-        parent.insertBefore(piece1, parent.children[piece2Index + 1]);
-      }
-
-      piece1.removeEventListener('click', () => togglePieceSelection(piece1));
-      piece2.removeEventListener('click', () => togglePieceSelection(piece2));
-      piece1.addEventListener('click', () => togglePieceSelection(piece1));
-      piece2.addEventListener('click', () => togglePieceSelection(piece2));
-
-      updateCorrectPieces();
-    }
-
-    // Обновление количества правильных пазлов
-    function updateCorrectPieces() {
-      const pieces = document.querySelectorAll('.puzzle-piece');
-      let correctCount = 0;
-      
-      pieces.forEach((piece, index) => {
-        if (parseInt(piece.dataset.correctPosition) === index) {
-          piece.classList.add('correct');
-          correctCount++;
-        } else {
-          piece.classList.remove('correct');
-        }
-      });
-      
-      gameState.correctPieces = correctCount;
-      updatePuzzleProgress();
-    }
-
-    // Обновление прогресса пазла
-    function updatePuzzleProgress() {
-      elements.puzzleProgress.textContent = `Правильно: ${gameState.correctPieces}/9`;
-    }
-
-    // Проверка пазла
-    function checkPuzzle() {
-      if (gameState.correctPieces === 9) {
-        gameState.coins += 50;
-        gameState.completedPuzzles.push(gameState.day);
-        updateUI();
-        
-        showNotification('🎉 УРА! ПАЗЛ СОБРАН! 🎉<br>+50 монет!');
-        setTimeout(() => {
-          showMainScreen();
-          elements.dialogText.innerHTML = 'Отличная работа! 🎉<br><br>Ты собрал пазл и получил 50 монет!<br>Теперь у тебя есть доступ к моим гонкам! 🏎️<br><br>Завтра будет новое задание!';
-        }, 2000);
-      } else {
-        showNotification('Еще не все правильно! Попробуй еще раз!');
-      }
-    }
-
-    // Показать уведомление
-    function showNotification(message, type = 'success') {
+    function showNotification(message) {
       elements.notification.innerHTML = message;
       elements.notification.className = 'notification show';
       
       setTimeout(() => {
-        elements.notification.classList.remove('show');
+        elements.notification.className = 'notification';
       }, 3000);
     }
 
-    // Инициализация
     document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
