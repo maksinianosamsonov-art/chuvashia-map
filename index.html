@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Оксана: Героиня Чебоксар</title>
+  <title>Оксана из Чебоксар</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -17,30 +17,40 @@
             accent: '#ec4899',
             neon: '#00f5d4',
             glow: '#ff2ea6',
+          },
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif']
           }
         }
       }
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
     body {
       font-family: 'Orbitron', sans-serif;
       background: #0f172a;
       overflow: hidden;
+      margin: 0;
+      padding: 0;
     }
     .neon-text {
-      text-shadow: 0 0 10px #ec4899, 0 0 20px #ec4899, 0 0 30px #ec4899;
+      text-shadow: 0 0 8px #ec4899, 0 0 16px #ec4899;
     }
     .neon-border {
-      box-shadow: 0 0 10px #00f5d4, inset 0 0 10px #00f5d4;
+      box-shadow: 0 0 8px #00f5d4, inset 0 0 8px #00f5d4;
+    }
+    .btn-glow {
+      transition: all 0.2s ease;
     }
     .btn-glow:hover {
-      box-shadow: 0 0 15px #ff2ea6;
+      box-shadow: 0 0 16px #ff2ea6;
+      transform: scale(1.03);
     }
     canvas {
       display: block;
       background: #0c1427;
+      width: 100%;
+      height: 100%;
     }
     .joystick {
       position: absolute;
@@ -49,9 +59,10 @@
       width: 100px;
       height: 100px;
       border-radius: 50%;
-      background: rgba(30, 41, 59, 0.7);
+      background: rgba(30, 41, 59, 0.6);
       border: 2px solid #00f5d4;
       box-shadow: 0 0 10px #00f5d4;
+      touch-action: none;
     }
     .joystick-knob {
       position: absolute;
@@ -62,6 +73,7 @@
       border-radius: 50%;
       background: #ec4899;
       box-shadow: 0 0 10px #ec4899;
+      touch-action: none;
     }
     .shoot-btn {
       position: absolute;
@@ -73,62 +85,78 @@
       background: rgba(236, 72, 153, 0.7);
       border: 2px solid #ff2ea6;
       box-shadow: 0 0 10px #ff2ea6;
+      touch-action: none;
     }
     @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
+      0% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.7; transform: scale(1); }
     }
     .pulse {
-      animation: pulse 1.5s infinite;
+      animation: pulse 2s infinite;
+    }
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body class="text-white overflow-hidden">
-  <div id="app" class="w-full h-screen flex flex-col items-center justify-center relative">
+  <div id="app" class="w-full h-screen flex flex-col relative">
     <!-- Main Menu -->
     <div id="menu" class="w-full h-full flex flex-col items-center justify-center space-y-8 p-6 text-center">
-      <h1 class="text-4xl neon-text font-bold">Оксана из Чебоксар</h1>
-      <p class="text-lg text-neon">Героиня улиц, дрифт и скорости!</p>
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold neon-text mb-2">Оксана из Чебоксар</h1>
+        <p class="text-lg text-neon">25 лет · Мастер улиц · Королева дрифта</p>
+      </div>
       
       <div class="space-y-4 w-full max-w-xs">
-        <button onclick="startGame('shooter')" class="w-full py-3 px-6 bg-accent rounded-lg font-bold text-white neon-border btn-glow transition">
+        <button onclick="startGame('shooter')" class="w-full py-4 px-6 bg-accent rounded-xl font-bold text-white neon-border btn-glow transition text-lg">
           🔫 Оксана в бою
         </button>
-        <button onclick="startGame('drift')" class="w-full py-3 px-6 bg-neon rounded-lg font-bold text-primary neon-border btn-glow transition">
+        <button onclick="startGame('drift')" class="w-full py-4 px-6 bg-neon rounded-xl font-bold text-primary neon-border btn-glow transition text-lg">
           🏁 Дрифт по Чебоксарам
         </button>
-        <button onclick="startGame('racing')" class="w-full py-3 px-6 bg-glow rounded-lg font-bold text-white neon-border btn-glow transition">
+        <button onclick="startGame('racing')" class="w-full py-4 px-6 bg-glow rounded-xl font-bold text-white neon-border btn-glow transition text-lg">
           🏎️ Гонки с друзьями
         </button>
       </div>
 
-      <div id="records" class="mt-8 text-sm text-gray-400">
-        <p>Рекорды: <span id="record-shooter">0</span> | <span id="record-drift">0</span> | <span id="record-racing">0</span></p>
+      <div id="records" class="mt-8 text-sm text-gray-400 bg-secondary/50 p-4 rounded-lg">
+        <p class="font-mono">ЛУЧШИЕ РЕЗУЛЬТАТЫ</p>
+        <p>🔫 <span id="record-shooter">0</span> | 🏁 <span id="record-drift">0</span> | 🏎️ <span id="record-racing">0</span></p>
+      </div>
+      
+      <div class="text-xs text-gray-500 mt-4">
+        Управление: сенсорное или клавиши-стрелки
       </div>
     </div>
 
     <!-- Game Canvas Container -->
     <div id="game-container" class="hidden w-full h-full relative">
-      <canvas id="game-canvas" class="w-full h-full"></canvas>
-      <div id="game-ui" class="absolute top-4 left-4 right-4 flex justify-between items-center">
+      <canvas id="game-canvas"></canvas>
+      <div id="game-ui" class="absolute top-4 left-4 right-4 flex justify-between items-center px-4">
         <div id="score" class="text-2xl font-bold neon-text">0</div>
-        <div id="timer" class="text-xl"></div>
-        <button onclick="exitGame()" class="text-white bg-red-500 px-3 py-1 rounded neon-border">← Назад</button>
+        <div id="timer" class="text-xl text-neon font-mono"></div>
+        <button onclick="exitGame()" class="text-white bg-red-500/80 px-4 py-2 rounded-lg neon-border font-bold">
+          ← Меню
+        </button>
       </div>
-      <!-- Touch Controls (conditionally shown) -->
       <div id="controls" class="absolute inset-0 pointer-events-none"></div>
     </div>
   </div>
 
-  <script type="module">
-    // Telegram WebApp Init
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-    Telegram.WebApp.MainButton.setText('Отправить результат');
-    Telegram.WebApp.MainButton.hide();
+  <script>
+    // Telegram WebApp initialization
+    if (window.Telegram && Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.setHeaderColor('#0f172a');
+      Telegram.WebApp.setBackgroundColor('#0f172a');
+      Telegram.WebApp.MainButton.setText('Отправить рекорд');
+      Telegram.WebApp.MainButton.hide();
+    }
 
-    // Game state
+    // Game state management
     const gameState = {
       currentGame: null,
       score: 0,
@@ -147,22 +175,26 @@
     const scoreEl = document.getElementById('score');
     const timerEl = document.getElementById('timer');
     const controlsEl = document.getElementById('controls');
-    const recordShooterEl = document.getElementById('record-shooter');
-    const recordDriftEl = document.getElementById('record-drift');
-    const recordRacingEl = document.getElementById('record-racing');
+    const recordElements = {
+      shooter: document.getElementById('record-shooter'),
+      drift: document.getElementById('record-drift'),
+      racing: document.getElementById('record-racing')
+    };
 
     // Update records display
     function updateRecords() {
-      recordShooterEl.textContent = gameState.records.shooter;
-      recordDriftEl.textContent = gameState.records.drift;
-      recordRacingEl.textContent = gameState.records.racing;
+      recordElements.shooter.textContent = gameState.records.shooter.toLocaleString();
+      recordElements.drift.textContent = gameState.records.drift.toLocaleString();
+      recordElements.racing.textContent = gameState.records.racing.toLocaleString();
     }
     updateRecords();
 
-    // Resize canvas
+    // Canvas resize handler
     function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - 80; // account for UI
+      const displayWidth = window.innerWidth;
+      const displayHeight = window.innerHeight;
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -174,61 +206,74 @@
       up: false,
       down: false,
       shoot: false,
-      touch: { x: 0, y: 0, active: false }
+      touchX: 0,
+      touchY: 0
     };
 
-    // Keyboard controls
+    // Keyboard event handlers
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') input.left = true;
-      if (e.key === 'ArrowRight') input.right = true;
-      if (e.key === 'ArrowUp') input.up = true;
-      if (e.key === 'ArrowDown') input.down = true;
-      if (e.key === ' ') input.shoot = true;
+      switch(e.key) {
+        case 'ArrowLeft': input.left = true; break;
+        case 'ArrowRight': input.right = true; break;
+        case 'ArrowUp': input.up = true; break;
+        case 'ArrowDown': input.down = true; break;
+        case ' ': input.shoot = true; break;
+      }
     });
 
     window.addEventListener('keyup', (e) => {
-      if (e.key === 'ArrowLeft') input.left = false;
-      if (e.key === 'ArrowRight') input.right = false;
-      if (e.key === 'ArrowUp') input.up = false;
-      if (e.key === 'ArrowDown') input.down = false;
-      if (e.key === ' ') input.shoot = false;
+      switch(e.key) {
+        case 'ArrowLeft': input.left = false; break;
+        case 'ArrowRight': input.right = false; break;
+        case 'ArrowUp': input.up = false; break;
+        case 'ArrowDown': input.down = false; break;
+        case ' ': input.shoot = false; break;
+      }
     });
 
-    // Touch controls
-    let joystickBase = null;
-    let joystickKnob = null;
-    let shootBtn = null;
-
+    // Touch control creation
     function createTouchControls() {
       controlsEl.innerHTML = '';
       controlsEl.classList.remove('pointer-events-none');
       
-      joystickBase = document.createElement('div');
+      // Joystick
+      const joystickBase = document.createElement('div');
       joystickBase.className = 'joystick';
-      joystickKnob = document.createElement('div');
+      const joystickKnob = document.createElement('div');
       joystickKnob.className = 'joystick-knob';
       joystickBase.appendChild(joystickKnob);
       
-      shootBtn = document.createElement('div');
+      // Shoot button
+      const shootBtn = document.createElement('div');
       shootBtn.className = 'shoot-btn pulse';
       
       controlsEl.appendChild(joystickBase);
       controlsEl.appendChild(shootBtn);
       
-      // Joystick logic
+      // Joystick interaction
       let isDragging = false;
-      const baseRect = { x: 20, y: canvas.height - 120, width: 100, height: 100 };
+      let baseRect = null;
       
-      function updateJoystick(clientX, clientY) {
-        const rect = joystickBase.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
+      function getBaseRect() {
+        return {
+          x: 20,
+          y: canvas.height - 120,
+          width: 100,
+          height: 100
+        };
+      }
+      
+      function updateJoystickPosition(clientX, clientY) {
+        baseRect = baseRect || getBaseRect();
+        const centerX = baseRect.x + baseRect.width / 2;
+        const centerY = baseRect.y + baseRect.height / 2;
         const deltaX = clientX - centerX;
         const deltaY = clientY - centerY;
         const distance = Math.min(40, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
         const angle = Math.atan2(deltaY, deltaX);
         const posX = Math.cos(angle) * distance;
         const posY = Math.sin(angle) * distance;
+        
         joystickKnob.style.transform = `translate(${posX}px, ${posY}px)`;
         
         input.left = posX < -10;
@@ -240,13 +285,14 @@
       joystickBase.addEventListener('touchstart', (e) => {
         e.preventDefault();
         isDragging = true;
-        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+        baseRect = getBaseRect();
+        updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
       });
       
       window.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
         e.preventDefault();
-        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+        updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
       });
       
       window.addEventListener('touchend', () => {
@@ -255,38 +301,48 @@
         input.left = input.right = input.up = input.down = false;
       });
       
-      // Shoot button
+      // Shoot button interaction
+      let isShooting = false;
       shootBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        if (isShooting) return;
+        isShooting = true;
         input.shoot = true;
         shootBtn.classList.remove('pulse');
+        shootBtn.style.transform = 'scale(0.95)';
         shootBtn.style.boxShadow = '0 0 20px #ff2ea6';
       });
       
       shootBtn.addEventListener('touchend', () => {
         input.shoot = false;
+        isShooting = false;
         shootBtn.classList.add('pulse');
+        shootBtn.style.transform = 'scale(1)';
         shootBtn.style.boxShadow = '0 0 10px #ff2ea6';
       });
     }
 
-    // Game exit
+    // Exit game function
     function exitGame() {
       if (gameState.currentGame) {
-        // Save score if it's a new record
         const gameKey = gameState.currentGame;
         if (gameState.score > gameState.records[gameKey]) {
           gameState.records[gameKey] = gameState.score;
           localStorage.setItem(`oxana_${gameKey}`, gameState.score.toString());
           updateRecords();
           
-          // Show Telegram button to send data
-          Telegram.WebApp.MainButton.setText(`Рекорд: ${gameState.score} в "${gameKey}"`);
-          Telegram.WebApp.MainButton.show();
-          Telegram.WebApp.MainButton.onClick(() => {
-            Telegram.WebApp.sendData(JSON.stringify({ game: gameKey, score: gameState.score }));
-            Telegram.WebApp.close();
-          });
+          if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.MainButton.setText(`🔥 Новый рекорд: ${gameState.score} в "${gameKey}"`);
+            Telegram.WebApp.MainButton.show();
+            Telegram.WebApp.MainButton.onClick(() => {
+              Telegram.WebApp.sendData(JSON.stringify({ 
+                game: gameKey, 
+                score: gameState.score,
+                name: 'Оксана из Чебоксар'
+              }));
+              Telegram.WebApp.close();
+            });
+          }
         }
       }
       
@@ -298,10 +354,13 @@
       timerEl.textContent = '';
       controlsEl.innerHTML = '';
       controlsEl.classList.add('pointer-events-none');
-      Telegram.WebApp.MainButton.hide();
+      
+      if (window.Telegram && Telegram.WebApp) {
+        Telegram.WebApp.MainButton.hide();
+      }
     }
 
-    // Start game
+    // Start game function
     window.startGame = function(gameName) {
       menuEl.classList.add('hidden');
       gameContainerEl.classList.remove('hidden');
@@ -312,428 +371,639 @@
       resizeCanvas();
       createTouchControls();
       
+      // Reset input
+      input.left = input.right = input.up = input.down = input.shoot = false;
+      
       // Initialize specific game
-      if (gameName === 'shooter') initShooter();
-      else if (gameName === 'drift') initDrift();
-      else if (gameName === 'racing') initRacing();
+      if (gameName === 'shooter') initShooterGame();
+      else if (gameName === 'drift') initDriftGame();
+      else if (gameName === 'racing') initRacingGame();
     };
 
-    // Common game loop
-    let gameLoop;
-    let lastTime = 0;
+    // Game loop management
+    let animationFrameId = null;
+    let lastTimestamp = 0;
     
-    function startGameLoop(updateFn) {
-      if (gameLoop) cancelAnimationFrame(gameLoop);
-      lastTime = performance.now();
+    function startGameLoop(updateFunction) {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      lastTimestamp = performance.now();
       
-      const loop = (time) => {
-        const dt = (time - lastTime) / 1000;
-        lastTime = time;
+      const gameLoop = (timestamp) => {
+        const deltaTime = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp;
         
         if (gameState.currentGame) {
-          updateFn(dt);
-          gameLoop = requestAnimationFrame(loop);
+          updateFunction(deltaTime);
+          animationFrameId = requestAnimationFrame(gameLoop);
         }
       };
-      gameLoop = requestAnimationFrame(loop);
+      
+      animationFrameId = requestAnimationFrame(gameLoop);
     }
 
-    // === MINI-GAME 1: SHOOTER ===
-    let shooterState;
-    function initShooter() {
-      shooterState = {
-        player: { x: canvas.width / 2, y: canvas.height / 2, radius: 15, speed: 200, health: 100, reload: 0 },
+    // === SHOOTER GAME ===
+    let shooterGame = null;
+    
+    function initShooterGame() {
+      shooterGame = {
+        player: {
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          radius: 18,
+          speed: 250,
+          health: 100,
+          maxHealth: 100,
+          reloadTime: 0,
+          maxReload: 0.25
+        },
         bullets: [],
         enemies: [],
+        particles: [],
         lastEnemySpawn: 0,
+        enemySpawnInterval: 800,
         gameOver: false
       };
       
-      startGameLoop(updateShooter);
+      startGameLoop(updateShooterGame);
     }
     
-    function updateShooter(dt) {
-      const s = shooterState;
-      if (s.gameOver) return;
+    function updateShooterGame(deltaTime) {
+      if (shooterGame.gameOver) return;
+      
+      const game = shooterGame;
       
       // Player movement
-      let dx = 0, dy = 0;
-      if (input.left) dx -= 1;
-      if (input.right) dx += 1;
-      if (input.up) dy -= 1;
-      if (input.down) dy += 1;
+      let moveX = 0, moveY = 0;
+      if (input.left) moveX -= 1;
+      if (input.right) moveX += 1;
+      if (input.up) moveY -= 1;
+      if (input.down) moveY += 1;
       
-      const len = Math.sqrt(dx * dx + dy * dy);
-      if (len > 0) {
-        dx /= len; dy /= len;
-        s.player.x += dx * s.player.speed * dt;
-        s.player.y += dy * s.player.speed * dt;
+      const moveLength = Math.sqrt(moveX * moveX + moveY * moveY);
+      if (moveLength > 0) {
+        moveX /= moveLength;
+        moveY /= moveLength;
+        game.player.x += moveX * game.player.speed * deltaTime;
+        game.player.y += moveY * game.player.speed * deltaTime;
       }
       
-      // Keep player in bounds
-      s.player.x = Math.max(s.player.radius, Math.min(canvas.width - s.player.radius, s.player.x));
-      s.player.y = Math.max(s.player.radius, Math.min(canvas.height - s.player.radius, s.player.y));
+      // Boundary constraints
+      game.player.x = Math.max(game.player.radius, Math.min(canvas.width - game.player.radius, game.player.x));
+      game.player.y = Math.max(game.player.radius, Math.min(canvas.height - game.player.radius, game.player.y));
       
       // Shooting
-      if (input.shoot && s.player.reload <= 0) {
-        s.bullets.push({
-          x: s.player.x,
-          y: s.player.y,
-          dx: dx || 0,
-          dy: dy || -1,
-          speed: 300
+      if (input.shoot && game.player.reloadTime <= 0) {
+        const shootDirX = moveX || 0;
+        const shootDirY = moveY || -1;
+        game.bullets.push({
+          x: game.player.x,
+          y: game.player.y,
+          dirX: shootDirX,
+          dirY: shootDirY,
+          speed: 400,
+          radius: 4
         });
-        s.player.reload = 0.2; // seconds
+        game.player.reloadTime = game.player.maxReload;
       }
-      if (s.player.reload > 0) s.player.reload -= dt;
+      if (game.player.reloadTime > 0) {
+        game.player.reloadTime -= deltaTime;
+      }
       
-      // Spawn enemies
-      if (performance.now() - s.lastEnemySpawn > 1000) {
+      // Enemy spawning
+      if (performance.now() - game.lastEnemySpawn > game.enemySpawnInterval) {
         const side = Math.floor(Math.random() * 4);
-        let x, y;
-        if (side === 0) { x = Math.random() * canvas.width; y = -20; }
-        else if (side === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
-        else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
-        else { x = -20; y = Math.random() * canvas.height; }
-        s.enemies.push({ x, y, radius: 12, speed: 80, health: 1 });
-        s.lastEnemySpawn = performance.now();
+        let spawnX, spawnY;
+        switch(side) {
+          case 0: // top
+            spawnX = Math.random() * canvas.width;
+            spawnY = -30;
+            break;
+          case 1: // right
+            spawnX = canvas.width + 30;
+            spawnY = Math.random() * canvas.height;
+            break;
+          case 2: // bottom
+            spawnX = Math.random() * canvas.width;
+            spawnY = canvas.height + 30;
+            break;
+          case 3: // left
+            spawnX = -30;
+            spawnY = Math.random() * canvas.height;
+            break;
+        }
+        game.enemies.push({
+          x: spawnX,
+          y: spawnY,
+          radius: 15,
+          speed: 80 + Math.random() * 40,
+          health: 1
+        });
+        game.lastEnemySpawn = performance.now();
+        game.enemySpawnInterval = Math.max(300, game.enemySpawnInterval * 0.98);
       }
       
       // Update bullets
-      for (let i = s.bullets.length - 1; i >= 0; i--) {
-        const b = s.bullets[i];
-        b.x += b.dx * b.speed * dt;
-        b.y += b.dy * b.speed * dt;
+      for (let i = game.bullets.length - 1; i >= 0; i--) {
+        const bullet = game.bullets[i];
+        bullet.x += bullet.dirX * bullet.speed * deltaTime;
+        bullet.y += bullet.dirY * bullet.speed * deltaTime;
         
         // Remove off-screen bullets
-        if (b.x < -10 || b.x > canvas.width + 10 || b.y < -10 || b.y > canvas.height + 10) {
-          s.bullets.splice(i, 1);
+        if (bullet.x < -50 || bullet.x > canvas.width + 50 || 
+            bullet.y < -50 || bullet.y > canvas.height + 50) {
+          game.bullets.splice(i, 1);
           continue;
         }
         
         // Bullet-enemy collision
-        for (let j = s.enemies.length - 1; j >= 0; j--) {
-          const e = s.enemies[j];
-          const dx = b.x - e.x;
-          const dy = b.y - e.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < b.radius + e.radius) {
-            s.enemies.splice(j, 1);
-            s.bullets.splice(i, 1);
-            gameState.score += 10;
-            scoreEl.textContent = gameState.score;
+        for (let j = game.enemies.length - 1; j >= 0; j--) {
+          const enemy = game.enemies[j];
+          const dx = bullet.x - enemy.x;
+          const dy = bullet.y - enemy.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < bullet.radius + enemy.radius) {
+            // Create hit particles
+            for (let k = 0; k < 8; k++) {
+              game.particles.push({
+                x: enemy.x,
+                y: enemy.y,
+                vx: (Math.random() - 0.5) * 100,
+                vy: (Math.random() - 0.5) * 100,
+                life: 1.0,
+                decay: 2.0
+              });
+            }
+            game.enemies.splice(j, 1);
+            game.bullets.splice(i, 1);
+            gameState.score += 25;
+            scoreEl.textContent = gameState.score.toLocaleString();
             break;
           }
         }
       }
       
       // Update enemies
-      for (let i = s.enemies.length - 1; i >= 0; i--) {
-        const e = s.enemies[i];
-        const dx = s.player.x - e.x;
-        const dy = s.player.y - e.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > 0) {
-          e.x += (dx / dist) * e.speed * dt;
-          e.y += (dy / dist) * e.speed * dt;
+      for (let i = game.enemies.length - 1; i >= 0; i--) {
+        const enemy = game.enemies[i];
+        const dx = game.player.x - enemy.x;
+        const dy = game.player.y - enemy.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance > 0) {
+          enemy.x += (dx / distance) * enemy.speed * deltaTime;
+          enemy.y += (dy / distance) * enemy.speed * deltaTime;
         }
         
         // Enemy-player collision
-        if (dist < s.player.radius + e.radius) {
-          s.player.health -= 10;
-          s.enemies.splice(i, 1);
-          if (s.player.health <= 0) {
-            s.gameOver = true;
-            exitGame();
-            return;
+        if (distance < game.player.radius + enemy.radius) {
+          game.player.health -= 15;
+          game.enemies.splice(i, 1);
+          // Create collision particles
+          for (let k = 0; k < 12; k++) {
+            game.particles.push({
+              x: game.player.x,
+              y: game.player.y,
+              vx: (Math.random() - 0.5) * 150,
+              vy: (Math.random() - 0.5) * 150,
+              life: 1.0,
+              decay: 3.0,
+              color: '#f87171'
+            });
+          }
+          if (game.player.health <= 0) {
+            game.gameOver = true;
+            setTimeout(() => exitGame(), 1000);
           }
         }
       }
       
-      // Render
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Background (simplified Chебокsary)
-      ctx.fillStyle = '#1a2233';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#2d3748';
-      // Fake buildings
-      for (let i = 0; i < 10; i++) {
-        const w = 30 + Math.random() * 40;
-        const h = 50 + Math.random() * 100;
-        ctx.fillRect(i * 80 + 20, canvas.height - h, w, h);
+      // Update particles
+      for (let i = game.particles.length - 1; i >= 0; i--) {
+        const p = game.particles[i];
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        p.life -= p.decay * deltaTime;
+        if (p.life <= 0) {
+          game.particles.splice(i, 1);
+        }
       }
       
-      // Player
-      ctx.fillStyle = '#ec4899';
-      ctx.beginPath();
-      ctx.arc(s.player.x, s.player.y, s.player.radius, 0, Math.PI * 2);
-      ctx.fill();
+      // Render everything
+      renderShooterGame();
+    }
+    
+    function renderShooterGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Background - stylized Cheboksary
+      ctx.fillStyle = '#1a2233';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Simple cityscape
+      ctx.fillStyle = '#2d3748';
+      const buildingCount = Math.floor(canvas.width / 40);
+      for (let i = 0; i < buildingCount; i++) {
+        const width = 25 + Math.random() * 20;
+        const height = 80 + Math.random() * 120;
+        const x = i * 40 + 10;
+        const y = canvas.height - height;
+        ctx.fillRect(x, y, width, height);
+        
+        // Windows
+        ctx.fillStyle = '#00f5d4';
+        for (let wy = y + 10; wy < y + height; wy += 20) {
+          for (let wx = x + 5; wx < x + width; wx += 12) {
+            if (Math.random() > 0.3) {
+              ctx.fillRect(wx, wy, 6, 10);
+            }
+          }
+        }
+        ctx.fillStyle = '#2d3748';
+      }
+      
+      // Particles
+      for (const p of shooterGame.particles) {
+        const alpha = p.life;
+        ctx.fillStyle = p.color || `rgba(236, 72, 153, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
       
       // Bullets
       ctx.fillStyle = '#00f5d4';
-      for (const b of s.bullets) {
+      for (const bullet of shooterGame.bullets) {
         ctx.beginPath();
-        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.arc(bullet.x, bullet.bullet?.y || bullet.y, bullet.radius, 0, Math.PI * 2);
         ctx.fill();
       }
       
       // Enemies
       ctx.fillStyle = '#f87171';
-      for (const e of s.enemies) {
+      for (const enemy of shooterGame.enemies) {
         ctx.beginPath();
-        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
         ctx.fill();
       }
       
-      // UI
-      ctx.fillStyle = 'white';
-      ctx.font = '16px Orbitron';
-      ctx.fillText(`HP: ${s.player.health}`, 10, 30);
+      // Player
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.arc(shooterGame.player.x, shooterGame.player.y, shooterGame.player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Player health bar
+      const healthBarWidth = 100;
+      const healthPercent = shooterGame.player.health / shooterGame.player.maxHealth;
+      ctx.fillStyle = '#450a0a';
+      ctx.fillRect(shooterGame.player.x - healthBarWidth/2, shooterGame.player.y - 30, healthBarWidth, 8);
+      ctx.fillStyle = healthPercent > 0.5 ? '#10b981' : healthPercent > 0.25 ? '#f59e0b' : '#ef4444';
+      ctx.fillRect(shooterGame.player.x - healthBarWidth/2, shooterGame.player.y - 30, healthBarWidth * healthPercent, 8);
     }
 
-    // === MINI-GAME 2: DRIFT ===
-    let driftState;
-    function initDrift() {
-      driftState = {
-        car: { x: canvas.width / 2, y: canvas.height / 2, angle: 0, speed: 0, maxSpeed: 300 },
-        driftFactor: 0,
+    // === DRIFT GAME ===
+    let driftGame = null;
+    
+    function initDriftGame() {
+      driftGame = {
+        car: {
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          angle: 0,
+          speed: 0,
+          maxSpeed: 350,
+          acceleration: 400,
+          friction: 0.95
+        },
+        driftAngle: 0,
+        driftIntensity: 0,
         score: 0,
         timeLeft: 60,
-        lastTime: performance.now(),
-        obstacles: [],
+        lastTimeUpdate: performance.now(),
+        landmarks: [],
+        trail: [],
         gameOver: false
       };
       
-      // Create some obstacles (landmarks)
-      for (let i = 0; i < 5; i++) {
-        driftState.obstacles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: 20 + Math.random() * 30,
-          passed: false
-        });
-      }
+      // Create landmarks (Cheboksary landmarks)
+      const landmarks = [
+        { name: 'ГЭС', x: 100, y: 100, radius: 25 },
+        { name: 'Мост', x: canvas.width - 100, y: 150, radius: 20 },
+        { name: 'Площадь', x: canvas.width / 2, y: canvas.height - 100, radius: 30 },
+        { name: 'Бульвар', x: 200, y: canvas.height - 150, radius: 22 }
+      ];
+      driftGame.landmarks = landmarks;
       
-      startGameLoop(updateDrift);
+      startGameLoop(updateDriftGame);
     }
     
-    function updateDrift(dt) {
-      const s = driftState;
-      if (s.gameOver) return;
+    function updateDriftGame(deltaTime) {
+      if (driftGame.gameOver) return;
       
-      // Timer
+      const game = driftGame;
+      
+      // Timer update
       const now = performance.now();
-      s.timeLeft -= (now - s.lastTime) / 1000;
-      s.lastTime = now;
-      timerEl.textContent = Math.max(0, Math.floor(s.timeLeft));
-      if (s.timeLeft <= 0) {
-        gameState.score = Math.floor(s.score);
-        exitGame();
+      game.timeLeft -= (now - game.lastTimeUpdate) / 1000;
+      game.lastTimeUpdate = now;
+      timerEl.textContent = Math.max(0, Math.floor(game.timeLeft));
+      
+      if (game.timeLeft <= 0) {
+        gameState.score = Math.floor(game.score);
+        setTimeout(() => exitGame(), 500);
         return;
       }
       
-      // Controls
-      if (input.up) s.car.speed = Math.min(s.car.maxSpeed, s.car.speed + 200 * dt);
-      else if (input.down) s.car.speed = Math.max(0, s.car.speed - 200 * dt);
-      else s.car.speed *= 0.95;
+      // Car controls
+      if (input.up) {
+        game.car.speed = Math.min(game.car.maxSpeed, game.car.speed + game.car.acceleration * deltaTime);
+      } else if (input.down) {
+        game.car.speed = Math.max(0, game.car.speed - game.car.acceleration * deltaTime);
+      } else {
+        game.car.speed *= Math.pow(game.car.friction, deltaTime * 60);
+      }
       
-      let turn = 0;
-      if (input.left) turn = -2;
-      if (input.right) turn = 2;
+      let steering = 0;
+      if (input.left) steering = -3;
+      if (input.right) steering = 3;
       
       // Drift physics
-      s.car.angle += turn * (s.car.speed / s.car.maxSpeed) * dt;
-      const driftAmount = Math.abs(turn) * (s.car.speed / s.car.maxSpeed) * 0.5;
-      s.driftFactor = Math.min(1, s.driftFactor + driftAmount * dt);
-      s.driftFactor *= 0.98;
+      const turnSpeed = steering * (game.car.speed / game.car.maxSpeed) * 2;
+      game.car.angle += turnSpeed * deltaTime;
+      game.driftAngle = turnSpeed * deltaTime * 20;
+      game.driftIntensity = Math.min(1, game.driftIntensity + Math.abs(turnSpeed) * deltaTime * 0.8);
+      game.driftIntensity *= 0.97;
       
       // Movement
-      s.car.x += Math.sin(s.car.angle) * s.car.speed * dt;
-      s.car.y -= Math.cos(s.car.angle) * s.car.speed * dt;
+      game.car.x += Math.sin(game.car.angle) * game.car.speed * deltaTime;
+      game.car.y -= Math.cos(game.car.angle) * game.car.speed * deltaTime;
       
-      // Keep in bounds (wrap around)
-      if (s.car.x < -20) s.car.x = canvas.width + 20;
-      if (s.car.x > canvas.width + 20) s.car.x = -20;
-      if (s.car.y < -20) s.car.y = canvas.height + 20;
-      if (s.car.y > canvas.height + 20) s.car.y = -20;
+      // Screen wrapping
+      if (game.car.x < -50) game.car.x = canvas.width + 50;
+      if (game.car.x > canvas.width + 50) game.car.x = -50;
+      if (game.car.y < -50) game.car.y = canvas.height + 50;
+      if (game.car.y > canvas.height + 50) game.car.y = -50;
       
-      // Score from drift
-      s.score += s.driftFactor * s.car.speed * dt;
+      // Add to trail for visual effect
+      if (game.car.speed > 50) {
+        game.trail.push({
+          x: game.car.x - Math.sin(game.car.angle) * 30,
+          y: game.car.y + Math.cos(game.car.angle) * 30,
+          intensity: game.driftIntensity,
+          life: 1.0
+        });
+        if (game.trail.length > 20) game.trail.shift();
+      }
+      
+      // Score calculation
+      game.score += game.driftIntensity * game.car.speed * deltaTime * 0.1;
       
       // Landmark bonuses
-      for (const obs of s.obstacles) {
-        if (obs.passed) continue;
-        const dx = s.car.x - obs.x;
-        const dy = s.car.y - obs.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < obs.radius + 20) {
-          obs.passed = true;
-          s.score += 100;
+      for (const landmark of game.landmarks) {
+        const dx = game.car.x - landmark.x;
+        const dy = game.car.y - landmark.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < landmark.radius + 25 && game.car.speed > 100) {
+          game.score += 50;
+          landmark.collected = true;
+          setTimeout(() => { landmark.collected = false; }, 2000);
         }
       }
       
       // Render
+      renderDriftGame();
+    }
+    
+    function renderDriftGame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Night city background
+      // Night sky background
       ctx.fillStyle = '#0c1427';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
       // Stars
-      ctx.fillStyle = 'white';
-      for (let i = 0; i < 100; i++) {
-        ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1, 1);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      for (let i = 0; i < 80; i++) {
+        const x = (i * 37) % canvas.width;
+        const y = (i * 73) % canvas.height;
+        ctx.fillRect(x, y, 1.5, 1.5);
       }
+      
       // Landmarks
-      ctx.fillStyle = '#ff2ea6';
-      for (const obs of s.obstacles) {
-        if (!obs.passed) {
+      for (const landmark of driftGame.landmarks) {
+        ctx.fillStyle = landmark.collected ? '#10b981' : '#ff2ea6';
+        ctx.beginPath();
+        ctx.arc(landmark.x, landmark.y, landmark.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.font = '12px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText(landmark.name, landmark.x, landmark.y + landmark.radius + 20);
+      }
+      
+      // Drift trail
+      for (let i = 0; i < driftGame.trail.length; i++) {
+        const point = driftGame.trail[i];
+        const alpha = point.life * point.intensity;
+        if (alpha > 0) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.beginPath();
-          ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+          ctx.arc(point.x, point.y, 2 + i * 0.3, 0, Math.PI * 2);
           ctx.fill();
         }
       }
       
-      // Car with drift smoke
+      // Car
       ctx.save();
-      ctx.translate(s.car.x, s.car.y);
-      ctx.rotate(s.car.angle);
-      
-      // Drift smoke
-      if (s.driftFactor > 0.3) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.driftFactor})`;
-        ctx.fillRect(-25, 20, 50, 10 + s.driftFactor * 20);
-      }
+      ctx.translate(driftGame.car.x, driftGame.car.y);
+      ctx.rotate(driftGame.car.angle);
       
       // Car body
-      ctx.fillStyle = s.driftFactor > 0.5 ? '#ec4899' : '#00f5d4';
-      ctx.fillRect(-15, -25, 30, 50);
+      const carColor = driftGame.driftIntensity > 0.6 ? '#ec4899' : '#00f5d4';
+      ctx.fillStyle = carColor;
+      ctx.fillRect(-12, -25, 24, 45);
+      
+      // Windows
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-8, -20, 16, 15);
+      
       ctx.restore();
       
-      // Score
-      gameState.score = Math.floor(s.score);
-      scoreEl.textContent = gameState.score;
+      // Score display
+      gameState.score = Math.floor(driftGame.score);
+      scoreEl.textContent = gameState.score.toLocaleString();
     }
 
-    // === MINI-GAME 3: RACING ===
-    let racingState;
-    function initRacing() {
-      racingState = {
-        playerLane: 1, // 0, 1, 2
-        playerY: canvas.height - 100,
-        speed: 200,
-        obstacles: [],
+    // === RACING GAME ===
+    let racingGame = null;
+    
+    function initRacingGame() {
+      racingGame = {
+        lanes: 3,
+        laneWidth: canvas.width / 3,
+        playerLane: 1,
+        playerY: canvas.height - 120,
+        speed: 220,
         rivals: [],
-        time: 0,
+        obstacles: [],
+        roadOffset: 0,
         score: 0,
+        lastObstacle: 0,
+        obstacleInterval: 1500,
         gameOver: false
       };
       
       // Create rivals
       for (let i = 0; i < 2; i++) {
-        racingState.rivals.push({
+        racingGame.rivals.push({
           lane: i === 0 ? 0 : 2,
-          y: -100 - i * 300,
-          speed: 180 + Math.random() * 40
+          y: -100 - i * 250,
+          speed: 180 + Math.random() * 30,
+          color: i === 0 ? '#f59e0b' : '#8b5cf6'
         });
       }
       
-      startGameLoop(updateRacing);
+      startGameLoop(updateRacingGame);
     }
     
-    function updateRacing(dt) {
-      const s = racingState;
-      if (s.gameOver) return;
+    function updateRacingGame(deltaTime) {
+      if (racingGame.gameOver) return;
       
-      s.time += dt;
+      const game = racingGame;
       
       // Lane switching
-      if (input.left && s.playerLane > 0) s.playerLane--;
-      if (input.right && s.playerLane < 2) s.playerLane++;
+      if (input.left && game.playerLane > 0) {
+        game.playerLane--;
+      }
+      if (input.right && game.playerLane < game.lanes - 1) {
+        game.playerLane++;
+      }
+      
+      // Road scrolling
+      game.roadOffset += game.speed * deltaTime;
       
       // Obstacle spawning
-      if (s.time > 2 && s.obstacles.length < 5) {
-        s.obstacles.push({
-          lane: Math.floor(Math.random() * 3),
+      if (performance.now() - game.lastObstacle > game.obstacleInterval) {
+        game.obstacles.push({
+          lane: Math.floor(Math.random() * game.lanes),
           y: -50,
-          speed: 250
+          width: 30,
+          height: 40,
+          speed: 250 + Math.random() * 50
         });
-        s.time = 0;
+        game.lastObstacle = performance.now();
+        game.obstacleInterval = Math.max(800, game.obstacleInterval * 0.97);
       }
       
       // Update rivals
-      for (const r of s.rivals) {
-        r.y += r.speed * dt;
-        if (r.y > canvas.height + 50) {
-          r.y = -100;
-          r.speed = 180 + Math.random() * 40;
+      for (const rival of game.rivals) {
+        rival.y += rival.speed * deltaTime;
+        if (rival.y > canvas.height + 100) {
+          rival.y = -100;
+          rival.speed = 180 + Math.random() * 30;
         }
       }
       
       // Update obstacles
-      for (let i = s.obstacles.length - 1; i >= 0; i--) {
-        const obs = s.obstacles[i];
-        obs.y += obs.speed * dt;
-        if (obs.y > canvas.height + 50) {
-          s.obstacles.splice(i, 1);
-          s.score += 10;
+      for (let i = game.obstacles.length - 1; i >= 0; i--) {
+        const obs = game.obstacles[i];
+        obs.y += obs.speed * deltaTime;
+        if (obs.y > canvas.height + 100) {
+          game.obstacles.splice(i, 1);
+          game.score += 15;
         }
       }
       
       // Collision detection
-      const playerX = 50 + s.playerLane * 100;
-      for (const obs of s.obstacles) {
-        const obsX = 50 + obs.lane * 100;
-        if (Math.abs(playerX - obsX) < 40 && Math.abs(s.playerY - obs.y) < 40) {
-          s.gameOver = true;
-          gameState.score = Math.floor(s.score);
-          exitGame();
+      const playerX = game.laneWidth * game.playerLane + game.laneWidth / 2;
+      const playerWidth = 35;
+      const playerHeight = 60;
+      
+      // Check rivals
+      for (const rival of game.rivals) {
+        const rivalX = game.laneWidth * rival.lane + game.laneWidth / 2;
+        const dx = Math.abs(playerX - rivalX);
+        const dy = Math.abs(game.playerY - rival.y);
+        if (dx < playerWidth && dy < playerHeight) {
+          game.gameOver = true;
+          gameState.score = Math.floor(game.score);
+          setTimeout(() => exitGame(), 1000);
+          return;
+        }
+      }
+      
+      // Check obstacles
+      for (const obs of game.obstacles) {
+        const obsX = game.laneWidth * obs.lane + game.laneWidth / 2;
+        const dx = Math.abs(playerX - obsX);
+        const dy = Math.abs(game.playerY - obs.y);
+        if (dx < (playerWidth + obs.width) / 2 && dy < (playerHeight + obs.height) / 2) {
+          game.gameOver = true;
+          gameState.score = Math.floor(game.score);
+          setTimeout(() => exitGame(), 1000);
           return;
         }
       }
       
       // Render
+      renderRacingGame();
+    }
+    
+    function renderRacingGame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Road
       ctx.fillStyle = '#1e293b';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      // Lane markings
+      
+      // Road markings
       ctx.strokeStyle = '#00f5d4';
-      ctx.setLineDash([20, 20]);
-      for (let i = 0; i < 3; i++) {
+      ctx.lineWidth = 3;
+      ctx.setLineDash([30, 25]);
+      for (let i = 1; i < racingGame.lanes; i++) {
+        const x = racingGame.laneWidth * i;
         ctx.beginPath();
-        ctx.moveTo(50 + i * 100, 0);
-        ctx.lineTo(50 + i * 100, canvas.height);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
         ctx.stroke();
       }
       ctx.setLineDash([]);
       
+      // Animated road lines
+      const lineCount = Math.ceil(canvas.height / 50) + 2;
+      for (let i = 0; i < lineCount; i++) {
+        const y = (racingGame.roadOffset + i * 50) % (canvas.height + 50) - 50;
+        if (y > -20 && y < canvas.height + 20) {
+          ctx.fillStyle = '#00f5d4';
+          ctx.fillRect(racingGame.laneWidth - 5, y, 10, 20);
+          ctx.fillRect(racingGame.laneWidth * 2 - 5, y, 10, 20);
+        }
+      }
+      
       // Player car
       ctx.fillStyle = '#ec4899';
-      ctx.fillRect(playerX - 15, s.playerY - 25, 30, 50);
+      const playerX = racingGame.laneWidth * racingGame.playerLane + racingGame.laneWidth / 2;
+      ctx.fillRect(playerX - 17, racingGame.playerY - 30, 35, 60);
       
       // Rivals
+      for (const rival of racingGame.rivals) {
+        const rivalX = racingGame.laneWidth * rival.lane + racingGame.laneWidth / 2;
+        ctx.fillStyle = rival.color;
+        ctx.fillRect(rivalX - 17, rival.y - 30, 35, 60);
+      }
+      
+      // Obstacles
       ctx.fillStyle = '#f87171';
-      for (const r of s.rivals) {
-        const x = 50 + r.lane * 100;
-        ctx.fillRect(x - 15, r.y - 25, 30, 50);
+      for (const obs of racingGame.obstacles) {
+        const obsX = racingGame.laneWidth * obs.lane + racingGame.laneWidth / 2;
+        ctx.fillRect(obsX - obs.width/2, obs.y - obs.height/2, obs.width, obs.height);
       }
       
-      // Obstacles (cones)
-      ctx.fillStyle = '#f59e0b';
-      for (const obs of s.obstacles) {
-        const x = 50 + obs.lane * 100;
-        ctx.beginPath();
-        ctx.moveTo(x, obs.y - 20);
-        ctx.lineTo(x - 10, obs.y + 10);
-        ctx.lineTo(x + 10, obs.y + 10);
-        ctx.closePath();
-        ctx.fill();
-      }
-      
-      gameState.score = Math.floor(s.score);
-      scoreEl.textContent = gameState.score;
+      // Score
+      gameState.score = Math.floor(racingGame.score);
+      scoreEl.textContent = gameState.score.toLocaleString();
     }
   </script>
 </body>
