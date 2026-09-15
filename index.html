@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <title>Оксана: Героиня Чебоксар</title>
+  <title>Календарь Дарьи</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -22,1086 +22,425 @@
             danger: '#ef4444'
           },
           fontFamily: {
-            orbitron: ['Orbitron', 'monospace']
-          },
-          keyframes: {
-            'neon-pulse': {
-              '0%, 100%': { opacity: 0.7, boxShadow: '0 0 5px #00f5d4, 0 0 15px #00f5d4' },
-              '50%': { opacity: 1, boxShadow: '0 0 15px #00f5d4, 0 0 25px #00f5d4' }
-            },
-            'glow-pulse': {
-              '0%, 100%': { boxShadow: '0 0 10px #ff2ea6' },
-              '50%': { boxShadow: '0 0 20px #ff2ea6, 0 0 30px #ff2ea6' }
-            }
-          },
-          animation: {
-            'neon-pulse': 'neon-pulse 2s ease-in-out infinite',
-            'glow-pulse': 'glow-pulse 1.5s ease-in-out infinite'
+            orbitron: ['Orbitron', 'monospace'],
+            sans: ['Inter', 'sans-serif']
           }
         }
       }
     }
   </script>
   <style>
-    * {
-      -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-      user-select: none;
-    }
-    
+    * { -webkit-tap-highlight-color: transparent; user-select: none; }
     body {
-      font-family: 'Orbitron', monospace;
-      background: linear-gradient(135deg, #0a0f1d 0%, #121b2d 100%);
-      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, #0a0f1d 0%, #121b2d 100%);
+      color: white;
       margin: 0;
-      padding: 0;
-      height: 100vh;
-      width: 100vw;
+      min-height: 100vh;
+      overflow-y: auto;
     }
+    .neon-text { text-shadow: 0 0 10px #ff2ea6, 0 0 20px #ff2ea6; }
+    .neon-text-cyan { text-shadow: 0 0 10px #00f5d4, 0 0 20px #00f5d4; }
     
-    canvas {
-      display: block;
+    .cycle-ring {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(#ff2ea6 var(--prog, 0%), #1e293b var(--prog, 0%));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 25px rgba(255, 46, 166, 0.4);
+      transition: background 0.5s ease;
+    }
+    .cycle-ring .inner {
+      width: 125px; height: 125px;
       background: #0a0f1d;
-    }
-    
-    .neon-text {
-      text-shadow: 0 0 10px #00f5d4, 0 0 20px #00f5d4, 0 0 30px #00f5d4;
-    }
-    
-    .glow-text {
-      text-shadow: 0 0 10px #ff2ea6, 0 0 20px #ff2ea6, 0 0 30px #ff2ea6;
-    }
-    
-    .btn-neon {
-      @apply relative overflow-hidden bg-transparent border-2 text-white font-bold rounded-xl py-4 px-6 transition-all duration-300;
-      box-shadow: 0 0 10px #00f5d4, inset 0 0 10px #00f5d4;
-    }
-    
-    .btn-neon::before {
-      content: '';
-      @apply absolute inset-0 bg-gradient-to-r from-neon/20 to-accent/20 opacity-0;
-      transition: opacity 0.3s ease;
-    }
-    
-    .btn-neon:hover {
-      box-shadow: 0 0 20px #00f5d4, 0 0 30px #00f5d4, inset 0 0 20px #00f5d4;
-    }
-    
-    .btn-neon:hover::before {
-      opacity: 1;
-    }
-    
-    .btn-accent {
-      border-color: #ff2ea6;
-      box-shadow: 0 0 10px #ff2ea6, inset 0 0 10px #ff2ea6;
-    }
-    
-    .btn-accent:hover {
-      box-shadow: 0 0 20px #ff2ea6, 0 0 30px #ff2ea6, inset 0 0 20px #ff2ea6;
-    }
-    
-    .hidden {
-      display: none !important;
-    }
-    
-    /* Joystick Styles */
-    .joystick-container {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 120px;
-      height: 120px;
       border-radius: 50%;
-      background: rgba(18, 27, 45, 0.6);
-      border: 3px solid #00f5d4;
-      box-shadow: 0 0 15px #00f5d4;
-      touch-action: none;
-      z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2px solid #1e293b;
     }
     
-    .joystick-knob {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff2ea6 0%, #ec4899 100%);
-      box-shadow: 0 0 15px #ff2ea6;
-      transform: translate(-50%, -50%);
-      touch-action: none;
-    }
-    
-    /* Action Button */
-    .action-btn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #ff2ea6 0%, #ec4899 100%);
-      border: 3px solid #ff2ea6;
-      box-shadow: 0 0 15px #ff2ea6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-      font-weight: bold;
-      touch-action: none;
-      z-index: 100;
-    }
-    
-    .action-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 25px #ff2ea6, 0 0 35px #ff2ea6;
-    }
-    
-    /* Game UI */
-    .game-header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 50;
-    }
-    
-    .score-display {
-      font-size: 28px;
-      font-weight: 800;
-      text-shadow: 0 0 10px #ff2ea6;
-    }
-    
-    .timer-display {
-      font-size: 24px;
-      font-weight: 700;
-      font-family: monospace;
-      color: #00f5d4;
-    }
-    
-    .back-btn {
-      background: rgba(239, 68, 68, 0.8);
-      border: 2px solid #ef4444;
-      color: white;
-      padding: 8px 16px;
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
       border-radius: 12px;
-      font-weight: bold;
-      font-size: 16px;
+      font-size: 14px; font-weight: 600;
+      position: relative; cursor: pointer;
+      transition: all 0.15s ease;
+      background: #1e293b;
+      color: #cbd5e1;
     }
+    .day-cell:active { transform: scale(0.92); }
+    .day-cell.empty { background: transparent; cursor: default; }
+    .day-cell.today { border: 2px solid #00f5d4; color: #00f5d4; }
+    .day-cell.mood-rejected { background: #ff2ea6; color: white; box-shadow: 0 0 10px rgba(255, 46, 166, 0.5); }
+    .day-cell.mood-bad { background: #f59e0b; color: white; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+    .day-cell.mood-good { background: #10b981; color: white; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+    .day-cell.future-pred {
+      background: repeating-linear-gradient(45deg, #1e293b, #1e293b 4px, #334155 4px, #334155 8px);
+      color: #94a3b8; border: 1px dashed #475569;
+    }
+    .day-cell .emoji { font-size: 16px; position: absolute; top: -6px; right: -6px; }
+
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(10, 15, 29, 0.85);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 200; padding: 20px;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: #121b2d; border: 1px solid #334155; border-radius: 24px; padding: 24px;
+      width: 100%; max-width: 340px;
+      animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     
-    .back-btn:hover {
-      background: rgba(239, 68, 68, 1);
-      box-shadow: 0 0 15px #ef4444;
+    .opt {
+      padding: 14px; border-radius: 14px; border: 1px solid #334155;
+      background: #0a0f1d; cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 15px; font-weight: 600; color: white;
+      transition: all 0.15s;
     }
-    
-    /* Records Panel */
-    .records-panel {
-      background: rgba(18, 27, 45, 0.7);
-      backdrop-filter: blur(10px);
-      border: 2px solid #00f5d4;
-      border-radius: 16px;
-      padding: 16px;
-      margin-top: 24px;
-    }
-    
-    .records-title {
-      color: #00f5d4;
-      font-size: 14px;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 8px;
-    }
-    
-    .records-values {
-      font-size: 16px;
-      font-weight: 700;
-      text-align: center;
-      color: white;
-    }
+    .opt:active { transform: scale(0.97); }
+    .opt-reject { border-color: #ff2ea6; } .opt-reject:active { background: rgba(255, 46, 166, 0.2); }
+    .opt-bad { border-color: #f59e0b; } .opt-bad:active { background: rgba(245, 158, 11, 0.2); }
+    .opt-good { border-color: #10b981; } .opt-good:active { background: rgba(16, 185, 129, 0.2); }
   </style>
 </head>
-<body>
-  <div id="app" class="w-full h-full relative">
-    <!-- Main Menu -->
-    <div id="menu" class="w-full h-full flex flex-col items-center justify-center p-6">
-      <div class="text-center mb-8">
-        <h1 class="text-4xl md:text-5xl font-black glow-text mb-2 tracking-wide">
-          ОКСАНА
-        </h1>
-        <p class="text-neon text-lg font-semibold">Героиня Чебоксар</p>
-        <div class="w-32 h-1 bg-gradient-to-r from-neon to-accent rounded-full mx-auto mt-4"></div>
-      </div>
-      
-      <div class="w-full max-w-md space-y-4">
-        <button onclick="startGame('shooter')" class="btn-neon w-full">
-          🔫 ОКСАНА В БОЮ
-        </button>
-        <button onclick="startGame('drift')" class="btn-neon w-full">
-          🏁 ДРИФТ ПО ЧЕБОКСАРАМ
-        </button>
-        <button onclick="startGame('racing')" class="btn-neon btn-accent w-full">
-          🏎️ ГОНКИ С ДРУЗЬЯМИ
-        </button>
-      </div>
+<body class="pb-28">
 
-      <div class="records-panel w-full max-w-md">
-        <div class="records-title">ЛИЧНЫЕ РЕКОРДЫ</div>
-        <div class="records-values">
-          🔫 <span id="record-shooter">0</span> &nbsp;|&nbsp; 
-          🏁 <span id="record-drift">0</span> &nbsp;|&nbsp; 
-          🏎️ <span id="record-racing">0</span>
+  <div id="app" class="w-full max-w-md mx-auto p-4">
+    <!-- Header -->
+    <div class="text-center mb-6 mt-2">
+      <h1 class="text-2xl font-black neon-text font-orbitron tracking-wider mb-1">КАЛЕНДАРЬ ДАРЬИ</h1>
+      <p id="subtitle" class="text-gray-400 text-sm font-medium">Слежу за настроением...</p>
+    </div>
+
+    <!-- Cycle Ring -->
+    <div class="flex justify-center mb-6">
+      <div class="cycle-ring" id="cycleRing">
+        <div class="inner">
+          <div class="text-3xl font-black text-accent font-orbitron" id="cycleDay">—</div>
+          <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">день цикла</div>
+          <div class="text-2xl mt-1" id="currentMood">🤷</div>
         </div>
-      </div>
-      
-      <div class="absolute bottom-6 text-center text-gray-400 text-sm">
-        Используй сенсорное управление или клавиши-стрелки
       </div>
     </div>
 
-    <!-- Game Canvas Container -->
-    <div id="game-container" class="hidden w-full h-full relative">
-      <canvas id="game-canvas"></canvas>
-      <div class="game-header">
-        <div class="score-display" id="score">0</div>
-        <div class="timer-display" id="timer"></div>
-        <button onclick="exitGame()" class="back-btn">← МЕНЮ</button>
+    <!-- Forecast -->
+    <div class="bg-secondary/80 backdrop-blur border border-gray-700 rounded-2xl p-4 mb-4">
+      <h3 class="text-xs font-bold text-neon uppercase tracking-wider mb-3 font-orbitron">🔮 Прогноз настроения</h3>
+      <div id="forecastList" class="space-y-2">
+        <div class="text-gray-400 text-sm text-center py-2">Добавь первые отметки, и я построю прогноз</div>
       </div>
-      <div id="touch-controls" class="absolute inset-0 pointer-events-none"></div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="bg-secondary/80 backdrop-blur border border-gray-700 rounded-2xl p-4 mb-4">
+      <div class="flex justify-between items-center mb-4">
+        <button id="prevMonth" class="w-8 h-8 rounded-full bg-primary border border-gray-600 text-neon flex items-center justify-center text-lg">‹</button>
+        <div class="text-lg font-bold font-orbitron text-white capitalize" id="monthLabel"></div>
+        <button id="nextMonth" class="w-8 h-8 rounded-full bg-primary border border-gray-600 text-neon flex items-center justify-center text-lg">›</button>
+      </div>
+      
+      <div class="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 font-bold mb-2">
+        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+      </div>
+      <div class="grid grid-cols-7 gap-2" id="daysGrid"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-secondary/80 border border-gray-700 rounded-2xl p-3 text-center">
+        <div class="text-xl font-black text-accent font-orbitron" id="statReject">0</div>
+        <div class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Отшит</div>
+      </div>
+      <div class="bg-secondary/80 border border-gray-700 rounded-2xl p-3 text-center">
+        <div class="text-xl font-black text-warning font-orbitron" id="statBad">0</div>
+        <div class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">Без настр.</div>
+      </div>
+      <div class="bg-secondary/80 border border-gray-700 rounded-2xl p-3 text-center">
+        <div class="text-xl font-black text-success font-orbitron" id="statGood">0</div>
+        <div class="text-[10px] text-gray-400 uppercase tracking-wider mt-1">В настр.</div>
+      </div>
+    </div>
+
+    <button id="resetBtn" class="w-full text-center text-gray-600 text-xs underline pb-4">Сбросить все данные</button>
+  </div>
+
+  <!-- FAB Buttons -->
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-3 bg-secondary/90 backdrop-blur-xl border border-gray-700 p-2 rounded-full shadow-2xl z-50">
+    <button onclick="markToday('rejected')" class="w-14 h-14 rounded-full bg-accent flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(255,46,166,0.5)] active:scale-90 transition-transform">💔</button>
+    <button onclick="markToday('bad')" class="w-14 h-14 rounded-full bg-warning flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.5)] active:scale-90 transition-transform">😔</button>
+    <button onclick="markToday('good')" class="w-14 h-14 rounded-full bg-success flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(16,185,129,0.5)] active:scale-90 transition-transform">💖</button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h3 class="text-lg font-bold text-center text-white mb-4 font-orbitron" id="modalTitle">Выбери настроение</h3>
+      <div class="space-y-3">
+        <div class="opt opt-reject" onclick="setMood('rejected')"><span class="text-2xl">💔</span><span>Отшила</span></div>
+        <div class="opt opt-bad" onclick="setMood('bad')"><span class="text-2xl">😔</span><span>Без настроения</span></div>
+        <div class="opt opt-good" onclick="setMood('good')"><span class="text-2xl">💖</span><span>В настроении</span></div>
+        <div class="opt border-gray-600" onclick="setMood(null)"><span class="text-2xl">🗑️</span><span>Убрать отметку</span></div>
+      </div>
+      <button class="w-full mt-4 py-3 rounded-xl bg-gray-800 text-gray-400 font-semibold active:bg-gray-700 transition-colors" onclick="closeModal()">Отмена</button>
     </div>
   </div>
 
   <script>
-    // Initialize Telegram WebApp
+    // 1. Telegram WebApp Init
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
       tg.setHeaderColor('#0a0f1d');
       tg.setBackgroundColor('#0a0f1d');
-      tg.MainButton.setText('Отправить рекорд 🏆');
-      tg.MainButton.hide();
+      tg.disableVerticalSwipes(); // Prevent pull-to-refresh in TG
     }
 
-    // Game state
-    const gameState = {
-      currentGame: null,
-      score: 0,
-      records: {
-        shooter: parseInt(localStorage.getItem('oxana_shooter') || '0'),
-        drift: parseInt(localStorage.getItem('oxana_drift') || '0'),
-        racing: parseInt(localStorage.getItem('oxana_racing') || '0')
-      }
-    };
-
-    // DOM Elements
-    const elements = {
-      menu: document.getElementById('menu'),
-      gameContainer: document.getElementById('game-container'),
-      canvas: document.getElementById('game-canvas'),
-      ctx: document.getElementById('game-canvas').getContext('2d'),
-      score: document.getElementById('score'),
-      timer: document.getElementById('timer'),
-      touchControls: document.getElementById('touch-controls'),
-      records: {
-        shooter: document.getElementById('record-shooter'),
-        drift: document.getElementById('record-drift'),
-        racing: document.getElementById('record-racing')
-      }
-    };
-
-    // Update records display
-    function updateRecords() {
-      elements.records.shooter.textContent = formatScore(gameState.records.shooter);
-      elements.records.drift.textContent = formatScore(gameState.records.drift);
-      elements.records.racing.textContent = formatScore(gameState.records.racing);
-    }
+    // 2. State & Data
+    const STORAGE_KEY = 'darya_calendar_twa_v1';
+    const MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
     
-    function formatScore(score) {
-      return score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    let data = loadData();
+    let viewDate = new Date();
+    let selectedDate = null;
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch(e) {}
+      return { entries: {} };
     }
-    
-    updateRecords();
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
-    // Canvas setup
-    function resizeCanvas() {
-      elements.canvas.width = window.innerWidth;
-      elements.canvas.height = window.innerHeight;
+    function dateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    function todayKey() { return dateKey(new Date()); }
+    function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+    function formatDate(d) { return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
 
-    // Input handling
-    const input = {
-      left: false,
-      right: false,
-      up: false,
-      down: false,
-      action: false,
-      lastActionTime: 0
-    };
+    // 3. Actions
+    function markToday(mood) {
+      data.entries[todayKey()] = mood;
+      saveData();
+      render();
+      if (tg) tg.HapticFeedback.impactOccurred('light');
+    }
 
-    // Keyboard events
-    window.addEventListener('keydown', (e) => {
-      switch(e.key) {
-        case 'ArrowLeft': case 'a': case 'A': input.left = true; break;
-        case 'ArrowRight': case 'd': case 'D': input.right = true; break;
-        case 'ArrowUp': case 'w': case 'W': input.up = true; break;
-        case 'ArrowDown': case 's': case 'S': input.down = true; break;
-        case ' ': case 'Enter': 
-          if (Date.now() - input.lastActionTime > 100) {
-            input.action = true;
-            input.lastActionTime = Date.now();
-          }
-          break;
+    function openModal(dateStr) {
+      selectedDate = dateStr;
+      document.getElementById('modalTitle').textContent = formatDate(new Date(dateStr + 'T00:00:00'));
+      document.getElementById('modalBg').classList.add('show');
+      if (tg) tg.HapticFeedback.selectionChanged();
+    }
+    function closeModal() {
+      document.getElementById('modalBg').classList.remove('show');
+      selectedDate = null;
+    }
+    function setMood(mood) {
+      if (!selectedDate) return;
+      if (mood === null) delete data.entries[selectedDate];
+      else data.entries[selectedDate] = mood;
+      saveData();
+      closeModal();
+      render();
+      if (tg) tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    // 4. Analysis & Prediction Logic
+    function analyzeCycle() {
+      const entries = Object.entries(data.entries)
+        .map(([k, v]) => ({ date: new Date(k + 'T00:00:00'), mood: v, key: k }))
+        .sort((a, b) => a.date - b.date);
+
+      const badDays = entries.filter(e => e.mood === 'rejected' || e.mood === 'bad');
+      let avgCycle = 7, badPhaseLen = 2, lastBad = null;
+
+      if (badDays.length >= 2) {
+        lastBad = badDays[badDays.length - 1].date;
+        const gaps = [];
+        for (let i = 1; i < badDays.length; i++) {
+          const gap = daysBetween(badDays[i-1].date, badDays[i].date);
+          if (gap > 0 && gap < 60) gaps.push(gap);
+        }
+        if (gaps.length > 0) avgCycle = gaps.reduce((a,b)=>a+b,0) / gaps.length;
+
+        const clusters = [];
+        let cur = [badDays[0]];
+        for (let i = 1; i < badDays.length; i++) {
+          if (daysBetween(badDays[i-1].date, badDays[i].date) <= 2) cur.push(badDays[i]);
+          else { clusters.push(cur); cur = [badDays[i]]; }
+        }
+        clusters.push(cur);
+        badPhaseLen = Math.max(1, Math.round(clusters.map(c => c.length).reduce((a,b)=>a+b,0) / clusters.length));
+      } else if (badDays.length === 1) {
+        lastBad = badDays[0].date;
       }
-    });
 
-    window.addEventListener('keyup', (e) => {
-      switch(e.key) {
-        case 'ArrowLeft': case 'a': case 'A': input.left = false; break;
-        case 'ArrowRight': case 'd': case 'D': input.right = false; break;
-        case 'ArrowUp': case 'w': case 'W': input.up = false; break;
-        case 'ArrowDown': case 's': case 'S': input.down = false; break;
-        case ' ': case 'Enter': input.action = false; break;
-      }
-    });
+      return { avgCycle, badPhaseLen, lastBad, total: entries.length };
+    }
 
-    // Create touch controls
-    function createTouchControls() {
-      elements.touchControls.innerHTML = '';
-      elements.touchControls.classList.remove('pointer-events-none');
-      
-      // Joystick
-      const joystick = document.createElement('div');
-      joystick.className = 'joystick-container';
-      const knob = document.createElement('div');
-      knob.className = 'joystick-knob';
-      joystick.appendChild(knob);
-      
-      // Action button
-      const actionBtn = document.createElement('div');
-      actionBtn.className = 'action-btn';
-      actionBtn.innerHTML = '🔥';
-      
-      elements.touchControls.appendChild(joystick);
-      elements.touchControls.appendChild(actionBtn);
-      
-      // Joystick logic
-      let isJoystickActive = false;
-      let joystickCenter = { x: 80, y: window.innerHeight - 80 };
-      
-      function updateJoystick(clientX, clientY) {
-        const rect = joystick.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const deltaX = clientX - centerX;
-        const deltaY = clientY - centerY;
-        const distance = Math.min(45, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
-        const angle = Math.atan2(deltaY, deltaX);
-        const posX = Math.cos(angle) * distance;
-        const posY = Math.sin(angle) * distance;
+    function predictNextDays() {
+      const { avgCycle, badPhaseLen, lastBad } = analyzeCycle();
+      const today = new Date(); today.setHours(0,0,0,0);
+      const predictions = [];
+      if (!lastBad) return predictions;
+
+      let nextStart = new Date(lastBad);
+      nextStart.setDate(nextStart.getDate() + Math.round(avgCycle));
+      while (nextStart <= today) nextStart.setDate(nextStart.getDate() + Math.round(avgCycle));
+
+      for (let cycle = 0; cycle < 3; cycle++) {
+        const start = new Date(nextStart);
+        start.setDate(start.getDate() + cycle * Math.round(avgCycle));
+        predictions.push({ date: new Date(start), type: 'bad', text: `Ожидается отшив / без настр.`, emoji: '💔' });
         
-        knob.style.transform = `translate(calc(-50% + ${posX}px), calc(-50% + ${posY}px))`;
-        
-        // Directional input
-        input.left = posX < -15;
-        input.right = posX > 15;
-        input.up = posY < -15;
-        input.down = posY > 15;
+        const goodStart = new Date(start);
+        goodStart.setDate(goodStart.getDate() + badPhaseLen);
+        predictions.push({ date: new Date(goodStart), type: 'good', text: `Возможно, будет в настроении`, emoji: '💖' });
       }
-      
-      joystick.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        isJoystickActive = true;
-        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
-      });
-      
-      window.addEventListener('touchmove', (e) => {
-        if (!isJoystickActive) return;
-        e.preventDefault();
-        updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
-      });
-      
-      window.addEventListener('touchend', () => {
-        isJoystickActive = false;
-        knob.style.transform = 'translate(-50%, -50%)';
-        input.left = input.right = input.up = input.down = false;
-      });
-      
-      // Action button logic
-      let isActionPressed = false;
-      actionBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (isActionPressed) return;
-        isActionPressed = true;
-        input.action = true;
-        actionBtn.style.transform = 'scale(0.92)';
-        actionBtn.style.boxShadow = '0 0 25px #ff2ea6, 0 0 35px #ff2ea6';
-      });
-      
-      actionBtn.addEventListener('touchend', () => {
-        input.action = false;
-        isActionPressed = false;
-        actionBtn.style.transform = 'scale(1)';
-        actionBtn.style.boxShadow = '0 0 15px #ff2ea6';
-      });
+      return predictions;
     }
 
-    // Exit game function
-    function exitGame() {
-      if (gameState.currentGame) {
-        const gameKey = gameState.currentGame;
-        if (gameState.score > gameState.records[gameKey]) {
-          gameState.records[gameKey] = gameState.score;
-          localStorage.setItem(`oxana_${gameKey}`, gameState.score.toString());
-          updateRecords();
-          
-          if (tg) {
-            tg.MainButton.setText(`🏆 НОВЫЙ РЕКОРД: ${formatScore(gameState.score)} в "${gameKey}"`);
-            tg.MainButton.show();
-            tg.MainButton.onClick(() => {
-              tg.sendData(JSON.stringify({ 
-                game: gameKey, 
-                score: gameState.score,
-                name: 'Оксана',
-                city: 'Чебоксары'
-              }));
-              tg.close();
-            });
-          }
-        }
-      }
-      
-      elements.menu.classList.remove('hidden');
-      elements.gameContainer.classList.add('hidden');
-      gameState.currentGame = null;
-      gameState.score = 0;
-      elements.score.textContent = '0';
-      elements.timer.textContent = '';
-      elements.touchControls.innerHTML = '';
-      elements.touchControls.classList.add('pointer-events-none');
-      
-      if (tg) tg.MainButton.hide();
-    }
-
-    // Start game function
-    window.startGame = function(gameName) {
-      elements.menu.classList.add('hidden');
-      elements.gameContainer.classList.remove('hidden');
-      gameState.currentGame = gameName;
-      gameState.score = 0;
-      elements.score.textContent = '0';
-      
-      resizeCanvas();
-      createTouchControls();
-      
-      // Reset input
-      Object.keys(input).forEach(key => {
-        if (key !== 'lastActionTime') input[key] = false;
-      });
-      
-      // Initialize game
-      if (gameName === 'shooter') initShooter();
-      else if (gameName === 'drift') initDrift();
-      else if (gameName === 'racing') initRacing();
-    };
-
-    // Game loop
-    let gameLoopId = null;
-    let lastFrameTime = 0;
-    
-    function startGameLoop(updateFn) {
-      if (gameLoopId) cancelAnimationFrame(gameLoopId);
-      lastFrameTime = performance.now();
-      
-      const loop = (currentTime) => {
-        const deltaTime = Math.min(0.1, (currentTime - lastFrameTime) / 1000);
-        lastFrameTime = currentTime;
-        
-        if (gameState.currentGame) {
-          updateFn(deltaTime);
-          gameLoopId = requestAnimationFrame(loop);
-        }
-      };
-      
-      gameLoopId = requestAnimationFrame(loop);
-    }
-
-    // === SHOOTER GAME ===
-    let shooter = null;
-    
-    function initShooter() {
-      shooter = {
-        player: { x: elements.canvas.width / 2, y: elements.canvas.height / 2, radius: 20, speed: 300, health: 100, maxHealth: 100, fireRate: 0.15, lastShot: 0 },
-        bullets: [],
-        enemies: [],
-        particles: [],
-        spawnTimer: 0,
-        spawnInterval: 0.8,
-        gameOver: false,
-        backgroundBuildings: generateCityscape(elements.canvas.width)
-      };
-      
-      startGameLoop(updateShooter);
-    }
-    
-    function generateCityscape(width) {
-      const buildings = [];
-      let x = 0;
-      while (x < width + 100) {
-        const height = 60 + Math.random() * 140;
-        const widthB = 25 + Math.random() * 35;
-        buildings.push({ x, width: widthB, height, color: `hsl(${200 + Math.random() * 20}, 30%, ${25 + Math.random() * 10}%)` });
-        x += widthB + 15 + Math.random() * 20;
-      }
-      return buildings;
-    }
-    
-    function updateShooter(deltaTime) {
-      if (shooter.gameOver) return;
-      
-      const now = performance.now() / 1000;
-      
-      // Player movement
-      let dx = 0, dy = 0;
-      if (input.left) dx -= 1;
-      if (input.right) dx += 1;
-      if (input.up) dy -= 1;
-      if (input.down) dy += 1;
-      
-      const length = Math.sqrt(dx * dx + dy * dy);
-      if (length > 0) {
-        dx /= length; dy /= length;
-        shooter.player.x += dx * shooter.player.speed * deltaTime;
-        shooter.player.y += dy * shooter.player.speed * deltaTime;
-      }
-      
-      // Boundary check
-      shooter.player.x = Math.max(shooter.player.radius, Math.min(elements.canvas.width - shooter.player.radius, shooter.player.x));
-      shooter.player.y = Math.max(shooter.player.radius, Math.min(elements.canvas.height - shooter.player.radius, shooter.player.y));
-      
-      // Shooting
-      if (input.action && now - shooter.player.lastShot > shooter.player.fireRate) {
-        shooter.bullets.push({
-          x: shooter.player.x,
-          y: shooter.player.y,
-          dx: dx || 0,
-          dy: dy || -1,
-          speed: 500,
-          radius: 4
-        });
-        shooter.player.lastShot = now;
-      }
-      
-      // Enemy spawning
-      shooter.spawnTimer += deltaTime;
-      if (shooter.spawnTimer > shooter.spawnInterval) {
-        const side = Math.floor(Math.random() * 4);
-        let x, y;
-        switch(side) {
-          case 0: x = Math.random() * elements.canvas.width; y = -30; break;
-          case 1: x = elements.canvas.width + 30; y = Math.random() * elements.canvas.height; break;
-          case 2: x = Math.random() * elements.canvas.width; y = elements.canvas.height + 30; break;
-          case 3: x = -30; y = Math.random() * elements.canvas.height; break;
-        }
-        shooter.enemies.push({
-          x, y, radius: 16, speed: 120 + Math.random() * 80, health: 1,
-          color: `hsl(${0 + Math.random() * 20}, 80%, 60%)`
-        });
-        shooter.spawnTimer = 0;
-        shooter.spawnInterval = Math.max(0.3, shooter.spawnInterval * 0.98);
-      }
-      
-      // Update bullets
-      for (let i = shooter.bullets.length - 1; i >= 0; i--) {
-        const b = shooter.bullets[i];
-        b.x += b.dx * b.speed * deltaTime;
-        b.y += b.dy * b.speed * deltaTime;
-        
-        if (b.x < -50 || b.x > elements.canvas.width + 50 || b.y < -50 || b.y > elements.canvas.height + 50) {
-          shooter.bullets.splice(i, 1);
-          continue;
-        }
-        
-        // Bullet-enemy collision
-        for (let j = shooter.enemies.length - 1; j >= 0; j--) {
-          const e = shooter.enemies[j];
-          const dist = Math.sqrt((b.x - e.x) ** 2 + (b.y - e.y) ** 2);
-          if (dist < b.radius + e.radius) {
-            createExplosion(e.x, e.y, e.color);
-            shooter.enemies.splice(j, 1);
-            shooter.bullets.splice(i, 1);
-            gameState.score += 35;
-            elements.score.textContent = formatScore(gameState.score);
-            break;
-          }
-        }
-      }
-      
-      // Update enemies
-      for (let i = shooter.enemies.length - 1; i >= 0; i--) {
-        const e = shooter.enemies[i];
-        const dx = shooter.player.x - e.x;
-        const dy = shooter.player.y - e.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > 0) {
-          e.x += (dx / dist) * e.speed * deltaTime;
-          e.y += (dy / dist) * e.speed * deltaTime;
-        }
-        
-        // Collision with player
-        if (dist < shooter.player.radius + e.radius) {
-          shooter.player.health -= 12;
-          createExplosion(shooter.player.x, shooter.player.y, '#ff6b6b');
-          shooter.enemies.splice(i, 1);
-          if (shooter.player.health <= 0) {
-            shooter.gameOver = true;
-            setTimeout(exitGame, 1500);
-          }
-        }
-      }
-      
-      // Update particles
-      for (let i = shooter.particles.length - 1; i >= 0; i--) {
-        const p = shooter.particles[i];
-        p.x += p.vx * deltaTime;
-        p.y += p.vy * deltaTime;
-        p.life -= p.decay * deltaTime;
-        if (p.life <= 0) shooter.particles.splice(i, 1);
-      }
-      
-      renderShooter();
-    }
-    
-    function createExplosion(x, y, color) {
-      for (let i = 0; i < 12; i++) {
-        shooter.particles.push({
-          x, y,
-          vx: (Math.random() - 0.5) * 200,
-          vy: (Math.random() - 0.5) * 200,
-          life: 1.0,
-          decay: 3.0,
-          color: color || '#00f5d4'
-        });
-      }
-    }
-    
-    function renderShooter() {
-      const ctx = elements.ctx;
-      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Background
-      ctx.fillStyle = '#0c1525';
-      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Cityscape
-      shooter.backgroundBuildings.forEach(building => {
-        ctx.fillStyle = building.color;
-        ctx.fillRect(building.x, elements.canvas.height - building.height, building.width, building.height);
-      });
-      
-      // Particles
-      shooter.particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.life;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      });
-      
-      // Bullets
-      ctx.fillStyle = '#00f5d4';
-      shooter.bullets.forEach(b => {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      
-      // Enemies
-      shooter.enemies.forEach(e => {
-        ctx.fillStyle = e.color;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      
-      // Player
-      ctx.fillStyle = '#ff2ea6';
-      ctx.beginPath();
-      ctx.arc(shooter.player.x, shooter.player.y, shooter.player.radius, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Health bar
-      const healthWidth = 120;
-      const healthPercent = shooter.player.health / shooter.player.maxHealth;
-      ctx.fillStyle = '#450a0a';
-      ctx.fillRect(shooter.player.x - healthWidth/2, shooter.player.y - 40, healthWidth, 10);
-      ctx.fillStyle = healthPercent > 0.6 ? '#10b981' : healthPercent > 0.3 ? '#f59e0b' : '#ef4444';
-      ctx.fillRect(shooter.player.x - healthWidth/2, shooter.player.y - 40, healthWidth * healthPercent, 10);
-    }
-
-    // === DRIFT GAME ===
-    let drift = null;
-    
-    function initDrift() {
-      drift = {
-        car: { x: elements.canvas.width / 2, y: elements.canvas.height / 2, angle: 0, speed: 0, maxSpeed: 400, acceleration: 500, friction: 0.92 },
-        driftAngle: 0,
-        driftIntensity: 0,
-        score: 0,
-        timeLeft: 60,
-        lastTime: performance.now(),
-        landmarks: [
-          { name: 'ГЭС', x: 120, y: 100, radius: 30, collected: false },
-          { name: 'Мост', x: elements.canvas.width - 120, y: 180, radius: 25, collected: false },
-          { name: 'Пл. Респ.', x: elements.canvas.width / 2, y: elements.canvas.height - 120, radius: 35, collected: false },
-          { name: 'Бульвар', x: 240, y: elements.canvas.height - 180, radius: 28, collected: false }
-        ],
-        trail: [],
-        stars: generateStars(150),
-        gameOver: false
-      };
-      
-      startGameLoop(updateDrift);
-    }
-    
-    function generateStars(count) {
-      const stars = [];
-      for (let i = 0; i < count; i++) {
-        stars.push({
-          x: Math.random() * elements.canvas.width,
-          y: Math.random() * elements.canvas.height,
-          size: 0.5 + Math.random() * 1.5,
-          brightness: 0.5 + Math.random() * 0.5
-        });
-      }
-      return stars;
-    }
-    
-    function updateDrift(deltaTime) {
-      if (drift.gameOver) return;
-      
-      const now = performance.now();
-      drift.timeLeft -= (now - drift.lastTime) / 1000;
-      drift.lastTime = now;
-      elements.timer.textContent = Math.max(0, Math.floor(drift.timeLeft));
-      
-      if (drift.timeLeft <= 0) {
-        gameState.score = Math.floor(drift.score);
-        setTimeout(exitGame, 500);
+    // 5. Rendering
+    function renderForecast() {
+      const list = document.getElementById('forecastList');
+      const preds = predictNextDays();
+      if (preds.length === 0) {
+        list.innerHTML = '<div class="text-gray-400 text-sm text-center py-2">Добавь первые отметки, и я построю прогноз 🔮</div>';
         return;
       }
-      
-      // Car controls
-      if (input.up) {
-        drift.car.speed = Math.min(drift.car.maxSpeed, drift.car.speed + drift.car.acceleration * deltaTime);
-      } else if (input.down) {
-        drift.car.speed = Math.max(0, drift.car.speed - drift.car.acceleration * 1.5 * deltaTime);
-      } else {
-        drift.car.speed *= Math.pow(drift.car.friction, deltaTime * 60);
-      }
-      
-      let steering = 0;
-      if (input.left) steering = -3.5;
-      if (input.right) steering = 3.5;
-      
-      // Drift physics
-      const turnSpeed = steering * (drift.car.speed / drift.car.maxSpeed) * 2.5;
-      drift.car.angle += turnSpeed * deltaTime;
-      drift.driftAngle = turnSpeed * deltaTime * 25;
-      drift.driftIntensity = Math.min(1, drift.driftIntensity + Math.abs(turnSpeed) * deltaTime * 1.2);
-      drift.driftIntensity *= 0.96;
-      
-      // Movement
-      drift.car.x += Math.sin(drift.car.angle) * drift.car.speed * deltaTime;
-      drift.car.y -= Math.cos(drift.car.angle) * drift.car.speed * deltaTime;
-      
-      // Screen wrapping
-      if (drift.car.x < -50) drift.car.x = elements.canvas.width + 50;
-      if (drift.car.x > elements.canvas.width + 50) drift.car.x = -50;
-      if (drift.car.y < -50) drift.car.y = elements.canvas.height + 50;
-      if (drift.car.y > elements.canvas.height + 50) drift.car.y = -50;
-      
-      // Trail effect
-      if (drift.car.speed > 80 && Math.random() > 0.7) {
-        drift.trail.push({
-          x: drift.car.x - Math.sin(drift.car.angle) * 35,
-          y: drift.car.y + Math.cos(drift.car.angle) * 35,
-          intensity: drift.driftIntensity,
-          life: 1.0,
-          angle: drift.car.angle + Math.PI
-        });
-        if (drift.trail.length > 25) drift.trail.shift();
-      }
-      
-      // Score calculation
-      drift.score += drift.driftIntensity * drift.car.speed * deltaTime * 0.15;
-      
-      // Landmark collection
-      for (const landmark of drift.landmarks) {
-        if (landmark.collected) continue;
-        const dx = drift.car.x - landmark.x;
-        const dy = drift.car.y - landmark.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < landmark.radius + 30 && drift.car.speed > 150) {
-          landmark.collected = true;
-          drift.score += 120;
-          setTimeout(() => { landmark.collected = false; }, 3000);
-        }
-      }
-      
-      renderDrift();
-    }
-    
-    function renderDrift() {
-      const ctx = elements.ctx;
-      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Night sky
-      ctx.fillStyle = '#080c18';
-      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Stars
-      drift.stars.forEach(star => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
-      });
-      
-      // Landmarks
-      drift.landmarks.forEach(landmark => {
-        ctx.fillStyle = landmark.collected ? '#10b981' : '#ff2ea6';
-        ctx.beginPath();
-        ctx.arc(landmark.x, landmark.y, landmark.radius, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = 'white';
-        ctx.font = '14px Orbitron';
-        ctx.textAlign = 'center';
-        ctx.fillText(landmark.name, landmark.x, landmark.y + landmark.radius + 25);
-      });
-      
-      // Trail
-      for (let i = 0; i < drift.trail.length; i++) {
-        const t = drift.trail[i];
-        const alpha = t.life * t.intensity * (i / drift.trail.length);
-        if (alpha > 0.05) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, 2 + i * 0.4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      
-      // Car
-      ctx.save();
-      ctx.translate(drift.car.x, drift.car.y);
-      ctx.rotate(drift.car.angle);
-      
-      // Car body with gradient
-      const gradient = ctx.createLinearGradient(-20, -30, 20, 30);
-      gradient.addColorStop(0, drift.driftIntensity > 0.7 ? '#ff2ea6' : '#00f5d4');
-      gradient.addColorStop(1, drift.driftIntensity > 0.7 ? '#ec4899' : '#00c8a6');
-      
-      ctx.fillStyle = gradient;
-      ctx.fillRect(-15, -30, 30, 60);
-      
-      // Windows
-      ctx.fillStyle = '#0a0f1d';
-      ctx.fillRect(-10, -25, 20, 20);
-      
-      ctx.restore();
-      
-      gameState.score = Math.floor(drift.score);
-      elements.score.textContent = formatScore(gameState.score);
+      list.innerHTML = preds.slice(0, 4).map(p => `
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-primary/50 border border-gray-700/50">
+          <span class="text-xl">${p.emoji}</span>
+          <div class="flex-1">
+            <div class="text-xs text-gray-400">${p.date.getDate()} ${MONTHS[p.date.getMonth()].slice(0,3)}</div>
+            <div class="text-sm font-semibold text-white">${p.text}</div>
+          </div>
+        </div>
+      `).join('');
     }
 
-    // === RACING GAME ===
-    let racing = null;
-    
-    function initRacing() {
-      racing = {
-        lanes: 3,
-        laneWidth: elements.canvas.width / 3,
-        playerLane: 1,
-        playerY: elements.canvas.height - 150,
-        speed: 250,
-        rivals: [],
-        obstacles: [],
-        roadOffset: 0,
-        score: 0,
-        lastObstacle: 0,
-        obstacleInterval: 1200,
-        gameOver: false,
-        cityBuildings: generateCityscape(elements.canvas.width)
-      };
-      
-      // Create rivals
-      for (let i = 0; i < 2; i++) {
-        racing.rivals.push({
-          lane: i === 0 ? 0 : 2,
-          y: -150 - i * 300,
-          speed: 200 + Math.random() * 40,
-          color: i === 0 ? '#f59e0b' : '#8b5cf6'
-        });
+    function renderCycleRing() {
+      const { avgCycle, lastBad, badPhaseLen } = analyzeCycle();
+      const ring = document.getElementById('cycleRing');
+      const dayEl = document.getElementById('cycleDay');
+      const moodEl = document.getElementById('currentMood');
+      const sub = document.getElementById('subtitle');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const todayMood = data.entries[todayKey()];
+
+      if (!lastBad) {
+        ring.style.setProperty('--prog', '0%');
+        dayEl.textContent = '—'; moodEl.textContent = '🤷';
+        sub.textContent = 'Отметь первую дату — и цикл запустится';
+        return;
       }
-      
-      startGameLoop(updateRacing);
+
+      const daysSince = daysBetween(lastBad, today);
+      const cycleDay = (daysSince % Math.round(avgCycle)) + 1;
+      const prog = (cycleDay / Math.round(avgCycle)) * 100;
+
+      ring.style.setProperty('--prog', prog + '%');
+      dayEl.textContent = cycleDay;
+
+      if (todayMood === 'rejected') moodEl.textContent = '💔';
+      else if (todayMood === 'bad') moodEl.textContent = '😔';
+      else if (todayMood === 'good') moodEl.textContent = '💖';
+      else if (cycleDay <= badPhaseLen) moodEl.textContent = '⚠️';
+      else moodEl.textContent = '✨';
+
+      if (todayMood) sub.textContent = `Сегодня: ${todayMood === 'rejected' ? 'отшила' : todayMood === 'bad' ? 'без настроения' : 'в настроении'}`;
+      else if (cycleDay <= badPhaseLen) sub.textContent = `⚠️ Опасная зона! Будь начеку`;
+      else sub.textContent = `До следующего отшива ~${Math.round(avgCycle) - cycleDay} дн.`;
     }
-    
-    function updateRacing(deltaTime) {
-      if (racing.gameOver) return;
-      
-      // Lane switching
-      if (input.left && racing.playerLane > 0) {
-        racing.playerLane = Math.max(0, racing.playerLane - 0.02 / deltaTime);
-      }
-      if (input.right && racing.playerLane < racing.lanes - 1) {
-        racing.playerLane = Math.min(racing.lanes - 1, racing.playerLane + 0.02 / deltaTime);
-      }
-      
-      // Smooth lane interpolation
-      racing.playerLane = Math.max(0, Math.min(racing.lanes - 1, racing.playerLane));
-      
-      // Road movement
-      racing.roadOffset += racing.speed * deltaTime;
-      
-      // Obstacle spawning
-      if (performance.now() - racing.lastObstacle > racing.obstacleInterval) {
-        racing.obstacles.push({
-          lane: Math.floor(Math.random() * racing.lanes),
-          y: -80,
-          width: 40,
-          height: 50,
-          speed: 280 + Math.random() * 60
-        });
-        racing.lastObstacle = performance.now();
-        racing.obstacleInterval = Math.max(700, racing.obstacleInterval * 0.96);
-      }
-      
-      // Update rivals
-      for (const rival of racing.rivals) {
-        rival.y += rival.speed * deltaTime;
-        if (rival.y > elements.canvas.height + 150) {
-          rival.y = -150;
-          rival.speed = 200 + Math.random() * 40;
+
+    function renderCalendar() {
+      const grid = document.getElementById('daysGrid');
+      const label = document.getElementById('monthLabel');
+      const year = viewDate.getFullYear(), month = viewDate.getMonth();
+      label.textContent = `${MONTHS[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month+1, 0);
+      let startOffset = (firstDay.getDay() + 6) % 7;
+      const todayK = todayKey();
+
+      const preds = predictNextDays();
+      const predMap = {};
+      const { badPhaseLen } = analyzeCycle();
+      preds.forEach(p => {
+        predMap[dateKey(p.date)] = p.type;
+        for (let i = 1; i < badPhaseLen; i++) {
+          const d = new Date(p.date); d.setDate(d.getDate() + i);
+          predMap[dateKey(d)] = p.type;
         }
+      });
+
+      let html = '';
+      for (let i = 0; i < startOffset; i++) html += '<div class="day-cell empty"></div>';
+
+      for (let d = 1; d <= lastDay.getDate(); d++) {
+        const date = new Date(year, month, d);
+        const key = dateKey(date);
+        const mood = data.entries[key];
+        const isToday = key === todayK;
+        const isFuture = date > new Date(); isFuture && date.setHours(0,0,0,0) >= new Date().setHours(0,0,0,0); // fix timezone edge
+        const pred = predMap[key];
+
+        let cls = 'day-cell';
+        if (mood === 'rejected') cls += ' mood-rejected';
+        else if (mood === 'bad') cls += ' mood-bad';
+        else if (mood === 'good') cls += ' mood-good';
+        else if (isFuture && pred) cls += ' future-pred';
+        else if (isToday) cls += ' today';
+
+        let emoji = '';
+        if (mood === 'rejected') emoji = '<span class="emoji">💔</span>';
+        else if (mood === 'bad') emoji = '<span class="emoji">😔</span>';
+        else if (mood === 'good') emoji = '<span class="emoji">💖</span>';
+        else if (isFuture && pred === 'bad') emoji = '<span class="emoji">⚠️</span>';
+        else if (isFuture && pred === 'good') emoji = '<span class="emoji">✨</span>';
+
+        html += `<div class="${cls}" onclick="openModal('${key}')">${d}${emoji}</div>`;
       }
-      
-      // Update obstacles
-      for (let i = racing.obstacles.length - 1; i >= 0; i--) {
-        const obs = racing.obstacles[i];
-        obs.y += obs.speed * deltaTime;
-        if (obs.y > elements.canvas.height + 150) {
-          racing.obstacles.splice(i, 1);
-          racing.score += 20;
-        }
-      }
-      
-      // Collision detection
-      const playerX = racing.laneWidth * racing.playerLane + racing.laneWidth / 2;
-      const playerRadius = 22;
-      
-      // Check rivals
-      for (const rival of racing.rivals) {
-        const rivalX = racing.laneWidth * rival.lane + racing.laneWidth / 2;
-        const dx = Math.abs(playerX - rivalX);
-        const dy = Math.abs(racing.playerY - rival.y);
-        if (dx < playerRadius * 1.5 && dy < 55) {
-          racing.gameOver = true;
-          gameState.score = Math.floor(racing.score);
-          setTimeout(exitGame, 1500);
-          return;
-        }
-      }
-      
-      // Check obstacles
-      for (const obs of racing.obstacles) {
-        const obsX = racing.laneWidth * obs.lane + racing.laneWidth / 2;
-        const dx = Math.abs(playerX - obsX);
-        const dy = Math.abs(racing.playerY - obs.y);
-        if (dx < (playerRadius + obs.width/2) && dy < (30 + obs.height/2)) {
-          racing.gameOver = true;
-          gameState.score = Math.floor(racing.score);
-          setTimeout(exitGame, 1500);
-          return;
-        }
-      }
-      
-      renderRacing();
+      grid.innerHTML = html;
     }
-    
-    function renderRacing() {
-      const ctx = elements.ctx;
-      ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Background city
-      ctx.fillStyle = '#0c1525';
-      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      racing.cityBuildings.forEach(building => {
-        ctx.fillStyle = building.color;
-        ctx.fillRect(building.x, elements.canvas.height - building.height - 200, building.width, building.height);
-      });
-      
-      // Road
-      ctx.fillStyle = '#121b2d';
-      ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
-      
-      // Lane markings
-      ctx.strokeStyle = '#00f5d4';
-      ctx.lineWidth = 4;
-      ctx.setLineDash([40, 30]);
-      for (let i = 1; i < racing.lanes; i++) {
-        const x = racing.laneWidth * i;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, elements.canvas.height);
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
-      
-      // Moving road lines
-      const lineSpacing = 60;
-      const lineCount = Math.ceil(elements.canvas.height / lineSpacing) + 2;
-      for (let i = 0; i < lineCount; i++) {
-        const y = (racing.roadOffset + i * lineSpacing) % (elements.canvas.height + lineSpacing) - lineSpacing;
-        if (y > -30 && y < elements.canvas.height + 30) {
-          ctx.fillStyle = '#00f5d4';
-          ctx.fillRect(racing.laneWidth - 6, y, 12, 30);
-          ctx.fillRect(racing.laneWidth * 2 - 6, y, 12, 30);
-        }
-      }
-      
-      // Player car
-      const playerX = racing.laneWidth * racing.playerLane + racing.laneWidth / 2;
-      ctx.fillStyle = '#ff2ea6';
-      ctx.fillRect(playerX - 18, racing.playerY - 25, 36, 50);
-      
-      // Rivals
-      racing.rivals.forEach(rival => {
-        const rivalX = racing.laneWidth * rival.lane + racing.laneWidth / 2;
-        ctx.fillStyle = rival.color;
-        ctx.fillRect(rivalX - 18, rival.y - 25, 36, 50);
-      });
-      
-      // Obstacles
-      ctx.fillStyle = '#ef4444';
-      racing.obstacles.forEach(obs => {
-        const obsX = racing.laneWidth * obs.lane + racing.laneWidth / 2;
-        ctx.fillRect(obsX - obs.width/2, obs.y - obs.height/2, obs.width, obs.height);
-      });
-      
-      gameState.score = Math.floor(racing.score);
-      elements.score.textContent = formatScore(gameState.score);
+
+    function renderStats() {
+      const entries = Object.values(data.entries);
+      document.getElementById('statReject').textContent = entries.filter(e => e === 'rejected').length;
+      document.getElementById('statBad').textContent = entries.filter(e => e === 'bad').length;
+      document.getElementById('statGood').textContent = entries.filter(e => e === 'good').length;
     }
+
+    function render() {
+      renderCycleRing();
+      renderForecast();
+      renderCalendar();
+      renderStats();
+    }
+
+    // 6. Event Listeners
+    document.getElementById('prevMonth').onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); render(); };
+    document.getElementById('nextMonth').onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); render(); };
+    document.getElementById('resetBtn').onclick = () => {
+      if (confirm('Точно стереть все отметки?')) {
+        data = { entries: {} };
+        saveData();
+        render();
+        if (tg) tg.HapticFeedback.notificationOccurred('warning');
+      }
+    };
+
+    // Initial render
+    render();
   </script>
 </body>
 </html>
-
-
